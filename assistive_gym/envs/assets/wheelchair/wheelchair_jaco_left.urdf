@@ -1,0 +1,86 @@
+<?xml version="1.0" ?>
+<robot name="wheelchair">
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+  <link name="root">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="wheelchair_permobil_reduced_compressed.obj" scale="0.15 0.15 0.15"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="wheelchair_permobil_reduced_compressed_vhacd.obj" scale="0.15 0.15 0.15"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="wheelchair_link">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.0001"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.35 0.3 -0.15"/>
+      <geometry>
+          <!--<box size="0.085 0.085 0.4"/>-->
+        <cylinder radius="0.0425" length="0.4"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.35 0.3 -0.15"/>
+      <geometry>
+          <!--<box size="0.085 0.085 0.4"/>-->
+        <cylinder radius="0.0425" length="0.4"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheelchair_joint" type="fixed">
+    <parent link="root"/>
+    <child link="wheelchair_link"/>
+    <origin xyz="0 0 0"/>
+  </joint>
+
+  <link name="wheelchair_link2">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.0001"/>
+    </inertial>
+    <visual>
+        <!--<origin rpy="0 0 0" xyz="0.175 0.3 0.0075"/>-->
+      <origin rpy="0 1.57079632679 0" xyz="-0.175 0.3 0.0075"/>
+      <geometry>
+          <!--<box size="0.4 0.085 0.085"/>-->
+        <cylinder radius="0.0425" length="0.4"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+        <!--<origin rpy="0 0 0" xyz="0.175 0.3 0.0075"/>-->
+      <origin rpy="0 1.57079632679 0" xyz="-0.175 0.3 0.0075"/>
+      <geometry>
+          <!--<box size="0.4 0.085 0.085"/>-->
+        <cylinder radius="0.0425" length="0.4"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheelchair_joint2" type="fixed">
+    <parent link="root"/>
+    <child link="wheelchair_link2"/>
+    <origin xyz="0 0 0"/>
+  </joint>
+</robot>

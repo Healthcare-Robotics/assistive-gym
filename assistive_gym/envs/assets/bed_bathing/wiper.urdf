@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<robot name="wiper">
+    <material name="color">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+
+    <link name="handle">
+        <visual>
+            <origin xyz="0 0 -0.01" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.04 0.04 0.06"/>
+            </geometry>
+            <material name="color"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 -0.01" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.04 0.04 0.06"/>
+            </geometry>
+        </collision>
+        <contact>
+            <rolling_friction value="0.001"/>
+            <spinning_friction value="0.001"/>
+        </contact>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1"/>
+            <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
+    </link>
+
+    <link name="tool">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.05 0.01"/>
+            </geometry>
+            <material name="color"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.05 0.01"/>
+            </geometry>
+        </collision>
+        <contact>
+            <rolling_friction value="0.001"/>
+            <spinning_friction value="0.001"/>
+        </contact>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1"/>
+            <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
+    </link>
+
+    <link name="cloth">
+        <visual>
+            <origin xyz="0 0 0.01" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.025 0.005"/>
+            </geometry>
+            <material name="color"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.025 0.005"/>
+            </geometry>
+        </collision>
+        <contact>
+            <rolling_friction value="0.001"/>
+            <spinning_friction value="0.001"/>
+        </contact>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1"/>
+            <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
+    </link>
+
+    <joint name="j_weld0" type="fixed">
+        <parent link="handle"/>
+        <child link="tool"/>
+        <origin xyz="0 0 -0.035"/>
+    </joint>
+    <joint name="j_weld1" type="fixed">
+        <parent link="tool"/>
+        <child link="cloth"/>
+        <origin xyz="0 0 -0.0075"/>
+    </joint>
+
+</robot>
