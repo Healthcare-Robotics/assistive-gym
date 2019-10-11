@@ -7,12 +7,12 @@ Assistive Gym is integrated into the OpenAI Gym interface, enabling the use of e
 ![Assistive Gym](images/assistive_gym.jpg "Assistive Gym")
 
 ### Paper
-A paper on Assistive Gym can be found at https://arxiv.org/abs/
+A paper on Assistive Gym can be found at https://arxiv.org/abs/1910.04700
 ```
 @article{erickson2019assistivegym,
   title={Assistive Gym: A Physics Simulation Framework for Assistive Robotics},
   author={Erickson, Zackory and Gangaram, Vamsee and Kapusta, Ariel and Liu, C. Karen and Kemp, Charles C.},
-  journal={arXiv preprint arXiv:},
+  journal={arXiv preprint arXiv:1910.04700},
   year={2019}
 }
 ```
@@ -75,4 +75,4 @@ This allows robots to learn to provide assistance that is consist with a person'
 &nbsp;  
 ![Human preferences](images/human_preferences.gif "Human preferences")
 
-Refer to [the paper](https://arxiv.org/abs/) for details on features in Assistive Gym.
+Refer to [the paper](https://arxiv.org/abs/1910.04700) for details on features in Assistive Gym.
