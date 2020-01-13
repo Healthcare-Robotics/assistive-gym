@@ -51,10 +51,14 @@ class AssistiveEnv(gym.Env):
 
         self.record_video = False
         self.video_writer = None
-        self.width = get_monitors()[0].width
-        self.height = get_monitors()[0].height
-        # self.width = 3840
-        # self.height = 2160
+        try:
+            self.width = get_monitors()[0].width
+            self.height = get_monitors()[0].height
+        except Exception as e:
+            self.width = 1920
+            self.height = 1080
+            # self.width = 3840
+            # self.height = 2160
 
         self.human_limits_model = load_model(os.path.join(self.world_creation.directory, 'realistic_arm_limits_model.h5'))
         self.right_arm_previous_valid_pose = None
