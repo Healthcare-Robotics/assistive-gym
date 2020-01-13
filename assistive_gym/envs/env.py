@@ -6,6 +6,7 @@ import numpy as np
 import pybullet as p
 # import cv2
 from keras.models import load_model
+from screeninfo import get_monitors
 
 from .util import Util
 from .world_creation import WorldCreation
@@ -50,10 +51,10 @@ class AssistiveEnv(gym.Env):
 
         self.record_video = False
         self.video_writer = None
-        # self.width = 1920
-        # self.height = 1080
-        self.width = 3840
-        self.height = 2160
+        self.width = get_monitors()[0].width
+        self.height = get_monitors()[0].height
+        # self.width = 3840
+        # self.height = 2160
 
         self.human_limits_model = load_model(os.path.join(self.world_creation.directory, 'realistic_arm_limits_model.h5'))
         self.right_arm_previous_valid_pose = None
