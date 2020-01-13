@@ -20,7 +20,8 @@ A paper on Assistive Gym can be found at https://arxiv.org/abs/1910.04700
 ## Install
 ### Simple installation using a python virtual environment.
 We encourage installing Assistive Gym and the custom PyBullet engine in a python virtualenv.  
-A detailed description of each installation step can be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install).
+A detailed description of each installation step can be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install).  
+Installation instructions for Windows can also be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install#installing-on-windows)
 ```bash
 python3 -m pip install --user virtualenv
 python3 -m venv env
