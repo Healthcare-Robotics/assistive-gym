@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 import sys, os.path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'assistive-gym'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'assistive_gym'))
 
 with open("README.md", "r") as f:
     long_description = f.read()
 
-directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assistive-gym', 'envs', 'assets')
-data_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assistive-gym', 'config.ini')]
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assistive_gym', 'envs', 'assets')
+data_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assistive_gym', 'config.ini')]
 
 for root, dirs, files in os.walk(directory):
     for fn in files:
@@ -27,10 +27,10 @@ setup(name='assistive-gym',
     license='MIT',
     platforms='any',
     keywords=['robotics', 'assitive robotics', 'human-robot interaction', 'physics simulation'],
-    package_data={'assistive-gym': data_files},
+    package_data={'assistive_gym': data_files},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: zlib/libpng License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: Microsoft :: Windows', 'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS', 'Intended Audience :: Science/Research',
         "Programming Language :: Python",
