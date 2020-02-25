@@ -7,7 +7,7 @@ from .env import AssistiveEnv
 
 class BedBathingEnv(AssistiveEnv):
     def __init__(self, robot_type='pr2', human_control=False):
-        super(BedBathingEnv, self).__init__(robot_type=robot_type, task='bed_bathing', human_control=human_control, frame_skip=5, time_step=0.02, action_robot_len=7, action_human_len=(10 if human_control else 0), obs_robot_len=24, obs_human_len=(28 if human_control else 0))
+        super(BedBathingEnv, self).__init__(robot_type=robot_type, task='bed_bathing', human_control=human_control, frame_skip=5, time_step=0.02, action_robot_len=7, action_human_len=(10 if human_control else 0), obs_robot_len=24, obs_human_len=(28+10 if human_control else 0))
 
     def step(self, action):
         self.take_step(action, robot_arm='left', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05)
@@ -20,7 +20,19 @@ class BedBathingEnv(AssistiveEnv):
         preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=total_force_on_human, tool_force_at_target=tool_force_on_human)
 
         reward_distance = -min([c[8] for c in p.getClosestPoints(self.tool, self.human, distance=4.0, physicsClientId=self.id)])
-        reward_action = -np.sum(np.square(action)) # Penalize actions
+        # reward_action = -np.sum(np.square(action)) # Penalize actions
+        if self.human_control:
+            reward_action = self.human_preferences_action(action) # Penalize large human action
+        else:
+            reward_action = -np.sum(np.square(action)) # Penalize actions
+
+        human_joint_states = p.getJointStates(self.human, jointIndices=self.human_controllable_joint_indices, physicsClientId=self.id)
+        human_arm_forces = np.array([x[2] for x in human_joint_states])
+        # print(human_arm_forces)
+        # print(np.sum(human_arm_forces, axis=0)/10)
+        # reward_torque = np.square(np.sum(human_arm_forces, axis=0)/10)
+        reward_torque = -np.sum(np.sum(human_arm_forces, axis=0)/10) # Penalize large reaction force
+
         reward_new_contact_points = new_contact_points # Reward new contact points on a person
 
         reward = self.config('distance_weight')*reward_distance + self.config('action_weight')*reward_action + self.config('wiping_reward_weight')*reward_new_contact_points + preferences_score
@@ -32,6 +44,13 @@ class BedBathingEnv(AssistiveEnv):
         done = False
 
         return obs, reward, done, info
+
+    def human_preferences_action(self, action):
+        action_human = action[self.action_robot_len:]
+        for i in range(len(action_human)):
+            if np.absolute(action[self.action_robot_len+i]) > np.deg2rad(40):
+                action[self.action_robot_len+i] *= 2 
+        return -np.sum(np.square(action))
 
     def get_total_force(self):
         total_force = 0
@@ -97,15 +116,20 @@ class BedBathingEnv(AssistiveEnv):
             human_pos = np.array(p.getBasePositionAndOrientation(self.human, physicsClientId=self.id)[0])
             human_joint_states = p.getJointStates(self.human, jointIndices=self.human_controllable_joint_indices, physicsClientId=self.id)
             human_joint_positions = np.array([x[0] for x in human_joint_states])
+            # human_arm_forces = np.array([x[2] for x in human_joint_states])
+            human_joint_torques = np.array([x[3] for x in human_joint_states])
+            # print("human_arm_forces: ", human_arm_forces)
+            # print("human_arm_torques: ", human_arm_torques)
 
         # Human shoulder, elbow, and wrist joint locations
         shoulder_pos, shoulder_orient = p.getLinkState(self.human, 5, computeForwardKinematics=True, physicsClientId=self.id)[:2]
         elbow_pos, elbow_orient = p.getLinkState(self.human, 7, computeForwardKinematics=True, physicsClientId=self.id)[:2]
         wrist_pos, wrist_orient = p.getLinkState(self.human, 9, computeForwardKinematics=True, physicsClientId=self.id)[:2]
 
+
         robot_obs = np.concatenate([tool_pos-torso_pos, tool_orient, robot_joint_positions, shoulder_pos-torso_pos, elbow_pos-torso_pos, wrist_pos-torso_pos, forces]).ravel()
         if self.human_control:
-            human_obs = np.concatenate([tool_pos-human_pos, tool_orient, human_joint_positions, shoulder_pos-human_pos, elbow_pos-human_pos, wrist_pos-human_pos, forces_human]).ravel()
+            human_obs = np.concatenate([tool_pos-human_pos, tool_orient, human_joint_torques, shoulder_pos-human_pos, elbow_pos-human_pos, wrist_pos-human_pos, forces_human]).ravel()
         else:
             human_obs = []
 
@@ -156,15 +180,9 @@ class BedBathingEnv(AssistiveEnv):
         p.setGravity(0, 0, 0, physicsClientId=self.id)
         p.setGravity(0, 0, -1, body=self.human, physicsClientId=self.id)
 
-        # Find the base position and joint positions for a static person in bed
-        # print(p.getBasePositionAndOrientation(self.human, physicsClientId=self.id))
-        # joint_states = p.getJointStates(self.human, jointIndices=list(range(p.getNumJoints(self.human, physicsClientId=self.id))), physicsClientId=self.id)
-        # joint_positions = np.array([x[0] for x in joint_states])
-        # joint_string = '['
-        # for i, jp in enumerate(joint_positions):
-        #     joint_string += '(%d, %.4f), ' % (i, jp)
-        # print(joint_string + ']')
-        # exit()
+        # Enable torque sensor for controllable joint indices
+        for j in self.human_controllable_joint_indices:
+            p.enableJointForceTorqueSensor(self.human, jointIndex=j, enableSensor=1, physicsClientId=self.id)
 
         shoulder_pos, shoulder_orient = p.getLinkState(self.human, 5, computeForwardKinematics=True, physicsClientId=self.id)[:2]
         elbow_pos, elbow_orient = p.getLinkState(self.human, 7, computeForwardKinematics=True, physicsClientId=self.id)[:2]
