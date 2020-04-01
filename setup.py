@@ -14,7 +14,7 @@ for root, dirs, files in os.walk(directory):
         data_files.append(os.path.join(root, fn))
 
 setup(name='assistive-gym',
-    version='0.100',
+    version='1.0',
     packages=find_packages(),
     python_requires='>=3',
     install_requires=['gym>=0.2.3', 'pybullet', 'numpy', 'keras', 'tensorflow'] + ['screeninfo' if sys.version_info >= (3, 6) else 'screeninfo==0.2'],

@@ -1,11 +1,11 @@
 from gym.envs.registration import register
 
 # Human Testing
-register(
-    id='HumanTesting-v0',
-    entry_point='assistive_gym.envs:HumanTestingEnv',
-    max_episode_steps=200,
-)
+# register(
+#     id='HumanTesting-v0',
+#     entry_point='assistive_gym.envs:HumanTestingEnv',
+#     max_episode_steps=200,
+# )
 
 # Scratch Itch PR2
 register(
@@ -62,7 +62,7 @@ register(
     entry_point='assistive_gym.envs:ScratchItchJacoHumanEnv',
     max_episode_steps=200,
 )
-
+'''
 # Bed Bathing PR2
 register(
     id='BedBathingPR2-v0',
@@ -342,4 +342,4 @@ register(
     entry_point='assistive_gym.envs:ArmManipulationJacoHumanEnv',
     max_episode_steps=200,
 )
-
+'''

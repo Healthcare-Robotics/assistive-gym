@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib spoon_reduced_compressed.mtl
+mtllib spoon.mtl
 o mmGroup0.001
 v -0.000066 0.184160 -0.353009
 v -0.000063 0.179980 -0.365556

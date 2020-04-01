@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib bowl_reduced_compressed.mtl
+mtllib bowl.mtl
 o mmGroup0
 v 0.073678 0.079621 -0.058592
 v 0.074728 0.079975 -0.059440
