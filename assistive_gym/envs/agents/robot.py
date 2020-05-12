@@ -165,6 +165,7 @@ class Robot(Agent):
                     best_manipulability = manipulability
                     best_start_joint_poses = start_joint_poses
 
+            p.restoreState(stateId=state, physicsClientId=self.id)
             # p.removeState(state, physicsClientId=self.id)
 
         # Reset state in case anything was perturbed

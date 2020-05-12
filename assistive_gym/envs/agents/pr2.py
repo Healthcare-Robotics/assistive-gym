@@ -12,15 +12,15 @@ class PR2(Robot):
         left_end_effector = 76 # Used to get the pose of the end effector
         right_gripper_indices = [57, 58, 59, 60] # Gripper actuated joints
         left_gripper_indices = [79, 80, 81, 82] # Gripper actuated joints
-        gripper_pos = {'scratch_itch': [0.25]*4, '': 0} # Gripper open position for holding tools
+        gripper_pos = {'scratch_itch': [0.25]*4, 'feeding': [0.03]*4} # Gripper open position for holding tools
         right_tool_joint = 54 # Joint that tools are attached to
         left_tool_joint = 76 # Joint that tools are attached to
-        tool_pos_offset = {'scratch_itch': [0, 0, 0], '': 0} # Position offset between tool and robot tool joint
-        tool_orient_offset = {'scratch_itch': [0, 0, 0], '': 0} # RPY orientation offset between tool and robot tool joint
+        tool_pos_offset = {'scratch_itch': [0, 0, 0], 'feeding': [0, -0.03, -0.11]} # Position offset between tool and robot tool joint
+        tool_orient_offset = {'scratch_itch': [0, 0, 0], 'feeding': [-0.2, 0, 0]} # RPY orientation offset between tool and robot tool joint
         right_gripper_collision_indices = list(range(49, 64)) # Used to disable collision between gripper and tools
         left_gripper_collision_indices = list(range(71, 86)) # Used to disable collision between gripper and tools
-        toc_base_pos_offset = {'scratch_itch': [0.1, 0, 0], '': 0} # Robot base offset before TOC base pose optimization
-        toc_ee_orient_rpy = {'scratch_itch': [0, 0, 0], '': 0} # Initial end effector orientation
+        toc_base_pos_offset = {'scratch_itch': [0.1, 0, 0], 'feeding': [0.1, 0.2, 0]} # Robot base offset before TOC base pose optimization
+        toc_ee_orient_rpy = {'scratch_itch': [0, 0, 0], 'feeding': [np.pi/2.0, 0, 0]} # Initial end effector orientation
         wheelchair_mounted = False
 
         super(PR2, self).__init__(arm, right_arm_joint_indices, left_arm_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)

@@ -28,25 +28,32 @@ class Agent:
             forces = [forces]*len(indices)
         p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=target_angles, positionGains=gains, forces=forces, physicsClientId=self.id)
 
-    def get_joint_angles(self, indices):
+    def get_joint_angles(self, indices=None):
+        if indices is None:
+            indices = self.all_joint_indices
         robot_joint_states = p.getJointStates(self.body, jointIndices=indices, physicsClientId=self.id)
         return np.array([x[0] for x in robot_joint_states])
 
-    def get_joint_angles_dict(self, indices):
+    def get_joint_angles_dict(self, indices=None):
         return {j: a for j, a in zip(indices, self.get_joint_angles(indices))}
 
-    def get_pos_orient(self, link):
+    def get_pos_orient(self, link, center_of_mass=False):
         # Get the 3D position and orientation (4D quaternion) of a specific link on the body
         if link == self.base:
             pos, orient = p.getBasePositionAndOrientation(self.body, physicsClientId=self.id)
         else:
-            pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[:2]
+            if not center_of_mass:
+                pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[4:6]
+            else:
+                pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[:2]
         return np.array(pos), np.array(orient)
 
     def get_base_pos_orient(self):
         return self.get_pos_orient(self.base)
 
     def get_velocity(self, link):
+        if link == self.base:
+            return p.getBaseVelocity(self.body, physicsClientId=self.id)[0]
         return p.getLinkState(self.body, link, computeForwardKinematics=True, computeLinkVelocity=True, physicsClientId=self.id)[6]
 
     def get_motor_joint_states(self):

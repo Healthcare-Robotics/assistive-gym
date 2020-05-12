@@ -174,7 +174,7 @@ register(
     entry_point='assistive_gym.envs:DrinkingJacoHumanEnv',
     max_episode_steps=200,
 )
-
+'''
 # Feeding PR2
 register(
     id='FeedingPR2-v0',
@@ -230,7 +230,7 @@ register(
     entry_point='assistive_gym.envs:FeedingJacoHumanEnv',
     max_episode_steps=200,
 )
-
+'''
 # Dressing PR2
 register(
     id='DressingPR2-v0',

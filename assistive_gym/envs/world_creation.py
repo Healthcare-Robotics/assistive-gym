@@ -20,7 +20,7 @@ class WorldCreation:
         self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
         self.human_creation = HumanCreation(self.id, np_random=np_random, cloth=(task=='dressing'))
 
-    def create_new_world(self, furniture_type='wheelchair', static_human_base=False, human_impairment='random', print_joints=False, gender='random'):
+    def create_new_world(self, furniture_type='wheelchair', static_human_base=False, human_impairment='random', gender='random'):
         p.resetSimulation(physicsClientId=self.id)
 
         # Configure camera position
@@ -47,20 +47,24 @@ class WorldCreation:
         # Initialize robot
         self.robot.init(self.directory, self.id, self.np_random)
 
-        return self.furniture, gender
+        return self.furniture
 
-    def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], collision=None, rgba=[0, 1, 1, 1]):
-        sphere_collision = -1 if collision is None else p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id)
-        sphere_visual = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=radius, rgbaColor=rgba, physicsClientId=self.id)
+    def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], visual=True, collision=True, rgba=[0, 1, 1, 1]):
+        sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1
+        sphere_visual = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=radius, rgbaColor=rgba, physicsClientId=self.id) if visual else -1
         body = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=sphere_collision, baseVisualShapeIndex=sphere_visual, basePosition=pos, useMaximalCoordinates=False, physicsClientId=self.id)
         sphere = Agent()
         sphere.init(body, self.id, self.np_random, indices=-1)
         return sphere
 
-    def print_joint_info(self, body, show_fixed=True):
-        joint_names = []
-        for j in range(p.getNumJoints(body, physicsClientId=self.id)):
-            if show_fixed or p.getJointInfo(body, j, physicsClientId=self.id)[2] != p.JOINT_FIXED:
-                print(p.getJointInfo(body, j, physicsClientId=self.id))
-                joint_names.append((j, p.getJointInfo(body, j, physicsClientId=self.id)[1]))
-        print(joint_names)
+    def create_spheres(self, radius=0.01, mass=0.0, batch_positions=[[0, 0, 0]], visual=True, collision=True, rgba=[0, 1, 1, 1]):
+        sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1
+        sphere_visual = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=radius, rgbaColor=rgba, physicsClientId=self.id) if visual else -1
+        last_sphere_id = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=sphere_collision, baseVisualShapeIndex=sphere_visual, basePosition=[0, 0, 0], useMaximalCoordinates=False, batchPositions=batch_positions, physicsClientId=self.id)
+        spheres = []
+        for body in list(range(last_sphere_id-len(batch_positions)+1, last_sphere_id+1)):
+            sphere = Agent()
+            sphere.init(body, self.id, self.np_random, indices=-1)
+            spheres.append(sphere)
+        return spheres
+

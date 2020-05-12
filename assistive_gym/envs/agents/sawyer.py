@@ -12,15 +12,15 @@ class Sawyer(Robot):
         left_end_effector = right_end_effector # Used to get the pose of the end effector
         right_gripper_indices = [20, 22] # Gripper actuated joints
         left_gripper_indices = right_gripper_indices # Gripper actuated joints
-        gripper_pos = {'scratch_itch': [0.015, -0.015], '': 0} # Gripper open position for holding tools
+        gripper_pos = {'scratch_itch': [0.015, -0.015], 'feeding': [0, 0]} # Gripper open position for holding tools
         right_tool_joint = 18 # Joint that tools are attached to
         left_tool_joint = right_tool_joint # Joint that tools are attached to
-        tool_pos_offset = {'scratch_itch': [0, 0.125, 0], '': 0} # Position offset between tool and robot tool joint
-        tool_orient_offset = {'scratch_itch': [0, 0, np.pi/2.0], '': 0} # RPY orientation offset between tool and robot tool joint
+        tool_pos_offset = {'scratch_itch': [0, 0.125, 0], 'feeding': [-0.1, 0.12, -0.02]} # Position offset between tool and robot tool joint
+        tool_orient_offset = {'scratch_itch': [0, 0, np.pi/2.0], 'feeding': [np.pi/2.0-0.1, 0, np.pi/2.0]} # RPY orientation offset between tool and robot tool joint
         right_gripper_collision_indices = [18, 20, 21, 22, 23] # Used to disable collision between gripper and tools
         left_gripper_collision_indices = right_gripper_collision_indices # Used to disable collision between gripper and tools
-        toc_base_pos_offset = {'scratch_itch': [-0.1, 0, 0.975], '': 0} # Robot base offset before TOC base pose optimization
-        toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], '': 0} # Initial end effector orientation
+        toc_base_pos_offset = {'scratch_itch': [-0.1, 0, 0.975], 'feeding': [-0.1, 0.2, 0.975]} # Robot base offset before TOC base pose optimization
+        toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], 'feeding': [np.pi/2.0, 0, np.pi/2.0]} # Initial end effector orientation
         wheelchair_mounted = False
 
         super(Sawyer, self).__init__(arm, right_arm_joint_indices, left_arm_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)

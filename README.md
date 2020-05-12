@@ -9,11 +9,11 @@ Assistive Gym is integrated into the OpenAI Gym interface, enabling the use of e
 ### Paper
 A paper on Assistive Gym can be found at https://arxiv.org/abs/1910.04700
 ```
-@article{erickson2019assistivegym,
+@article{erickson2020assistivegym,
   title={Assistive Gym: A Physics Simulation Framework for Assistive Robotics},
   author={Erickson, Zackory and Gangaram, Vamsee and Kapusta, Ariel and Liu, C. Karen and Kemp, Charles C.},
-  journal={arXiv preprint arXiv:1910.04700},
-  year={2019}
+  journal={IEEE International Conference on Robotics and Automation (ICRA)},
+  year={2020}
 }
 ```
 

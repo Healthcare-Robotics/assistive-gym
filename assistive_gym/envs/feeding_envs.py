@@ -1,8 +1,9 @@
 from .feeding import FeedingEnv
-from agents.pr2 import PR2
-from agents.baxter import Baxter
-from agents.sawyer import Sawyer
-from agents.jaco import Jaco
+from .agents import pr2, baxter, sawyer, jaco
+from .agents.pr2 import PR2
+from .agents.baxter import Baxter
+from .agents.sawyer import Sawyer
+from .agents.jaco import Jaco
 
 robot_arm = 'right'
 class FeedingPR2Env(FeedingEnv):

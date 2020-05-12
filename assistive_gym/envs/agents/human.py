@@ -83,7 +83,7 @@ class Human(Agent):
         # Set static joints
         joint_angles = self.get_joint_angles_dict(self.all_joint_indices)
         for j in self.all_joint_indices:
-            if use_static_joints and j not in self.controllable_joint_indices:
+            if use_static_joints and (j not in self.controllable_joint_indices or (self.impairment != 'tremor' and reactive_force is None)):
                 # Make all non controllable joints on the person static by setting mass of each link (joint) to 0
                 p.changeDynamics(self.body, j, mass=0, physicsClientId=self.id)
                 # Set velocities to 0

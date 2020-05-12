@@ -80,7 +80,7 @@ class ScratchItchEnv(AssistiveEnv):
         self.setup_timing()
         self.task_success = 0
         self.prev_target_contact_pos = np.zeros(3)
-        self.wheelchair, self.gender = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', print_joints=False, gender='random')
+        self.wheelchair = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', gender='random')
         if self.robot.wheelchair_mounted:
             wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
             # TODO: Check if this default orientation works for all wheelchair mounted arms
@@ -97,14 +97,14 @@ class ScratchItchEnv(AssistiveEnv):
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
 
-        target_pos = np.array([-0.5, 0, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
+        target_ee_pos = np.array([-0.5, 0, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
         if self.robot.wheelchair_mounted:
             # Use IK to find starting joint angles for mounted robots
-            self.robot.ik_random_restarts(False, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
+            self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            self.robot.position_robot_toc(self.task, 'left', [(target_pos, target_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], step_sim=True, check_env_collisions=False)
+            self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], step_sim=True, check_env_collisions=False)
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
@@ -126,7 +126,7 @@ class ScratchItchEnv(AssistiveEnv):
 
     def generate_target(self):
         # Randomly select either upper arm or forearm for the target limb to scratch
-        if self.gender == 'male':
+        if self.human.gender == 'male':
             self.limb, length, radius = [[self.human.right_shoulder, 0.279, 0.043], [self.human.right_elbow, 0.257, 0.033]][self.np_random.randint(2)]
         else:
             self.limb, length, radius = [[self.human.right_shoulder, 0.264, 0.0355], [self.human.right_elbow, 0.234, 0.027]][self.np_random.randint(2)]
@@ -134,7 +134,7 @@ class ScratchItchEnv(AssistiveEnv):
         arm_pos, arm_orient = self.human.get_pos_orient(self.limb)
         target_pos, target_orient = p.multiplyTransforms(arm_pos, arm_orient, self.target_on_arm, [0, 0, 0, 1], physicsClientId=self.id)
 
-        self.target = self.world_creation.create_sphere(radius=0.01, mass=0.0, pos=target_pos, collision=None, rgba=[0, 1, 1, 1])
+        self.target = self.world_creation.create_sphere(radius=0.01, mass=0.0, pos=target_pos, visual=True, collision=False, rgba=[0, 1, 1, 1])
 
         self.update_targets()
 
