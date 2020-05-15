@@ -62,7 +62,7 @@ register(
     entry_point='assistive_gym.envs:ScratchItchJacoHumanEnv',
     max_episode_steps=200,
 )
-'''
+
 # Bed Bathing PR2
 register(
     id='BedBathingPR2-v0',
@@ -174,7 +174,7 @@ register(
     entry_point='assistive_gym.envs:DrinkingJacoHumanEnv',
     max_episode_steps=200,
 )
-'''
+
 # Feeding PR2
 register(
     id='FeedingPR2-v0',

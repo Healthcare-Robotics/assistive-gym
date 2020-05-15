@@ -85,7 +85,7 @@ class ScratchItchEnv(AssistiveEnv):
             wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
             # TODO: Check if this default orientation works for all wheelchair mounted arms
             # TODO: Can we implement a personal function for getQuaternionFromEuler, i.e. util.get_quaternion()
-            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), p.getQuaternionFromEuler([0, 0, -np.pi/2.0], physicsClientId=self.id))
+            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
 
         # self.robot.print_joint_info()
 

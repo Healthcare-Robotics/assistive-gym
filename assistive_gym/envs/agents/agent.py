@@ -61,7 +61,7 @@ class Agent:
         joint_states = p.getJointStates(self.body, self.all_joint_indices, physicsClientId=self.id)
         joint_infos = [p.getJointInfo(self.body, i, physicsClientId=self.id) for i in self.all_joint_indices]
         motor_states = [j for j, i in zip(joint_states, joint_infos) if i[2] != p.JOINT_FIXED]
-        motor_indices = [i for j, i in zip(joint_states, joint_infos) if i[2] != p.JOINT_FIXED]
+        motor_indices = [i[0] for j, i in zip(joint_states, joint_infos) if i[2] != p.JOINT_FIXED]
         motor_positions = [state[0] for state in motor_states]
         motor_velocities = [state[1] for state in motor_states]
         motor_torques = [state[3] for state in motor_states]
@@ -79,8 +79,20 @@ class Agent:
         force = [c[9] for c in cp]
         return linkA, linkB, posA, posB, force
 
-    def set_base_pos_orient(self, pos, orient):
-        p.resetBasePositionAndOrientation(self.body, pos, orient, physicsClientId=self.id)
+    def get_closest_points(self, agentB, distance=4.0):
+        cp = p.getClosestPoints(bodyA=self.body, bodyB=agentB.body, distance=distance, physicsClientId=self.id)
+        linkA = [c[3] for c in cp]
+        linkB = [c[4] for c in cp]
+        posA = [c[5] for c in cp]
+        posB = [c[6] for c in cp]
+        contact_distance = [c[8] for c in cp]
+        return linkA, linkB, posA, posB, contact_distance
+
+    def set_base_pos_orient(self, pos, orient, euler=False):
+        p.resetBasePositionAndOrientation(self.body, pos, orient if not euler else p.getQuaternionFromEuler(orient, physicsClientId=self.id), physicsClientId=self.id)
+
+    def set_base_velocity(self, linear_velocity, angular_velocity):
+        p.resetBaseVelocity(self.body, linearVelocity=linear_velocity, angularVelocity=angular_velocity, physicsClientId=self.id)
 
     def set_joint_angles(self, indices, angles, use_limits=True):
         for j, a in zip(indices, angles):
@@ -89,6 +101,12 @@ class Agent:
     def reset_joints(self):
         # Reset all joints to 0 position, 0 velocity
         self.set_joint_angles(self.all_joint_indices, [0]*len(self.all_joint_indices))
+
+    def set_friction(self, link, friction):
+        p.changeDynamics(self.body, link, lateralFriction=friction, spinningFriction=friction, rollingFriction=friction, physicsClientId=self.id)
+
+    def set_mass(self, link, mass):
+        p.changeDynamics(self.body, link, mass=mass, physicsClientId=self.id)
 
     def update_joint_limits(self, indices=None):
         if indices is None:

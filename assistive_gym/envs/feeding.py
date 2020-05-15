@@ -13,15 +13,13 @@ class FeedingEnv(AssistiveEnv):
         human_controllable_joint_indices = [20, 21, 22, 23]
         super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
 
-    # TODO: Food is not going in mouth. The human head is not static. The spoon does not generate in the Sawyer correctly.
-
     def step(self, action):
         self.take_step(action, robot_arm='right', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
 
         robot_force_on_human, spoon_force_on_human = self.get_total_force()
         total_force_on_human = robot_force_on_human + spoon_force_on_human
         reward_food, food_mouth_velocities, food_hit_human_reward = self.get_food_rewards()
-        end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.left_end_effector))
+        end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.right_end_effector))
         obs = self._get_obs([spoon_force_on_human], [robot_force_on_human, spoon_force_on_human])
 
         # Get human preferences
@@ -71,9 +69,9 @@ class FeedingEnv(AssistiveEnv):
                 food_reward -= 5
                 foods_to_remove.append(f)
                 continue
-            if len(f.get_contact_points(self.human)) > 0 and f not in self.foods_hit_person:
+            if len(f.get_contact_points(self.human)) > 0:
                 # Record that this food particle just hit the person, so that we can penalize the robot
-                self.foods_hit_person.append(f)
+                foods_to_remove.append(f)
                 food_hit_human_reward -= 1
         self.foods = [f for f in self.foods if f not in foods_to_remove]
         return food_reward, food_mouth_velocities, food_hit_human_reward
@@ -103,7 +101,7 @@ class FeedingEnv(AssistiveEnv):
             wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
             # TODO: Check if this default orientation works for all wheelchair mounted arms
             # TODO: Can we implement a personal function for getQuaternionFromEuler, i.e. util.get_quaternion()
-            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), p.getQuaternionFromEuler([0, 0, -np.pi/2.0], physicsClientId=self.id))
+            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         joints_positions += [(self.human.j_head_x, self.np_random.uniform(-30, 30)), (self.human.j_head_y, self.np_random.uniform(-30, 30)), (self.human.j_head_z, self.np_random.uniform(-30, 30))]
@@ -154,7 +152,6 @@ class FeedingEnv(AssistiveEnv):
                 for k in range(2):
                     batch_positions.append(np.array([i*2*food_radius-0.005, j*2*food_radius, k*2*food_radius+0.01]) + spoon_pos)
         self.foods = self.world_creation.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
-        self.foods_hit_person = []
         self.total_food_count = len(self.foods)
 
         # Enable rendering

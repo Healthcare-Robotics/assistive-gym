@@ -3,6 +3,9 @@
     <material name="color">
         <color rgba="1.0 1.0 1.0 1.0"/>
     </material>
+    <material name="invisible">
+        <color rgba="1.0 1.0 1.0 0.0"/>
+    </material>
 
     <link name="handle">
         <visual>
@@ -56,16 +59,16 @@
 
     <link name="cloth">
         <visual>
-            <origin xyz="0 0 0.01" rpy="0 0 0"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <box size="0.05 0.025 0.005"/>
+                <box size="0.09 0.04 0.005"/>
             </geometry>
-            <material name="color"/>
+            <material name="invisible"/>
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <box size="0.05 0.025 0.005"/>
+                <box size="0.09 0.04 0.005"/>
             </geometry>
         </collision>
         <contact>
@@ -87,7 +90,7 @@
     <joint name="j_weld1" type="fixed">
         <parent link="tool"/>
         <child link="cloth"/>
-        <origin xyz="0 0 -0.0075"/>
+        <origin xyz="0 0 -0.004"/>
     </joint>
 
 </robot>
