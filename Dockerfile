@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+﻿FROM ubuntu:18.04
 
 RUN apt-get update && apt-get -y install sudo
 RUN apt-get -y upgrade && apt-get update && apt-get clean && apt-get -y install curl git build-essential zlib1g-dev libssl-dev libopenmpi-dev libglib2.0-0 libsm6 libxext6 libxrender-dev vim
