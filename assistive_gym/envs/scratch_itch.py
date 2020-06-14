@@ -9,7 +9,7 @@ from .agents.human import Human
 
 class ScratchItchEnv(AssistiveEnv):
     def __init__(self, robot, human_control=False):
-        human_controllable_joint_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        human_controllable_joint_indices = human.right_arm_joints
         super(ScratchItchEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='scratch_itch', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=30, obs_human_len=(34 if human_control else 0))
 
     def step(self, action):
@@ -25,12 +25,11 @@ class ScratchItchEnv(AssistiveEnv):
 
         tool_pos = self.tool.get_pos_orient(1)[0]
         reward_distance = -np.linalg.norm(self.target_pos - tool_pos) # Penalize distances away from target
-        reward_action = -np.sum(np.square(action)) # Penalize actions
+        reward_action = -np.linalg.norm(action) # Penalize actions
         reward_force_scratch = 0.0 # Reward force near the target
-        if target_contact_pos is not None and np.linalg.norm(target_contact_pos - self.prev_target_contact_pos) > 0.01 and tool_force_at_target < 10:
+        if target_contact_pos is not None and np.linalg.norm(target_contact_pos - self.prev_target_contact_pos) > 0.01 and 0.5 < tool_force_at_target < 10:
             # Encourage the robot to move around near the target to simulate scratching
-            # TODO: TODO: TODO: Make this a fixed reward rather than reward based on applied force
-            reward_force_scratch = tool_force_at_target
+            reward_force_scratch = 5
             self.prev_target_contact_pos = target_contact_pos
             self.task_success += 1
 
@@ -58,19 +57,28 @@ class ScratchItchEnv(AssistiveEnv):
         return total_force_on_human, tool_force, tool_force_at_target, None if target_contact_pos is None else np.array(target_contact_pos)
 
     def _get_obs(self, forces, forces_human):
-        torso_pos = self.robot.get_pos_orient(self.robot.torso)[0]
         tool_pos, tool_orient = self.tool.get_pos_orient(1)
+        tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
-        if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
-            human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
         shoulder_pos = self.human.get_pos_orient(self.human.right_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
-
-        robot_obs = np.concatenate([tool_pos-torso_pos, tool_orient, tool_pos - self.target_pos, self.target_pos-torso_pos, robot_joint_angles, shoulder_pos-torso_pos, elbow_pos-torso_pos, wrist_pos-torso_pos, forces]).ravel()
+        shoulder_pos_real, _ = self.robot.convert_to_realworld(shoulder_pos)
+        elbow_pos_real, _ = self.robot.convert_to_realworld(elbow_pos)
+        wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
+        target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
         if self.human_control:
-            human_obs = np.concatenate([tool_pos-human_pos, tool_orient, tool_pos - self.target_pos, self.target_pos-human_pos, human_joint_angles, shoulder_pos-human_pos, elbow_pos-human_pos, wrist_pos-human_pos, forces_human]).ravel()
+            human_pos = self.human.get_base_pos_orient()[0]
+            human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
+            tool_pos_human, tool_orient_human = self.human.convert_to_realworld(tool_pos, tool_orient)
+            shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)
+            elbow_pos_human, _ = self.human.convert_to_realworld(elbow_pos)
+            wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
+            target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
+
+        robot_obs = np.concatenate([tool_pos_real, tool_orient_real, tool_pos_real - target_pos_real, target_pos_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, forces]).ravel()
+        if self.human_control:
+            human_obs = np.concatenate([tool_pos_human, tool_orient_human, tool_pos_human - target_pos_human, target_pos_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, forces_human]).ravel()
         else:
             human_obs = []
 
@@ -83,8 +91,6 @@ class ScratchItchEnv(AssistiveEnv):
         self.wheelchair = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', gender='random')
         if self.robot.wheelchair_mounted:
             wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
-            # TODO: Check if this default orientation works for all wheelchair mounted arms
-            # TODO: Can we implement a personal function for getQuaternionFromEuler, i.e. util.get_quaternion()
             self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
 
         # self.robot.print_joint_info()
@@ -104,7 +110,7 @@ class ScratchItchEnv(AssistiveEnv):
             self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], step_sim=True, check_env_collisions=False)
+            self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
@@ -112,8 +118,6 @@ class ScratchItchEnv(AssistiveEnv):
 
         self.generate_target()
 
-        # p.setGravity(0, 0, 0, physicsClientId=self.id)
-        # p.setGravity(0, 0, -1, body=self.human, physicsClientId=self.id)
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
         p.setGravity(0, 0, 0, body=self.robot.body, physicsClientId=self.id)
         p.setGravity(0, 0, 0, body=self.human.body, physicsClientId=self.id)

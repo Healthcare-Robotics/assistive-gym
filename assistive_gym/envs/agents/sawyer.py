@@ -5,22 +5,21 @@ from .robot import Robot
 
 class Sawyer(Robot):
     def __init__(self, arm='right'):
-        self.torso = 0
         right_arm_joint_indices = [3, 8, 9, 10, 11, 13, 16] # Controllable arm joints
         left_arm_joint_indices = right_arm_joint_indices # Controllable arm joints
         right_end_effector = 19 # Used to get the pose of the end effector
         left_end_effector = right_end_effector # Used to get the pose of the end effector
         right_gripper_indices = [20, 22] # Gripper actuated joints
         left_gripper_indices = right_gripper_indices # Gripper actuated joints
-        gripper_pos = {'scratch_itch': [0.015, -0.015], 'feeding': [0, 0], 'drinking': [0.025, -0.025], 'bed_bathing': [0.0125, -0.0125]} # Gripper open position for holding tools
         right_tool_joint = 18 # Joint that tools are attached to
         left_tool_joint = right_tool_joint # Joint that tools are attached to
-        tool_pos_offset = {'scratch_itch': [0, 0.125, 0], 'feeding': [-0.1, 0.12, -0.02], 'drinking': [0.05, 0.125, 0], 'bed_bathing': [0, 0.1175, 0]} # Position offset between tool and robot tool joint
-        tool_orient_offset = {'scratch_itch': [0, 0, np.pi/2.0], 'feeding': [np.pi/2.0-0.1, 0, np.pi/2.0], 'drinking': [0, 0, np.pi/2.0], 'bed_bathing': [np.pi/2.0, 0, np.pi/2.0]} # RPY orientation offset between tool and robot tool joint
         right_gripper_collision_indices = [18, 20, 21, 22, 23] # Used to disable collision between gripper and tools
         left_gripper_collision_indices = right_gripper_collision_indices # Used to disable collision between gripper and tools
-        toc_base_pos_offset = {'scratch_itch': [-0.1, 0, 0.975], 'feeding': [-0.1, 0.2, 0.975], 'drinking': [-0.1, 0.2, 0.975], 'bed_bathing': [-0.2, 0, 0.975]} # Robot base offset before TOC base pose optimization
-        toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], 'feeding': [np.pi/2.0, 0, np.pi/2.0], 'drinking': [0, -np.pi/2.0, np.pi], 'bed_bathing': [0, np.pi/2.0, 0]} # Initial end effector orientation
+        gripper_pos = {'scratch_itch': [0.015, -0.015], 'feeding': [0, 0], 'drinking': [0.025, -0.025], 'bed_bathing': [0.0125, -0.0125], 'dressing': [0, 0], 'arm_manipulation': [0.01, -0.01]} # Gripper open position for holding tools
+        tool_pos_offset = {'scratch_itch': [0, 0.125, 0], 'feeding': [-0.1, 0.12, -0.02], 'drinking': [0.05, 0.125, 0], 'bed_bathing': [0, 0.1175, 0], 'arm_manipulation': [0.075, 0.235, 0]} # Position offset between tool and robot tool joint
+        tool_orient_offset = {'scratch_itch': [0, 0, np.pi/2.0], 'feeding': [np.pi/2.0-0.1, 0, np.pi/2.0], 'drinking': [0, 0, np.pi/2.0], 'bed_bathing': [np.pi/2.0, 0, np.pi/2.0], 'arm_manipulation': [0, 0, np.pi/2.0]} # RPY orientation offset between tool and robot tool joint
+        toc_base_pos_offset = {'scratch_itch': [-0.1, 0, 0.975], 'feeding': [-0.1, 0.2, 0.975], 'drinking': [-0.1, 0.2, 0.975], 'bed_bathing': [-0.2, 0, 0.975], 'dressing': [1.8, 0.7, 0.975], 'arm_manipulation': [-0.3, 0.6, 0.975]} # Robot base offset before TOC base pose optimization
+        toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], 'feeding': [np.pi/2.0, 0, np.pi/2.0], 'drinking': [0, -np.pi/2.0, np.pi], 'bed_bathing': [0, np.pi/2.0, 0], 'dressing': [[0, -np.pi/2.0, 0], [np.pi/2.0, -np.pi/2.0, 0]], 'arm_manipulation': [0, -np.pi/2.0, np.pi]} # Initial end effector orientation
         wheelchair_mounted = False
 
         super(Sawyer, self).__init__(arm, right_arm_joint_indices, left_arm_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)

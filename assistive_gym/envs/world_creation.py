@@ -19,6 +19,7 @@ class WorldCreation:
         self.config = config
         self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
         self.human_creation = HumanCreation(self.id, np_random=np_random, cloth=(task=='dressing'))
+        self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
 
     def create_new_world(self, furniture_type='wheelchair', static_human_base=False, human_impairment='random', gender='random'):
         p.resetSimulation(physicsClientId=self.id)
@@ -41,18 +42,19 @@ class WorldCreation:
         # Create furniture (wheelchair, bed, or table)
         self.furniture.init(furniture_type, self.directory, self.id, self.np_random)
 
-        human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
-        self.human.init(self.human_creation, human_limits_model, static_human_base, human_impairment, gender, self.config, self.id, self.np_random)
+        self.human.init(self.human_creation, self.human_limits_model, static_human_base, human_impairment, gender, self.config, self.id, self.np_random)
 
         # Initialize robot
         self.robot.init(self.directory, self.id, self.np_random)
 
         return self.furniture
 
-    def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], visual=True, collision=True, rgba=[0, 1, 1, 1]):
+    def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False):
         sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1
         sphere_visual = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=radius, rgbaColor=rgba, physicsClientId=self.id) if visual else -1
-        body = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=sphere_collision, baseVisualShapeIndex=sphere_visual, basePosition=pos, useMaximalCoordinates=False, physicsClientId=self.id)
+        if return_collision_visual:
+            return sphere_collision, sphere_visual
+        body = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=sphere_collision, baseVisualShapeIndex=sphere_visual, basePosition=pos, useMaximalCoordinates=maximal_coordinates, physicsClientId=self.id)
         sphere = Agent()
         sphere.init(body, self.id, self.np_random, indices=-1)
         return sphere

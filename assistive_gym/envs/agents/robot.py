@@ -22,6 +22,7 @@ class Robot(Agent):
         self.toc_ee_orient_rpy = toc_ee_orient_rpy # Initial end effector orientation
         self.wheelchair_mounted = wheelchair_mounted
         self.half_range = half_range # Try setting this to true if the robot is struggling to find IK solutions
+        self.has_single_arm = self.right_end_effector == self.left_end_effector
         super(Robot, self).__init__()
 
     def init(self, body, id, np_random):
@@ -30,6 +31,7 @@ class Robot(Agent):
         self.right_arm_upper_limits = [self.upper_limits[i] for i in self.right_arm_joint_indices]
         self.left_arm_lower_limits = [self.lower_limits[i] for i in self.left_arm_joint_indices]
         self.left_arm_upper_limits = [self.upper_limits[i] for i in self.left_arm_joint_indices]
+        self.joint_max_forces = self.get_joint_max_force(self.controllable_joint_indices)
         # Determine ik indices for the right and left arms (indices differ since fixed joints are not counted)
         self.right_arm_ik_indices = []
         self.left_arm_ik_indices = []
@@ -82,7 +84,7 @@ class Robot(Agent):
         self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, best_ik_angles)
         return False, np.array(best_ik_angles)
 
-    def position_robot_toc(self, task, arms, start_pos_orient, target_pos_orients, base_euler_orient=np.zeros(3), max_ik_iterations=200, attempts=100, jlwki_restarts=1, step_sim=False, check_env_collisions=False, right_side=True, random_rotation=30, random_position=0.5):
+    def position_robot_toc(self, task, arms, start_pos_orient, target_pos_orients, human, base_euler_orient=np.zeros(3), max_ik_iterations=200, attempts=100, jlwki_restarts=1, step_sim=False, check_env_collisions=False, right_side=True, random_rotation=30, random_position=0.5):
         # Continually randomize the robot base position and orientation
         # Select best base pose according to number of goals reached and manipulability
         if type(arms) == str:
@@ -96,8 +98,8 @@ class Robot(Agent):
         best_manipulability = None
         best_start_joint_poses = [None]*len(arms)
         iteration = 0
-        # Save state of simulation for quick restoring
-        # state_orig = p.saveState(physicsClientId=self.id)
+        # Save human joint states for later restoring
+        human_angles = human.get_joint_angles(human.controllable_joint_indices)
         while iteration < attempts or best_position is None:
             iteration += 1
             # Randomize base position and orientation
@@ -106,8 +108,8 @@ class Robot(Agent):
             self.set_base_pos_orient(np.array([-0.85, -0.4, 0]) + self.toc_base_pos_offset[task] + random_pos, random_orientation)
             # Reset all robot joints to their defaults
             self.reset_joints()
-            # Save state of simulation for quick restoring
-            state = p.saveState(physicsClientId=self.id)
+            # Reset human joints in case they got perturbed by previous iterations
+            human.set_joint_angles(human.controllable_joint_indices, human_angles)
             num_goals_reached = 0
             manipulability = 0.0
             start_joint_poses = [None]*len(arms)
@@ -123,7 +125,7 @@ class Robot(Agent):
                     best_joint_positions = None
                     for k in range(jlwki_restarts):
                         # Reset state in case anything was perturbed from the last iteration
-                        p.restoreState(stateId=state, physicsClientId=self.id)
+                        human.set_joint_angles(human.controllable_joint_indices, human_angles)
                         # Find IK solution
                         success, joint_positions_q_star = self.ik_random_restarts(right, target_pos, target_orient, max_iterations=max_ik_iterations, max_ik_random_restarts=1, success_threshold=0.03, step_sim=step_sim, check_env_collisions=check_env_collisions)
                         if not success:
@@ -165,13 +167,10 @@ class Robot(Agent):
                     best_manipulability = manipulability
                     best_start_joint_poses = start_joint_poses
 
-            p.restoreState(stateId=state, physicsClientId=self.id)
-            # p.removeState(state, physicsClientId=self.id)
+            human.set_joint_angles(human.controllable_joint_indices, human_angles)
 
         # Reset state in case anything was perturbed
-        p.restoreState(stateId=state, physicsClientId=self.id)
-        # p.restoreState(stateId=state_orig, physicsClientId=self.id)
-        # p.removeState(state_orig, physicsClientId=self.id)
+        human.set_joint_angles(human.controllable_joint_indices, human_angles)
 
         # Set the robot base position/orientation and joint angles based on the best pose found
         p.resetBasePositionAndOrientation(self.body, np.array([-0.85, -0.4, 0]) + np.array(self.toc_base_pos_offset[task]) + best_position, best_orientation, physicsClientId=self.id)

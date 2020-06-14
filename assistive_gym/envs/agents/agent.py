@@ -37,7 +37,7 @@ class Agent:
     def get_joint_angles_dict(self, indices=None):
         return {j: a for j, a in zip(indices, self.get_joint_angles(indices))}
 
-    def get_pos_orient(self, link, center_of_mass=False):
+    def get_pos_orient(self, link, center_of_mass=False, convert_to_realworld=False):
         # Get the 3D position and orientation (4D quaternion) of a specific link on the body
         if link == self.base:
             pos, orient = p.getBasePositionAndOrientation(self.body, physicsClientId=self.id)
@@ -46,7 +46,16 @@ class Agent:
                 pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[4:6]
             else:
                 pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[:2]
-        return np.array(pos), np.array(orient)
+        if convert_to_realworld:
+            return self.convert_to_realworld(pos, orient)
+        else:
+            return np.array(pos), np.array(orient)
+
+    def convert_to_realworld(self, pos, orient=[0, 0, 0, 1]):
+        base_pos, base_orient = self.get_base_pos_orient()
+        base_pos_inv, base_orient_inv = p.invertTransform(base_pos, base_orient, physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, orient, physicsClientId=self.id)
+        return np.array(real_pos), np.array(real_orient)
 
     def get_base_pos_orient(self):
         return self.get_pos_orient(self.base)
@@ -67,11 +76,19 @@ class Agent:
         motor_torques = [state[3] for state in motor_states]
         return motor_indices, motor_positions, motor_velocities, motor_torques
 
+    def get_joint_max_force(self, indices=None):
+        if indices is None:
+            indices = self.all_joint_indices
+        joint_infos = [p.getJointInfo(self.body, i, physicsClientId=self.id) for i in indices]
+        return [j[10] for j in joint_infos]
+
     def get_contact_points(self, agentB=None):
         if agentB is None:
             cp = p.getContactPoints(bodyA=self.body, physicsClientId=self.id)
         else:
             cp = p.getContactPoints(bodyA=self.body, bodyB=agentB.body, physicsClientId=self.id)
+        if cp is None:
+            return [], [], [], [], []
         linkA = [c[3] for c in cp]
         linkB = [c[4] for c in cp]
         posA = [c[5] for c in cp]
@@ -87,6 +104,9 @@ class Agent:
         posB = [c[6] for c in cp]
         contact_distance = [c[8] for c in cp]
         return linkA, linkB, posA, posB, contact_distance
+
+    def get_force_torque_sensor(self, joint):
+        return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
 
     def set_base_pos_orient(self, pos, orient, euler=False):
         p.resetBasePositionAndOrientation(self.body, pos, orient if not euler else p.getQuaternionFromEuler(orient, physicsClientId=self.id), physicsClientId=self.id)
@@ -107,6 +127,12 @@ class Agent:
 
     def set_mass(self, link, mass):
         p.changeDynamics(self.body, link, mass=mass, physicsClientId=self.id)
+
+    def enable_force_torque_sensor(self, joint):
+        p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)
+
+    def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0]):
+        return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, p.getQuaternionFromEuler(parent_orient, physicsClientId=self.id), p.getQuaternionFromEuler(child_orient, physicsClientId=self.id), physicsClientId=self.id)
 
     def update_joint_limits(self, indices=None):
         if indices is None:

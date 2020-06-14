@@ -80,7 +80,7 @@ class AssistiveEnv(gym.Env):
     def config(self, tag, section=None):
         return float(self.configp[self.task if section is None else section][tag])
 
-    def take_step(self, action, robot_arm='left', gains=0.05, forces=1, human_gains=0.1, human_forces=1, step_sim=True):
+    def take_step(self, action, robot_arm='left', gains=0.05, forces=1, human_gains=0.1, human_forces=1, step_sim=True, action_multiplier=0.05, append_action_to_target=True):
         action = np.clip(action, a_min=self.action_space.low, a_max=self.action_space.high)
         # print('cameraYaw=%.2f, cameraPitch=%.2f, distance=%.2f' % p.getDebugVisualizerCamera(physicsClientId=self.id)[-4:-1])
 
@@ -90,7 +90,7 @@ class AssistiveEnv(gym.Env):
         if self.last_sim_time is None:
             self.last_sim_time = time.time()
 
-        action *= 0.05
+        action *= action_multiplier
         action_robot = action
 
         # If the human is controllable, split the action into action_robot and action_human
@@ -107,7 +107,14 @@ class AssistiveEnv(gym.Env):
                 exit()
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
 
-        robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        if append_action_to_target:
+            # Append the new action to the previous target joint angles
+            if self.target_robot_joint_angles is None:
+                self.target_robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+            robot_joint_angles = self.target_robot_joint_angles
+        else:
+            # Append the new action to the current measured joint angles
+            robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
 
         # Update the target robot/human joint angles based on the proposed action and joint limits
         for _ in range(self.frame_skip):
@@ -165,12 +172,13 @@ class AssistiveEnv(gym.Env):
 
         # --- Arm Manipulation ---
         # Penalty for applying large pressure to the person (high forces over small surface areas)
-        if self.task in ['arm_manipulation']:
-            tool_left_contact_points = len(p.getClosestPoints(bodyA=self.robot, bodyB=self.human, linkIndexA=(78 if self.robot_type=='pr2' else 24 if self.robot_type=='sawyer' else 54 if self.robot_type=='baxter' else 9 if self.robot_type=='jaco' else 7), distance=0.01, physicsClientId=self.id))
-            tool_right_contact_points = len(p.getClosestPoints(bodyA=self.robot, bodyB=self.human, linkIndexA=(55 if self.robot_type=='pr2' else 24 if self.robot_type=='sawyer' else 31 if self.robot_type=='baxter' else 9 if self.robot_type=='jaco' else 7), distance=0.01, physicsClientId=self.id))
-            tool_left_pressure = 0 if tool_left_contact_points <= 0 else (arm_manipulation_tool_forces_on_human[0] / tool_left_contact_points)
-            tool_right_pressure = 0 if tool_right_contact_points <= 0 else (arm_manipulation_tool_forces_on_human[1] / tool_right_contact_points)
-            reward_arm_manipulation_tool_pressures = -(tool_left_pressure + tool_right_pressure)
+        if self.task == 'arm_manipulation':
+            tool_right_contact_points = len(self.tool_right.get_closest_points(self.human, distance=0.01)[-1])
+            tool_left_contact_points = len(self.tool_left.get_closest_points(self.human, distance=0.01)[-1])
+            tool_right_pressure = 0 if tool_right_contact_points <= 0 else (arm_manipulation_tool_forces_on_human[0] / tool_right_contact_points)
+            tool_left_pressure = 0 if tool_left_contact_points <= 0 else (arm_manipulation_tool_forces_on_human[1] / tool_left_contact_points)
+
+            reward_arm_manipulation_tool_pressures = -(tool_right_pressure + tool_left_pressure)
             reward_force_nontarget = -(arm_manipulation_total_force_on_human - np.sum(arm_manipulation_tool_forces_on_human))
         else:
             reward_arm_manipulation_tool_pressures = 0.0
@@ -188,6 +196,7 @@ class AssistiveEnv(gym.Env):
         self.total_time = 0
         self.last_sim_time = None
         self.iteration = 0
+        self.target_robot_joint_angles = None
 
     def setup_record_video(self, task='scratch_itch_pr2'):
         if self.record_video and self.gui:

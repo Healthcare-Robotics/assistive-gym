@@ -2,6 +2,10 @@ import numpy as np
 import pybullet as p
 from .agent import Agent
 
+right_arm_joints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+left_arm_joints = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+head_joints = [20, 21, 22, 23]
+
 class Human(Agent):
     def __init__(self, controllable_joint_indices):
         super(Human, self).__init__()
@@ -16,6 +20,7 @@ class Human(Agent):
         self.left_wrist = 19
         self.neck = 20
         self.head = 23
+        self.stomach = 24
         self.waist = 27
         self.right_hip = 30
         self.right_knee = 31
@@ -49,6 +54,9 @@ class Human(Agent):
         self.strength = 1.0
         self.tremors = np.zeros(10)
         self.target_joint_angles = None
+        self.hand_radius = 0.0
+        self.elbow_radius = 0.0
+        self.shoulder_radius = 0.0
 
     def init(self, human_creation, limits_model, static_human_base, impairment, gender, config, id, np_random):
         self.limits_model = limits_model
@@ -73,6 +81,9 @@ class Human(Agent):
             self.tremors = np_random.uniform(np.deg2rad(-10), np.deg2rad(10), size=len(self.controllable_joint_indices))
         # Initialize human
         self.body = human_creation.create_human(static=static_human_base, limit_scale=self.limit_scale, specular_color=[0.1, 0.1, 0.1], gender=self.gender, config=config)
+        self.hand_radius = human_creation.hand_radius
+        self.elbow_radius = human_creation.elbow_radius
+        self.shoulder_radius = human_creation.shoulder_radius
 
         super(Human, self).init(self.body, id, np_random, self.controllable_joint_indices)
 
@@ -108,8 +119,8 @@ class Human(Agent):
         # Only enforce limits for the human arm that is moveable (if either arm is even moveable)
         if (self.j_right_shoulder_x not in self.controllable_joint_indices) and (self.j_left_shoulder_x not in self.controllable_joint_indices):
             return
-        right = 3 in self.controllable_joint_indices
-        indices = [3, 4, 5, 6] if right else [13, 14, 15, 16]
+        right = self.j_right_shoulder_x in self.controllable_joint_indices
+        indices = [self.j_right_shoulder_x, self.j_right_shoulder_y, self.j_right_shoulder_z, self.j_right_elbow] if right else [self.j_right_shoulder_x, self.j_right_shoulder_y, self.j_right_shoulder_z, self.j_right_elbow]
         tz, tx, ty, qe = self.get_joint_angles(indices)
         # Transform joint angles to match those from the Matlab data
         tz2 = (((-1 if right else 1)*tz) + 2*np.pi) % (2*np.pi)

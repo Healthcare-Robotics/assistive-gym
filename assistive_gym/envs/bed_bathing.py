@@ -10,7 +10,7 @@ from .agents.furniture import Furniture
 
 class BedBathingEnv(AssistiveEnv):
     def __init__(self, robot, human_control=False):
-        human_controllable_joint_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        human_controllable_joint_indices = human.right_arm_joints
         super(BedBathingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='bed_bathing', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=24, obs_human_len=(28 if human_control else 0))
 
     def step(self, action):
@@ -24,7 +24,7 @@ class BedBathingEnv(AssistiveEnv):
         preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=total_force_on_human, tool_force_at_target=tool_force_on_human)
 
         reward_distance = -min(self.tool.get_closest_points(self.human, distance=4.0)[-1])
-        reward_action = -np.sum(np.square(action)) # Penalize actions
+        reward_action = -np.linalg.norm(action) # Penalize actions
         reward_new_contact_points = new_contact_points # Reward new contact points on a person
 
         reward = self.config('distance_weight')*reward_distance + self.config('action_weight')*reward_action + self.config('wiping_reward_weight')*reward_new_contact_points + preferences_score
@@ -77,19 +77,26 @@ class BedBathingEnv(AssistiveEnv):
         return tool_force, tool_force_on_human, total_force_on_human, new_contact_points
 
     def _get_obs(self, forces, forces_human):
-        torso_pos = self.robot.get_pos_orient(self.robot.torso)[0]
         tool_pos, tool_orient = self.tool.get_pos_orient(1)
+        tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
-        if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
-            human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
         shoulder_pos = self.human.get_pos_orient(self.human.right_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
-
-        robot_obs = np.concatenate([tool_pos-torso_pos, tool_orient, robot_joint_angles, shoulder_pos-torso_pos, elbow_pos-torso_pos, wrist_pos-torso_pos, forces]).ravel()
+        shoulder_pos_real, _ = self.robot.convert_to_realworld(shoulder_pos)
+        elbow_pos_real, _ = self.robot.convert_to_realworld(elbow_pos)
+        wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
         if self.human_control:
-            human_obs = np.concatenate([tool_pos-human_pos, tool_orient, human_joint_angles, shoulder_pos-human_pos, elbow_pos-human_pos, wrist_pos-human_pos, forces_human]).ravel()
+            human_pos = self.human.get_base_pos_orient()[0]
+            human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
+            tool_pos_human, tool_orient_human = self.human.convert_to_realworld(tool_pos, tool_orient)
+            shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)
+            elbow_pos_human, _ = self.human.convert_to_realworld(elbow_pos)
+            wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
+
+        robot_obs = np.concatenate([tool_pos_real, tool_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, forces]).ravel()
+        if self.human_control:
+            human_obs = np.concatenate([tool_pos_human, tool_orient_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, forces_human]).ravel()
         else:
             human_obs = []
 
@@ -131,7 +138,7 @@ class BedBathingEnv(AssistiveEnv):
         target_ee_pos = np.array([-0.6, 0.2, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
         # Use TOC with JLWKI to find an optimal base position for the robot near the person
-        base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], step_sim=True, check_env_collisions=False)
+        base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
         if self.robot.wheelchair_mounted:
             # Load a nightstand in the environment for the jaco arm
             self.nightstand = Furniture()

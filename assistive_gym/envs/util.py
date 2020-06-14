@@ -91,10 +91,7 @@ class Util:
                 return True
         return False
 
-    def sleeve_on_arm_reward(self, triangle1_points, triangle2_points, human, hand_radius, elbow_radius, shoulder_radius):
-        shoulder_pos, shoulder_orient = p.getLinkState(human, 15, computeForwardKinematics=True, physicsClientId=self.id)[:2]
-        elbow_pos, elbow_orient = p.getLinkState(human, 17, computeForwardKinematics=True, physicsClientId=self.id)[:2]
-        wrist_pos, wrist_orient = p.getLinkState(human, 19, computeForwardKinematics=True, physicsClientId=self.id)[4:6]
+    def sleeve_on_arm_reward(self, triangle1_points, triangle2_points, shoulder_pos, elbow_pos, wrist_pos, hand_radius, elbow_radius, shoulder_radius):
         # Use full length of arm, rather than from hand center to elbow center
         wrist_pos, elbow_pos, shoulder_pos = np.array(wrist_pos), np.array(elbow_pos), np.array(shoulder_pos)
         hand_end_pos = wrist_pos + (wrist_pos - elbow_pos) / np.linalg.norm(wrist_pos - elbow_pos) * hand_radius*2
@@ -117,9 +114,12 @@ class Util:
         # Check if at least one point exists above and below both planes
         # v.dot(p - p0), p0 on plane, v is normal_forearm of a plane. v = tangent_forearm, v = binormal_forearm, p0 = elbow_end_pos
         all_points = np.concatenate([triangle1_points, triangle2_points], axis=0)
-        tangent_forearm_points = np.dot(tangent_forearm, (all_points - elbow_end_pos).T)
-        binormal_forearm_points = np.dot(binormal_forearm, (all_points - elbow_end_pos).T)
+        # tangent_forearm_points = np.dot(tangent_forearm, (all_points - elbow_end_pos).T)
+        # binormal_forearm_points = np.dot(binormal_forearm, (all_points - elbow_end_pos).T)
+        tangent_forearm_points = np.dot(tangent_forearm, (all_points - hand_end_pos).T)
+        binormal_forearm_points = np.dot(binormal_forearm, (all_points - hand_end_pos).T)
         points_above_below_forearm = np.any(tangent_forearm_points > 0) and np.any(tangent_forearm_points < 0) and np.any(binormal_forearm_points > 0) and np.any(binormal_forearm_points < 0)
+        # print(points_above_below_forearm)
 
         normal_upperarm = elbow_end_pos - shoulder_end_pos
         normal_upperarm = normal_upperarm / np.linalg.norm(normal_upperarm)
@@ -141,6 +141,10 @@ class Util:
         distance_to_shoulder = np.linalg.norm(shoulder_end_pos - sleeve_center)
         distance_to_elbow = np.linalg.norm(elbow_end_pos - sleeve_center)
         distance_to_hand = np.linalg.norm(hand_end_pos - sleeve_center)
+
+        # all_points_opening = np.concatenate([triangle1_points_opening, triangle2_points_opening], axis=0)
+        # sleeve_center_opening = np.mean(all_points_opening, axis=0)
+        # distance_to_hand_opening = np.linalg.norm(hand_end_pos - sleeve_center_opening)
 
         # Reward forward movement along the arm, away from the hand (pulling the sleeve onto the arm)
         distance_along_forearm = np.linalg.norm(sleeve_center - hand_end_pos)

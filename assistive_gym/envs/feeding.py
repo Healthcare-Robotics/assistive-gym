@@ -10,7 +10,7 @@ from .agents.furniture import Furniture
 
 class FeedingEnv(AssistiveEnv):
     def __init__(self, robot, human_control=False):
-        human_controllable_joint_indices = [20, 21, 22, 23]
+        human_controllable_joint_indices = human.head_joints
         super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
 
     def step(self, action):
@@ -28,7 +28,7 @@ class FeedingEnv(AssistiveEnv):
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
 
         reward_distance_mouth_target = -np.linalg.norm(self.target_pos - spoon_pos) # Penalize robot for distance between the spoon and human mouth.
-        reward_action = -np.sum(np.square(action)) # Penalize actions
+        reward_action = -np.linalg.norm(action) # Penalize actions
 
         reward = self.config('distance_weight')*reward_distance_mouth_target + self.config('action_weight')*reward_action + self.config('food_reward_weight')*reward_food + preferences_score
 
@@ -77,17 +77,22 @@ class FeedingEnv(AssistiveEnv):
         return food_reward, food_mouth_velocities, food_hit_human_reward
 
     def _get_obs(self, forces, forces_human):
-        torso_pos = self.robot.get_pos_orient(self.robot.torso)[0]
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
+        spoon_pos_real, spoon_orient_real = self.robot.convert_to_realworld(spoon_pos, spoon_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        head_pos, head_orient = self.human.get_pos_orient(self.human.head)
+        head_pos_real, head_orient_real = self.robot.convert_to_realworld(head_pos, head_orient)
+        target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
         if self.human_control:
             human_pos = self.human.get_base_pos_orient()[0]
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
-        head_pos, head_orient = self.human.get_pos_orient(self.human.head)
+            spoon_pos_human, spoon_orient_human = self.human.convert_to_realworld(spoon_pos, spoon_orient)
+            head_pos_human, head_orient_human = self.human.convert_to_realworld(head_pos, head_orient)
+            target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
 
-        robot_obs = np.concatenate([spoon_pos-torso_pos, spoon_orient, spoon_pos-self.target_pos, robot_joint_angles, head_pos-torso_pos, head_orient, forces]).ravel()
+        robot_obs = np.concatenate([spoon_pos_real, spoon_orient_real, spoon_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, forces]).ravel()
         if self.human_control:
-            human_obs = np.concatenate([spoon_pos-human_pos, spoon_orient, spoon_pos-self.target_pos, human_joint_angles, head_pos-human_pos, head_orient, forces_human]).ravel()
+            human_obs = np.concatenate([spoon_pos_human, spoon_orient_human, spoon_pos_human - target_pos_human, human_joint_angles, head_pos_human, head_orient_human, forces_human]).ravel()
         else:
             human_obs = []
 
@@ -99,19 +104,15 @@ class FeedingEnv(AssistiveEnv):
         self.wheelchair = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', gender='random')
         if self.robot.wheelchair_mounted:
             wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
-            # TODO: Check if this default orientation works for all wheelchair mounted arms
-            # TODO: Can we implement a personal function for getQuaternionFromEuler, i.e. util.get_quaternion()
             self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         joints_positions += [(self.human.j_head_x, self.np_random.uniform(-30, 30)), (self.human.j_head_y, self.np_random.uniform(-30, 30)), (self.human.j_head_z, self.np_random.uniform(-30, 30))]
         self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None)
 
-        # Place a bowl on a table
+        # Create a table
         self.table = Furniture()
         self.table.init('table', self.world_creation.directory, self.id, self.np_random)
-        self.bowl = Furniture()
-        self.bowl.init('bowl', self.world_creation.directory, self.id, self.np_random)
 
         # Set target on mouth
         self.mouth_pos = [0, -0.11, 0.03] if self.human.gender == 'male' else [0, -0.1, 0.03]
@@ -129,11 +130,15 @@ class FeedingEnv(AssistiveEnv):
             self.robot.ik_random_restarts(right=True, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.01, step_sim=True, check_env_collisions=True)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            self.robot.position_robot_toc(self.task, 'right', [(target_ee_pos, target_ee_orient), (self.target_pos, None)], [(self.target_pos, target_ee_orient)], step_sim=True, check_env_collisions=False)
+            self.robot.position_robot_toc(self.task, 'right', [(target_ee_pos, target_ee_orient), (self.target_pos, None)], [(self.target_pos, target_ee_orient)], self.human, step_sim=True, check_env_collisions=False)
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
         self.tool.init(self.robot, self.task, self.world_creation.directory, self.id, self.np_random, right=True, mesh_scale=[0.08]*3)
+
+        # Place a bowl on a table
+        self.bowl = Furniture()
+        self.bowl.init('bowl', self.world_creation.directory, self.id, self.np_random)
 
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
         p.setGravity(0, 0, 0, body=self.robot.body, physicsClientId=self.id)
