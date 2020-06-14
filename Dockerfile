@@ -1,4 +1,4 @@
-﻿FROM ubuntu:18.04
+FROM ubuntu:18.04
 
 RUN apt-get update && apt-get -y install sudo
 RUN apt-get -y upgrade && apt-get update && apt-get clean && apt-get -y install curl git build-essential zlib1g-dev libssl-dev libopenmpi-dev libglib2.0-0 libsm6 libxext6 libxrender-dev vim
@@ -20,15 +20,15 @@ RUN git clone -b v1.0 https://github.com/Healthcare-Robotics/assistive-gym.git &
 RUN pip3 install git+https://github.com/Zackory/pytorch-a2c-ppo-acktr --no-cache-dir
 RUN pip3 install git+https://github.com/openai/baselines.git
 
-docker build -t "assistive-gym-v1.0:Dockerfile" .
-docker run -it 0f55f5d433e6 bash
-To reconnect using Xserver
-See: https://medium.com/@mreichelt/how-to-show-x11-windows-within-docker-on-mac-50759f4b65cb
-docker exec -it -e DISPLAY=host.docker.internal:0 ebccc26459f8 bash
-docker ps -a
-docker images
-docker commit ebeb779ed44e assistive-gym-v1.0:compiled
-docker save assistive-gym-v1.0:compiled | gzip > assistive-gym-v1_docker.tar.gz
+# docker build -t "assistive-gym-v1.0:Dockerfile" .
+# docker run -it 0f55f5d433e6 bash
+# To reconnect using Xserver
+# See: https://medium.com/@mreichelt/how-to-show-x11-windows-within-docker-on-mac-50759f4b65cb
+# docker exec -it -e DISPLAY=host.docker.internal:0 ebccc26459f8 bash
+# docker ps -a
+# docker images
+# docker commit ebeb779ed44e assistive-gym-v1.0:compiled
+# docker save assistive-gym-v1.0:compiled | gzip > assistive-gym-v1_docker.tar.gz
 
 
 # Installation
