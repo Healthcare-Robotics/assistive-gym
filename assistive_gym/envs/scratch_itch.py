@@ -29,7 +29,7 @@ class ScratchItchEnv(AssistiveEnv):
         reward_force_scratch = 0.0 # Reward force near the target
         if target_contact_pos is not None and np.linalg.norm(target_contact_pos - self.prev_target_contact_pos) > 0.01 and 0.5 < tool_force_at_target < 10:
             # Encourage the robot to move around near the target to simulate scratching
-            reward_force_scratch = 5
+            reward_force_scratch = 10
             self.prev_target_contact_pos = target_contact_pos
             self.task_success += 1
 
