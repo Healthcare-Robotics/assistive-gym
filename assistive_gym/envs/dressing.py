@@ -21,7 +21,7 @@ class DressingEnv(AssistiveEnv):
         # action = np.zeros(7)
         # action[0] = -1
         # action[3] = -1
-        self.take_step(action, robot_arm='left', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.005, step_sim=False, action_multiplier=0.01)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.005, step_sim=False, action_multiplier=0.01)
 
         # Update robot position
         for _ in range(self.frame_skip):
@@ -105,7 +105,6 @@ class DressingEnv(AssistiveEnv):
         elbow_pos_real, _ = self.robot.convert_to_realworld(elbow_pos)
         wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
         if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             end_effector_pos_human, end_effector_orient_human = self.human.convert_to_realworld(end_effector_pos, end_effector_orient)
             shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)

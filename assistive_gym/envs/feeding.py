@@ -14,7 +14,7 @@ class FeedingEnv(AssistiveEnv):
         super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
 
     def step(self, action):
-        self.take_step(action, robot_arm='right', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
 
         robot_force_on_human, spoon_force_on_human = self.get_total_force()
         total_force_on_human = robot_force_on_human + spoon_force_on_human
@@ -84,7 +84,6 @@ class FeedingEnv(AssistiveEnv):
         head_pos_real, head_orient_real = self.robot.convert_to_realworld(head_pos, head_orient)
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
         if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             spoon_pos_human, spoon_orient_human = self.human.convert_to_realworld(spoon_pos, spoon_orient)
             head_pos_human, head_orient_human = self.human.convert_to_realworld(head_pos, head_orient)

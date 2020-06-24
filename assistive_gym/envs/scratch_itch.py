@@ -13,7 +13,7 @@ class ScratchItchEnv(AssistiveEnv):
         super(ScratchItchEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='scratch_itch', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=30, obs_human_len=(34 if human_control else 0))
 
     def step(self, action):
-        self.take_step(action, robot_arm='left', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05)
 
         total_force_on_human, tool_force, tool_force_at_target, target_contact_pos = self.get_total_force()
         end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.left_end_effector))
@@ -68,7 +68,6 @@ class ScratchItchEnv(AssistiveEnv):
         wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
         if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             tool_pos_human, tool_orient_human = self.human.convert_to_realworld(tool_pos, tool_orient)
             shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)

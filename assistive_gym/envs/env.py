@@ -80,7 +80,7 @@ class AssistiveEnv(gym.Env):
     def config(self, tag, section=None):
         return float(self.configp[self.task if section is None else section][tag])
 
-    def take_step(self, action, robot_arm='left', gains=0.05, forces=1, human_gains=0.1, human_forces=1, step_sim=True, action_multiplier=0.05, append_action_to_target=True):
+    def take_step(self, action, gains=0.05, forces=1, human_gains=0.1, human_forces=1, step_sim=True, action_multiplier=0.05, append_action_to_target=False):
         action = np.clip(action, a_min=self.action_space.low, a_max=self.action_space.high)
         # print('cameraYaw=%.2f, cameraPitch=%.2f, distance=%.2f' % p.getDebugVisualizerCamera(physicsClientId=self.id)[-4:-1])
 

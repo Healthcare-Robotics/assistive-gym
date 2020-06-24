@@ -14,7 +14,7 @@ class BedBathingEnv(AssistiveEnv):
         super(BedBathingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='bed_bathing', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=24, obs_human_len=(28 if human_control else 0))
 
     def step(self, action):
-        self.take_step(action, robot_arm='left', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05)
 
         tool_force, tool_force_on_human, total_force_on_human, new_contact_points = self.get_total_force()
         end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.left_end_effector))
@@ -23,7 +23,7 @@ class BedBathingEnv(AssistiveEnv):
         # Get human preferences
         preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=total_force_on_human, tool_force_at_target=tool_force_on_human)
 
-        reward_distance = -min(self.tool.get_closest_points(self.human, distance=4.0)[-1])
+        reward_distance = -min(self.tool.get_closest_points(self.human, distance=5.0)[-1])
         reward_action = -np.linalg.norm(action) # Penalize actions
         reward_new_contact_points = new_contact_points # Reward new contact points on a person
 
@@ -87,7 +87,6 @@ class BedBathingEnv(AssistiveEnv):
         elbow_pos_real, _ = self.robot.convert_to_realworld(elbow_pos)
         wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
         if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             tool_pos_human, tool_orient_human = self.human.convert_to_realworld(tool_pos, tool_orient)
             shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)

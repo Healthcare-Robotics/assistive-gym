@@ -20,7 +20,7 @@ class ArmManipulationEnv(AssistiveEnv):
             self.tool_left = Tool()
 
     def step(self, action):
-        self.take_step(action, robot_arm='both', gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05, human_forces=2)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.05, human_forces=2)
 
         tool_right_force, tool_left_force, tool_right_force_on_human, tool_left_force_on_human, total_force_on_human = self.get_total_force()
         end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.right_end_effector))
@@ -82,7 +82,6 @@ class ArmManipulationEnv(AssistiveEnv):
         stomach_pos_real, _ = self.robot.convert_to_realworld(stomach_pos)
         waist_pos_real, _ = self.robot.convert_to_realworld(waist_pos)
         if self.human_control:
-            human_pos = self.human.get_base_pos_orient()[0]
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             tool_right_pos_human, tool_right_orient_human = self.human.convert_to_realworld(tool_right_pos, tool_right_orient)
             tool_left_pos_human, tool_left_orient_human = self.human.convert_to_realworld(tool_left_pos, tool_left_orient)
