@@ -71,7 +71,7 @@ class DrinkingEnv(AssistiveEnv):
                     self.task_success += 1
                     water_velocity = np.linalg.norm(w.get_velocity(w.base))
                     water_mouth_velocities.append(water_velocity)
-                    waters_to_remove.append(f)
+                    waters_to_remove.append(w)
                     w.set_base_pos_orient(self.np_random.uniform(1000, 2000, size=3), [0, 0, 0, 1])
                     continue
                 elif water_pos[-1] < 0.5:
