@@ -11,7 +11,7 @@ from .agents.furniture import Furniture
 class FeedingEnv(AssistiveEnv):
     def __init__(self, robot, human_control=False):
         human_controllable_joint_indices = human.head_joints
-        super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
+        super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=10, time_step=0.01, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
@@ -144,7 +144,7 @@ class FeedingEnv(AssistiveEnv):
         p.setGravity(0, 0, 0, body=self.human.body, physicsClientId=self.id)
         p.setGravity(0, 0, 0, body=self.tool.body, physicsClientId=self.id)
 
-        p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
+        p.setPhysicsEngineParameter(numSubSteps=5, numSolverIterations=10, physicsClientId=self.id)
 
         # Generate food
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
@@ -172,4 +172,3 @@ class FeedingEnv(AssistiveEnv):
         target_pos, target_orient = p.multiplyTransforms(head_pos, head_orient, self.mouth_pos, [0, 0, 0, 1], physicsClientId=self.id)
         self.target_pos = np.array(target_pos)
         self.target.set_base_pos_orient(self.target_pos, [0, 0, 0, 1])
-
