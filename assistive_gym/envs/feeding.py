@@ -11,7 +11,7 @@ from .agents.furniture import Furniture
 class FeedingEnv(AssistiveEnv):
     def __init__(self, robot, human_control=False):
         human_controllable_joint_indices = human.head_joints
-        super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=10, time_step=0.01, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
+        super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
@@ -69,9 +69,9 @@ class FeedingEnv(AssistiveEnv):
                 food_reward -= 5
                 foods_to_remove.append(f)
                 continue
-            if len(f.get_contact_points(self.human)) > 0:
+            if len(f.get_contact_points(self.human)) > 0 and f not in self.foods_hit_person:
                 # Record that this food particle just hit the person, so that we can penalize the robot
-                foods_to_remove.append(f)
+                self.foods_hit_person.append(f)
                 food_hit_human_reward -= 1
         self.foods = [f for f in self.foods if f not in foods_to_remove]
         return food_reward, food_mouth_velocities, food_hit_human_reward
@@ -144,7 +144,7 @@ class FeedingEnv(AssistiveEnv):
         p.setGravity(0, 0, 0, body=self.human.body, physicsClientId=self.id)
         p.setGravity(0, 0, 0, body=self.tool.body, physicsClientId=self.id)
 
-        p.setPhysicsEngineParameter(numSubSteps=5, numSolverIterations=10, physicsClientId=self.id)
+        p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
         # Generate food
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
@@ -156,6 +156,7 @@ class FeedingEnv(AssistiveEnv):
                 for k in range(2):
                     batch_positions.append(np.array([i*2*food_radius-0.005, j*2*food_radius, k*2*food_radius+0.01]) + spoon_pos)
         self.foods = self.world_creation.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
+        self.foods_hit_person = []
         self.total_food_count = len(self.foods)
 
         # Enable rendering
