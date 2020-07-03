@@ -3,10 +3,16 @@ import pybullet as p
 from .agent import Agent
 
 class Robot(Agent):
-    def __init__(self, arm, right_arm_joint_indices, left_arm_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False):
+    def __init__(self, controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, controllable_joint_indices=None, flags=None):
+        self.controllable_joints = controllable_joints if controllable_joint_indices is None else ''
         self.right_arm_joint_indices = right_arm_joint_indices # Controllable arm joints
         self.left_arm_joint_indices = left_arm_joint_indices # Controllable arm joints
-        self.controllable_joint_indices = self.right_arm_joint_indices if arm == 'right' else self.left_arm_joint_indices if arm == 'left' else self.right_arm_joint_indices + self.left_arm_joint_indices
+        self.wheel_joint_indices = wheel_joint_indices # Controllable wheel joints
+        if controllable_joint_indices is not None:
+            self.controllable_joint_indices = controllable_joint_indices
+        else:
+            self.controllable_joint_indices = self.wheel_joint_indices if 'wheel' in controllable_joints else []
+            self.controllable_joint_indices.extend(self.right_arm_joint_indices if 'right' in controllable_joints else self.left_arm_joint_indices if 'left' in controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
         self.right_end_effector = right_end_effector # Used to get the pose of the end effector
         self.left_end_effector = left_end_effector # Used to get the pose of the end effector
         self.right_gripper_indices = right_gripper_indices # Gripper actuated joints
@@ -22,11 +28,15 @@ class Robot(Agent):
         self.toc_ee_orient_rpy = toc_ee_orient_rpy # Initial end effector orientation
         self.wheelchair_mounted = wheelchair_mounted
         self.half_range = half_range # Try setting this to true if the robot is struggling to find IK solutions
+        self.flags = flags # Used to store any additional information for the robot
         self.has_single_arm = self.right_end_effector == self.left_end_effector
         super(Robot, self).__init__()
 
     def init(self, body, id, np_random):
         super(Robot, self).init(body, id, np_random)
+        if 'wheel' in self.controllable_joints:
+            self.controllable_joint_lower_limits[:len(self.wheel_joint_indices)] = -np.inf
+            self.controllable_joint_upper_limits[:len(self.wheel_joint_indices)] = np.inf
         self.right_arm_lower_limits = [self.lower_limits[i] for i in self.right_arm_joint_indices]
         self.right_arm_upper_limits = [self.upper_limits[i] for i in self.right_arm_joint_indices]
         self.left_arm_lower_limits = [self.lower_limits[i] for i in self.left_arm_joint_indices]

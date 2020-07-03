@@ -4,9 +4,10 @@ import pybullet as p
 from .robot import Robot
 
 class Sawyer(Robot):
-    def __init__(self, arm='right'):
+    def __init__(self, controllable_joints='right'):
         right_arm_joint_indices = [3, 8, 9, 10, 11, 13, 16] # Controllable arm joints
         left_arm_joint_indices = right_arm_joint_indices # Controllable arm joints
+        wheel_joint_indices = []
         right_end_effector = 19 # Used to get the pose of the end effector
         left_end_effector = right_end_effector # Used to get the pose of the end effector
         right_gripper_indices = [20, 22] # Gripper actuated joints
@@ -22,10 +23,10 @@ class Sawyer(Robot):
         toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], 'feeding': [np.pi/2.0, 0, np.pi/2.0], 'drinking': [0, -np.pi/2.0, np.pi], 'bed_bathing': [0, np.pi/2.0, 0], 'dressing': [[0, -np.pi/2.0, 0], [np.pi/2.0, -np.pi/2.0, 0]], 'arm_manipulation': [0, -np.pi/2.0, np.pi]} # Initial end effector orientation
         wheelchair_mounted = False
 
-        super(Sawyer, self).__init__(arm, right_arm_joint_indices, left_arm_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)
+        super(Sawyer, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)
 
-    def init(self, directory, id, np_random):
-        self.body = p.loadURDF(os.path.join(directory, 'sawyer', 'sawyer.urdf'), useFixedBase=True, basePosition=[-2, -2, 0.975], flags=p.URDF_USE_SELF_COLLISION, physicsClientId=id)
+    def init(self, directory, id, np_random, fixed_base=True):
+        self.body = p.loadURDF(os.path.join(directory, 'sawyer', 'sawyer.urdf'), useFixedBase=fixed_base, basePosition=[-2, -2, 0.975], flags=p.URDF_USE_SELF_COLLISION, physicsClientId=id)
         super(Sawyer, self).init(self.body, id, np_random)
 
         # Remove collisions between the various arm links for stability

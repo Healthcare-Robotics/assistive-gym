@@ -217,14 +217,14 @@
       </geometry>
       <material name="White"/>
     </visual>
-    <collision>
       <!-- represent base collision with a simple rectangular model, positioned by base_size_z s.t. top
              surface of the collision box matches the top surface of the PR2 base -->
+    <!--<collision>
       <origin rpy="0 0 0" xyz="0 0 0.071"/>
       <geometry>
         <box size="0.001 0.001 0.001"/>
       </geometry>
-    </collision>
+    </collision>-->
   </link>
   <joint name="base_footprint_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0 0 0.051"/>

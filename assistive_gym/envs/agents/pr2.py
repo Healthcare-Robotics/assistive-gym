@@ -4,9 +4,10 @@ import pybullet as p
 from .robot import Robot
 
 class PR2(Robot):
-    def __init__(self, arm='right'):
+    def __init__(self, controllable_joints='right'):
         right_arm_joint_indices = [42, 43, 44, 46, 47, 49, 50] # Controllable arm joints
         left_arm_joint_indices = [64, 65, 66, 68, 69, 71, 72] # Controllable arm joints
+        wheel_joint_indices = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] # Controllable wheel joints
         right_end_effector = 54 # Used to get the pose of the end effector
         left_end_effector = 76 # Used to get the pose of the end effector
         right_gripper_indices = [57, 58, 59, 60] # Gripper actuated joints
@@ -22,10 +23,10 @@ class PR2(Robot):
         toc_ee_orient_rpy = {'scratch_itch': [0, 0, 0], 'feeding': [np.pi/2.0, 0, 0], 'drinking': [0, 0, 0], 'bed_bathing': [0, 0, 0], 'dressing': [[0, 0, np.pi], [0, 0, np.pi*3/2.0]], 'arm_manipulation': [0, 0, 0]} # Initial end effector orientation
         wheelchair_mounted = False
 
-        super(PR2, self).__init__(arm, right_arm_joint_indices, left_arm_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)
+        super(PR2, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)
 
-    def init(self, directory, id, np_random):
-        self.body = p.loadURDF(os.path.join(directory, 'PR2', 'pr2_no_torso_lift_tall.urdf'), useFixedBase=True, basePosition=[-2, -2, 0], flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=id)
+    def init(self, directory, id, np_random, fixed_base=True):
+        self.body = p.loadURDF(os.path.join(directory, 'PR2', 'pr2_no_torso_lift_tall.urdf'), useFixedBase=fixed_base, basePosition=[-2, -2, 0], flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=id)
         super(PR2, self).init(self.body, id, np_random)
 
         # Recolor robot

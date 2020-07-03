@@ -22,6 +22,8 @@ class AssistiveEnv(gym.Env):
         self.robot = robot
         self.human = human
         self.tool = Tool()
+        self.furniture = Furniture()
+        self.plane = Agent()
 
         self.task = task
         self.human_control = human_control
@@ -50,7 +52,7 @@ class AssistiveEnv(gym.Env):
         self.setup_timing()
         self.seed(1001)
 
-        self.world_creation = WorldCreation(self.id, self.robot, self.human, task=task, time_step=self.time_step, np_random=self.np_random, config=self.config)
+        self.world_creation = WorldCreation(self.id, self, task=task, time_step=self.time_step, np_random=self.np_random, config=self.config)
         self.util = Util(self.id, self.np_random)
 
         self.record_video = False
@@ -221,6 +223,6 @@ class AssistiveEnv(gym.Env):
             p.disconnect(self.id)
             self.id = p.connect(p.GUI, options='--background_color_red=0.8 --background_color_green=0.9 --background_color_blue=1.0 --width=%d --height=%d' % (self.width, self.height))
 
-            self.world_creation = WorldCreation(self.id, self.robot, self.human, task=self.task, time_step=self.time_step, np_random=self.np_random, config=self.config)
+            self.world_creation = WorldCreation(self.id, self, task=self.task, time_step=self.time_step, np_random=self.np_random, config=self.config)
             self.util = Util(self.id, self.np_random)
 

@@ -55,7 +55,7 @@ class HumanCreation:
         self.shoulder_radius = 0.0
         self.id = pid
 
-    def create_human(self, static=True, limit_scale=1.0, specular_color=[0.1, 0.1, 0.1], gender='random', config=None):
+    def create_human(self, static=True, limit_scale=1.0, specular_color=[0.1, 0.1, 0.1], gender='random', config=None, mass=None, radius_scale=1.0, height_scale=1.0):
         if gender not in ['male', 'female']:
             gender = self.np_random.choice(['male', 'female'])
         def create_body(shape=p.GEOM_CAPSULE, radius=0, length=0, position_offset=[0, 0, 0], orientation=[0, 0, 0, 1]):
@@ -65,10 +65,15 @@ class HumanCreation:
 
         joint_c, joint_v = -1, -1
         if gender == 'male':
-            c = lambda tag: config(tag, 'human_male')
-            m = c('mass') # mass of 50% male in kg
-            rs = c('radius_scale')
-            hs = c('height_scale')
+            if config is not None:
+                c = lambda tag: config(tag, 'human_male')
+                m = c('mass') # mass of 50% male in kg
+                rs = c('radius_scale')
+                hs = c('height_scale')
+            else:
+                m = mass if mass is not None else 78.4
+                rs = radius_scale
+                hs = height_scale
             chest_c, chest_v = create_body(shape=p.GEOM_CAPSULE, radius=0.127*rs, length=0.056, orientation=p.getQuaternionFromEuler([0, np.pi/2.0, 0], physicsClientId=self.id))
             right_shoulders_c, right_shoulders_v = create_body(shape=p.GEOM_CAPSULE, radius=0.106*rs, length=0.253/8, position_offset=[-0.253/2.5 + 0.253/16, 0, 0], orientation=p.getQuaternionFromEuler([0, np.pi/2.0, 0], physicsClientId=self.id))
             left_shoulders_c, left_shoulders_v = create_body(shape=p.GEOM_CAPSULE, radius=0.106*rs, length=0.253/8, position_offset=[0.253/2.5 - 0.253/16, 0, 0], orientation=p.getQuaternionFromEuler([0, np.pi/2.0, 0], physicsClientId=self.id))
@@ -111,10 +116,15 @@ class HumanCreation:
             shin_p = [0, 0, -0.424*hs]
             foot_p = [0, 0, -0.403*hs - 0.025]
         else:
-            c = lambda tag: config(tag, 'human_female')
-            m = c('mass') # mass of 50% female in kg
-            rs = c('radius_scale')
-            hs = c('height_scale')
+            if config is not None:
+                c = lambda tag: config(tag, 'human_female')
+                m = c('mass') # mass of 50% female in kg
+                rs = c('radius_scale')
+                hs = c('height_scale')
+            else:
+                m = mass if mass is not None else 62.5
+                rs = radius_scale
+                hs = height_scale
             chest_c, chest_v = create_body(shape=p.GEOM_CAPSULE, radius=0.127*rs, length=0.01, orientation=p.getQuaternionFromEuler([0, np.pi/2.0, 0], physicsClientId=self.id)) #
             right_shoulders_c, right_shoulders_v = create_body(shape=p.GEOM_CAPSULE, radius=0.092*rs, length=0.225/8, position_offset=[-0.225/2.5 + 0.225/16, 0, 0], orientation=p.getQuaternionFromEuler([0, np.pi/2.0, 0], physicsClientId=self.id))
             left_shoulders_c, left_shoulders_v = create_body(shape=p.GEOM_CAPSULE, radius=0.092*rs, length=0.225/8, position_offset=[0.225/2.5 - 0.225/16, 0, 0], orientation=p.getQuaternionFromEuler([0, np.pi/2.0, 0], physicsClientId=self.id))

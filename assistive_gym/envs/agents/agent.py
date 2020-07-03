@@ -18,8 +18,8 @@ class Agent:
         if indices != -1:
             self.update_joint_limits()
             self.enforce_joint_limits(indices)
-            self.controllable_joint_lower_limits = [self.lower_limits[i] for i in self.controllable_joint_indices]
-            self.controllable_joint_upper_limits = [self.upper_limits[i] for i in self.controllable_joint_indices]
+            self.controllable_joint_lower_limits = np.array([self.lower_limits[i] for i in self.controllable_joint_indices])
+            self.controllable_joint_upper_limits = np.array([self.upper_limits[i] for i in self.controllable_joint_indices])
 
     def control(self, indices, target_angles, gains, forces):
         if type(gains) in [int, float]:
@@ -122,11 +122,22 @@ class Agent:
         # Reset all joints to 0 position, 0 velocity
         self.set_joint_angles(self.all_joint_indices, [0]*len(self.all_joint_indices))
 
+    def set_frictions(self, link, lateral_friction=None, spinning_friction=None, rolling_friction=None):
+        if lateral_friction is not None:
+            p.changeDynamics(self.body, link, lateralFriction=lateral_friction, physicsClientId=self.id)
+        if spinning_friction is not None:
+            p.changeDynamics(self.body, link, spinningFriction=spinning_friction, physicsClientId=self.id)
+        if rolling_friction is not None:
+            p.changeDynamics(self.body, link, rollingFriction=rolling_friction, physicsClientId=self.id)
+
     def set_friction(self, link, friction):
         p.changeDynamics(self.body, link, lateralFriction=friction, spinningFriction=friction, rollingFriction=friction, physicsClientId=self.id)
 
     def set_mass(self, link, mass):
         p.changeDynamics(self.body, link, mass=mass, physicsClientId=self.id)
+
+    def set_gravity(self, ax=0.0, ay=0.0, az=-9.81):
+        p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
 
     def enable_force_torque_sensor(self, joint):
         p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)

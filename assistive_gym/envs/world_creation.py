@@ -3,16 +3,13 @@ import numpy as np
 import pybullet as p
 from keras.models import load_model
 from .human_creation import HumanCreation
-from .agents import furniture, agent
-from .agents.furniture import Furniture
+from .agents import agent
 from .agents.agent import Agent
 
 class WorldCreation:
-    def __init__(self, id, robot, human, task='scratch_itch', time_step=0.02, np_random=None, config=None):
+    def __init__(self, id, env, task='scratch_itch', time_step=0.02, np_random=None, config=None):
         self.id = id
-        self.robot = robot
-        self.human = human
-        self.furniture = Furniture()
+        self.env = env
         self.task = task
         self.time_step = time_step
         self.np_random = np_random
@@ -34,20 +31,21 @@ class WorldCreation:
         p.setRealTimeSimulation(0, physicsClientId=self.id)
 
         # Load the ground plane
-        p.loadURDF(os.path.join(self.directory, 'plane', 'plane.urdf'), physicsClientId=self.id)
+        plane = p.loadURDF(os.path.join(self.directory, 'plane', 'plane.urdf'), physicsClientId=self.id)
+        self.env.plane.init(plane, self.id, self.np_random, indices=-1)
 
         # Disable rendering during creation
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=self.id)
 
         # Create furniture (wheelchair, bed, or table)
-        self.furniture.init(furniture_type, self.directory, self.id, self.np_random)
+        self.env.furniture.init(furniture_type, self.directory, self.id, self.np_random)
 
-        self.human.init(self.human_creation, self.human_limits_model, static_human_base, human_impairment, gender, self.config, self.id, self.np_random)
+        self.env.human.init(self.human_creation, self.human_limits_model, static_human_base, human_impairment, gender, self.config, self.id, self.np_random)
 
         # Initialize robot
-        self.robot.init(self.directory, self.id, self.np_random)
+        self.env.robot.init(self.directory, self.id, self.np_random)
 
-        return self.furniture
+        return self.env.furniture
 
     def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False):
         sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1

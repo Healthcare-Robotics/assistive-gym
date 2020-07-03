@@ -4,12 +4,15 @@ from .agent import Agent
 
 right_arm_joints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 left_arm_joints = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+right_leg_joints = [28, 29, 30, 31, 32, 33, 34]
+left_leg_joints = [35, 36, 37, 38, 39, 40, 41]
 head_joints = [20, 21, 22, 23]
 
 class Human(Agent):
-    def __init__(self, controllable_joint_indices):
+    def __init__(self, controllable_joint_indices, controllable=False):
         super(Human, self).__init__()
         self.controllable_joint_indices = controllable_joint_indices
+        self.controllable = controllable
         self.right_pecs = 2
         self.right_shoulder = 5
         self.right_elbow = 7
@@ -58,7 +61,7 @@ class Human(Agent):
         self.elbow_radius = 0.0
         self.shoulder_radius = 0.0
 
-    def init(self, human_creation, limits_model, static_human_base, impairment, gender, config, id, np_random):
+    def init(self, human_creation, limits_model, static_human_base, impairment, gender, config, id, np_random, mass=None, radius_scale=1.0, height_scale=1.0):
         self.limits_model = limits_model
         self.arm_previous_valid_pose = {True: None, False: None}
         # Choose gender
@@ -80,7 +83,7 @@ class Human(Agent):
         else:
             self.tremors = np_random.uniform(np.deg2rad(-10), np.deg2rad(10), size=len(self.controllable_joint_indices))
         # Initialize human
-        self.body = human_creation.create_human(static=static_human_base, limit_scale=self.limit_scale, specular_color=[0.1, 0.1, 0.1], gender=self.gender, config=config)
+        self.body = human_creation.create_human(static=static_human_base, limit_scale=self.limit_scale, specular_color=[0.1, 0.1, 0.1], gender=self.gender, config=config, mass=mass, radius_scale=radius_scale, height_scale=height_scale)
         self.hand_radius = human_creation.hand_radius
         self.elbow_radius = human_creation.elbow_radius
         self.shoulder_radius = human_creation.shoulder_radius
