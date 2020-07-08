@@ -122,19 +122,33 @@ class Agent:
         # Reset all joints to 0 position, 0 velocity
         self.set_joint_angles(self.all_joint_indices, [0]*len(self.all_joint_indices))
 
-    def set_frictions(self, link, lateral_friction=None, spinning_friction=None, rolling_friction=None):
-        if lateral_friction is not None:
-            p.changeDynamics(self.body, link, lateralFriction=lateral_friction, physicsClientId=self.id)
-        if spinning_friction is not None:
-            p.changeDynamics(self.body, link, spinningFriction=spinning_friction, physicsClientId=self.id)
-        if rolling_friction is not None:
-            p.changeDynamics(self.body, link, rollingFriction=rolling_friction, physicsClientId=self.id)
+    def set_whole_body_frictions(self, lateral_friction=None, spinning_friction=None, rolling_friction=None):
+        self.set_frictions(self.all_joint_indices, lateral_friction, spinning_friction, rolling_friction)
 
-    def set_friction(self, link, friction):
-        p.changeDynamics(self.body, link, lateralFriction=friction, spinningFriction=friction, rollingFriction=friction, physicsClientId=self.id)
+    def set_frictions(self, links, lateral_friction=None, spinning_friction=None, rolling_friction=None):
+        if type(links) == int:
+            links = [links]
+        for link in links:
+            if lateral_friction is not None:
+                p.changeDynamics(self.body, link, lateralFriction=lateral_friction, physicsClientId=self.id)
+            if spinning_friction is not None:
+                p.changeDynamics(self.body, link, spinningFriction=spinning_friction, physicsClientId=self.id)
+            if rolling_friction is not None:
+                p.changeDynamics(self.body, link, rollingFriction=rolling_friction, physicsClientId=self.id)
+
+    def set_friction(self, links, friction):
+        self.set_frictions(links, lateral_friction=friction, spinning_friction=friction, rolling_friction=friction)
 
     def set_mass(self, link, mass):
         p.changeDynamics(self.body, link, mass=mass, physicsClientId=self.id)
+
+    def set_all_joints_stiffness(self, stiffness):
+        for joint in self.all_joint_indices:
+            self.set_joint_stiffness(joint, stiffness)
+
+    def set_joint_stiffness(self, joint, stiffness):
+        p.changeDynamics(self.body, joint, jointDamping=stiffness, physicsClientId=self.id)
+        # p.changeDynamics(self.body, joint, contactStiffness=stiffness, contactDamping=stiffness, physicsClientId=self.id)
 
     def set_gravity(self, ax=0.0, ay=0.0, az=-9.81):
         p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)

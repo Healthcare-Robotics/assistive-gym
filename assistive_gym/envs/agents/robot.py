@@ -12,7 +12,7 @@ class Robot(Agent):
             self.controllable_joint_indices = controllable_joint_indices
         else:
             self.controllable_joint_indices = self.wheel_joint_indices if 'wheel' in controllable_joints else []
-            self.controllable_joint_indices.extend(self.right_arm_joint_indices if 'right' in controllable_joints else self.left_arm_joint_indices if 'left' in controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
+            self.controllable_joint_indices = self.controllable_joint_indices + (self.right_arm_joint_indices if 'right' in controllable_joints else self.left_arm_joint_indices if 'left' in controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
         self.right_end_effector = right_end_effector # Used to get the pose of the end effector
         self.left_end_effector = left_end_effector # Used to get the pose of the end effector
         self.right_gripper_indices = right_gripper_indices # Gripper actuated joints
@@ -62,10 +62,10 @@ class Robot(Agent):
                 if joint_type != p.JOINT_FIXED:
                     counter += 1
 
-    def set_gripper_open_position(self, indices, positions, set_instantly=False):
+    def set_gripper_open_position(self, indices, positions, set_instantly=False, force=500):
         if set_instantly:
             self.set_joint_angles(indices, positions, use_limits=True)
-        p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=positions, positionGains=np.array([0.05]*len(indices)), forces=[500]*len(indices), physicsClientId=self.id)
+        p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=positions, positionGains=np.array([0.05]*len(indices)), forces=[force]*len(indices), physicsClientId=self.id)
 
     def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=50, success_threshold=0.03, step_sim=False, check_env_collisions=False):
         orient_orig = target_orient
