@@ -4,14 +4,10 @@ import numpy as np
 import pybullet as p
 
 from .env import AssistiveEnv
-from .agents import human
-from .agents.human import Human
-from .agents.agent import Agent
 
 class DressingEnv(AssistiveEnv):
-    def __init__(self, robot, human_control=False):
-        human_controllable_joint_indices = human.left_arm_joints
-        super(DressingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='dressing', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=24, obs_human_len=(25 if human_control else 0))
+    def __init__(self, robot, human):
+        super(DressingEnv, self).__init__(robot=robot, human=human, task='dressing')
         self.tt = None
 
     def step(self, action):
@@ -21,21 +17,8 @@ class DressingEnv(AssistiveEnv):
         # action = np.zeros(7)
         # action[0] = -1
         # action[3] = -1
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.005, step_sim=False, action_multiplier=0.01)
-
-        # Update robot position
-        for _ in range(self.frame_skip):
-            # Force the end effector to move forward
-            # action = np.array([0, 0.025, 0]) / 10.0
-            # ee_pos = self.robot.get_pos_orient(self.robot.left_end_effector)[0] + action
-            # ee_pos[-1] = self.start_ee_pos[-1]
-            # ik_joint_poses = np.array(p.calculateInverseKinematics(self.robot.body, self.robot.left_end_effector, targetPosition=ee_pos, targetOrientation=self.start_ee_orient, maxNumIterations=100, physicsClientId=self.id))
-            # target_joint_positions = ik_joint_poses[self.robot.left_arm_ik_indices]
-            # self.robot.set_joint_angles(self.robot.left_arm_joint_indices, target_joint_positions, use_limits=False)
-
-            # Force the end effector attachment to stay at the end effector
-            self.cloth_attachment.set_base_pos_orient(self.robot.get_pos_orient(self.robot.left_end_effector)[0], [0, 0, 0, 1])
-            p.stepSimulation(physicsClientId=self.id)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
+        # self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), step_sim=False, action_multiplier=0.01)
 
         shoulder_pos = self.human.get_pos_orient(self.human.left_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.left_elbow)[0]
@@ -61,10 +44,10 @@ class DressingEnv(AssistiveEnv):
             if c[-1] < end_effector_pos[-1] - 0.05 and np.linalg.norm(f) < 20:
                 forces_temp.append(f)
                 contact_positions_temp.append(c)
-        forces = np.array(forces_temp)
+        self.cloth_forces = np.array(forces_temp)
         contact_positions = np.array(contact_positions_temp)
         end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.left_end_effector))
-        preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, dressing_forces=forces)
+        preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, dressing_forces=self.cloth_forces)
 
         reward_action = -np.linalg.norm(action) # Penalize actions
         if self.upperarm_in_sleeve:
@@ -78,23 +61,20 @@ class DressingEnv(AssistiveEnv):
 
         reward = self.config('dressing_reward_weight')*reward_dressing + self.config('action_weight')*reward_action + preferences_score
 
-        cloth_force_sum = np.sum(np.linalg.norm(forces, axis=-1))
-        robot_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
-        obs = self._get_obs([cloth_force_sum], [cloth_force_sum, robot_force_on_human])
+        obs = self._get_obs()
 
         if reward_dressing > self.task_success:
             self.task_success = reward_dressing
 
         if self.gui:
-            print('Task success:', self.task_success, 'Average forces on arm:', cloth_force_sum)
+            print('Task success:', self.task_success, 'Average forces on arm:', self.cloth_force_sum)
 
-        total_force_on_human = robot_force_on_human + cloth_force_sum
-        info = {'total_force_on_human': total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
+        info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         done = False
 
         return obs, reward, done, info
 
-    def _get_obs(self, forces, forces_human):
+    def _get_obs(self, agent=None):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
         end_effector_pos_real, end_effector_orient_real = self.robot.convert_to_realworld(end_effector_pos, end_effector_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
@@ -104,34 +84,38 @@ class DressingEnv(AssistiveEnv):
         shoulder_pos_real, _ = self.robot.convert_to_realworld(shoulder_pos)
         elbow_pos_real, _ = self.robot.convert_to_realworld(elbow_pos)
         wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
-        if self.human_control:
+        self.cloth_force_sum = np.sum(np.linalg.norm(self.cloth_forces, axis=-1))
+        self.robot_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
+        self.total_force_on_human = self.robot_force_on_human + self.cloth_force_sum
+        if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             end_effector_pos_human, end_effector_orient_human = self.human.convert_to_realworld(end_effector_pos, end_effector_orient)
             shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)
             elbow_pos_human, _ = self.human.convert_to_realworld(elbow_pos)
             wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
 
-        robot_obs = np.concatenate([end_effector_pos_real, end_effector_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, forces]).ravel()
-        if self.human_control:
-            human_obs = np.concatenate([end_effector_pos_human, end_effector_orient_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, forces_human]).ravel()
+        robot_obs = np.concatenate([end_effector_pos_real, end_effector_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.cloth_force_sum]]).ravel()
+        if self.human.controllable:
+            human_obs = np.concatenate([end_effector_pos_human, end_effector_orient_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, [self.cloth_force_sum, self.robot_force_on_human]]).ravel()
         else:
             human_obs = []
 
+        if agent == 'robot':
+            return robot_obs
+        elif agent == 'human':
+            return human_obs
         return np.concatenate([robot_obs, human_obs]).ravel()
 
     def reset(self):
-        self.setup_timing()
-        self.task_success = 0
-        self.forearm_in_sleeve = False
-        self.upperarm_in_sleeve = False
-        self.meanft = np.zeros(6)
-        self.wheelchair = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', gender='random')
+        super(DressingEnv, self).reset()
+        self.build_assistive_env('wheelchair')
+        self.cloth_forces = np.zeros((1, 1))
         if self.robot.wheelchair_mounted:
-            wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
-            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
+            wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
+            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_shoulder_x, -80), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
-        self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None if self.human_control else 1, reactive_gain=0.01)
+        self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None if self.human.controllable else 1, reactive_gain=0.01)
 
         shoulder_pos = self.human.get_pos_orient(self.human.left_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.left_elbow)[0]
@@ -149,7 +133,7 @@ class DressingEnv(AssistiveEnv):
             self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos+offset, target_ee_orient_shoulder), (elbow_pos+offset, target_ee_orient), (wrist_pos+offset, target_ee_orient)], self.human, base_euler_orient=[0, 0, np.pi], step_sim=True, check_env_collisions=False, right_side=False)
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
-        if self.human_control or self.human.impairment == 'tremor':
+        if self.human.controllable or self.human.impairment == 'tremor':
             # Ensure the human arm remains stable while loading the cloth
             self.human.control(self.human.controllable_joint_indices, self.human.get_joint_angles(self.human.controllable_joint_indices), 0.05, 1)
 
@@ -157,10 +141,10 @@ class DressingEnv(AssistiveEnv):
         self.cloth_orig_pos = np.array([0.34658437, -0.30296362, 1.20023387])
         self.cloth_offset = self.start_ee_pos - self.cloth_orig_pos
 
-        self.cloth_attachment = self.world_creation.create_sphere(radius=0.0001, mass=0, pos=self.start_ee_pos, visual=True, collision=False, rgba=[0, 0, 0, 0], maximal_coordinates=True)
+        self.cloth_attachment = self.create_sphere(radius=0.0001, mass=0, pos=self.start_ee_pos, visual=True, collision=False, rgba=[0, 0, 0, 0], maximal_coordinates=True)
 
         # Load cloth
-        self.cloth = p.loadCloth(os.path.join(self.world_creation.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=np.array([0.02, -0.38, 0.83]) + self.cloth_offset/1.4, orientation=p.getQuaternionFromEuler([0, 0, np.pi], physicsClientId=self.id), bodyAnchorId=self.cloth_attachment.body, anchors=[2087, 3879, 3681, 3682, 2086, 2041, 987, 2042, 2088, 1647, 2332, 719, 1569, 1528, 721], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
+        self.cloth = p.loadCloth(os.path.join(self.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=np.array([0.02, -0.38, 0.83]) + self.cloth_offset/1.4, orientation=p.getQuaternionFromEuler([0, 0, np.pi], physicsClientId=self.id), bodyAnchorId=self.cloth_attachment.body, anchors=[2087, 3879, 3681, 3682, 2086, 2041, 987, 2042, 2088, 1647, 2332, 719, 1569, 1528, 721], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
         p.clothParams(self.cloth, kLST=0.055, kAST=1.0, kVST=0.5, kDP=0.01, kDG=10, kDF=0.39, kCHR=1.0, kKHR=1.0, kAHR=1.0, piterations=5, physicsClientId=self.id)
         # Points along the opening of sleeve
         self.triangle1_point_indices = [1180, 2819, 30]
@@ -186,9 +170,9 @@ class DressingEnv(AssistiveEnv):
         # int m_diterations;   // Drift solver iterations
 
         p.setGravity(0, 0, -9.81/2, physicsClientId=self.id) # Let the cloth settle more gently
-        p.setGravity(0, 0, 0, body=self.robot.body, physicsClientId=self.id)
-        p.setGravity(0, 0, -1, body=self.human.body, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.cloth_attachment.body, physicsClientId=self.id)
+        self.robot.set_gravity(0, 0, 0)
+        self.human.set_gravity(0, 0, -1)
+        self.cloth_attachment.set_gravity(0, 0, 0)
 
         p.setPhysicsEngineParameter(numSubSteps=8, physicsClientId=self.id)
 
@@ -203,5 +187,18 @@ class DressingEnv(AssistiveEnv):
 
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
 
-        return self._get_obs([0], [0, 0])
+        self.init_env_variables()
+        return self._get_obs()
+
+    def update_targets(self):
+        # Force the end effector to move forward
+        # action = np.array([0, 0.025, 0]) / 10.0
+        # ee_pos = self.robot.get_pos_orient(self.robot.left_end_effector)[0] + action
+        # ee_pos[-1] = self.start_ee_pos[-1]
+        # ik_joint_poses = np.array(p.calculateInverseKinematics(self.robot.body, self.robot.left_end_effector, targetPosition=ee_pos, targetOrientation=self.start_ee_orient, maxNumIterations=100, physicsClientId=self.id))
+        # target_joint_positions = ik_joint_poses[self.robot.left_arm_ik_indices]
+        # self.robot.set_joint_angles(self.robot.left_arm_joint_indices, target_joint_positions, use_limits=False)
+
+        # Force the end effector attachment to stay at the end effector
+        self.cloth_attachment.set_base_pos_orient(self.robot.get_pos_orient(self.robot.left_end_effector)[0], [0, 0, 0, 1])
 

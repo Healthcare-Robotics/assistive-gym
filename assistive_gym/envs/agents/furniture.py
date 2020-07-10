@@ -7,9 +7,9 @@ class Furniture(Agent):
     def __init__(self):
         super(Furniture, self).__init__()
 
-    def init(self, furniture_type, directory, id, np_random):
+    def init(self, furniture_type, directory, id, np_random, wheelchair_mounted=False):
         if 'wheelchair' in furniture_type:
-            furniture = p.loadURDF(os.path.join(directory, 'wheelchair', furniture_type + '.urdf'), basePosition=[0, 0, 0.06], baseOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, np.pi], physicsClientId=id), physicsClientId=id)
+            furniture = p.loadURDF(os.path.join(directory, 'wheelchair', 'wheelchair.urdf' if not wheelchair_mounted else 'wheelchair_jaco.urdf'), basePosition=[0, 0, 0.06], baseOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, np.pi], physicsClientId=id), physicsClientId=id)
         elif furniture_type == 'bed':
             furniture = p.loadURDF(os.path.join(directory, 'bed', 'bed.urdf'), basePosition=[-0.1, 0, 0], baseOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=id), physicsClientId=id)
 

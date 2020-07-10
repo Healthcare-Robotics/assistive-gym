@@ -1,38 +1,46 @@
-import os, time, datetime, configparser
+import os, time, configparser
+import numpy as np
 import gym
 from gym import spaces
 from gym.utils import seeding
-import numpy as np
-import pybullet as p
-# import cv2
-from keras.models import load_model
 from screeninfo import get_monitors
+import pybullet as p
+from keras.models import load_model
 
 from .util import Util
-from .world_creation import WorldCreation
-from .agents import tool
+from .human_creation import HumanCreation
+from .agents import agent, human, tool, furniture
+from .agents.agent import Agent
+from .agents.human import Human
 from .agents.tool import Tool
+from .agents.furniture import Furniture
 
 class AssistiveEnv(gym.Env):
-    def __init__(self, robot, human, task='scratch_itch', human_control=False, frame_skip=5, time_step=0.02, obs_robot_len=30, obs_human_len=0):
-        # Start the bullet physics server
-        self.id = p.connect(p.DIRECT)
+    def __init__(self, robot=None, human=None, task=None, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
+        self.task = task
+        self.time_step = time_step
+        self.frame_skip = frame_skip
+        self.gravity = gravity
+        self.id = None
         self.gui = False
+        self.np_random, seed = seeding.np_random(seed)
+        if render:
+            self.render()
+        else:
+            self.id = p.connect(p.DIRECT)
 
+        self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
+        self.human_creation = HumanCreation(self.id, np_random=self.np_random, cloth=False)
+        self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
+        self.action_space = spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
+        self.observation_space = spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
+
+        self.agents = []
+        self.plane = Agent()
         self.robot = robot
         self.human = human
         self.tool = Tool()
         self.furniture = Furniture()
-        self.plane = Agent()
-
-        self.task = task
-        self.human_control = human_control
-        self.action_robot_len = len(self.robot.controllable_joint_indices)
-        self.action_human_len = len(self.human.controllable_joint_indices) if human_control else 0
-        self.obs_robot_len = obs_robot_len# + self.action_robot_len
-        self.obs_human_len = obs_human_len# + self.action_human_len
-        self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len)), high=np.array([1.0]*(self.action_robot_len+self.action_human_len)), dtype=np.float32)
-        self.observation_space = spaces.Box(low=np.array([-1.0]*(self.obs_robot_len+self.obs_human_len)), high=np.array([1.0]*(self.obs_robot_len+self.obs_human_len)), dtype=np.float32)
 
         self.configp = configparser.ConfigParser()
         self.configp.read(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'config.ini'))
@@ -45,108 +53,126 @@ class AssistiveEnv(gym.Env):
         self.C_d = self.config('dressing_force_weight', 'human_preferences')
         self.C_p = self.config('high_pressures_weight', 'human_preferences')
 
-        # Execute actions at 10 Hz by default. A new action every 0.1 seconds
-        self.frame_skip = frame_skip
-        self.time_step = time_step
-
-        self.setup_timing()
-        self.seed(1001)
-
-        self.world_creation = WorldCreation(self.id, self, task=task, time_step=self.time_step, np_random=self.np_random, config=self.config)
-        self.util = Util(self.id, self.np_random)
-
-        self.record_video = False
-        self.video_writer = None
-        try:
-            self.width = get_monitors()[0].width
-            self.height = get_monitors()[0].height
-        except Exception as e:
-            self.width = 1920
-            self.height = 1080
-            # self.width = 3840
-            # self.height = 2160
-
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
-
     def step(self, action):
         raise NotImplementedError('Implement observations')
 
-    def _get_obs(self, forces):
+    def _get_obs(self, agent=None):
         raise NotImplementedError('Implement observations')
-
-    def reset(self):
-        raise NotImplementedError('Implement reset')
 
     def config(self, tag, section=None):
         return float(self.configp[self.task if section is None else section][tag])
 
-    def take_step(self, action, gains=0.05, forces=1, human_gains=0.1, human_forces=1, step_sim=True, action_multiplier=0.05, append_action_to_target=False):
-        action = np.clip(action, a_min=self.action_space.low, a_max=self.action_space.high)
-        # print('cameraYaw=%.2f, cameraPitch=%.2f, distance=%.2f' % p.getDebugVisualizerCamera(physicsClientId=self.id)[-4:-1])
+    def reset(self):
+        p.resetSimulation(physicsClientId=self.id)
+        # Configure camera position
+        p.resetDebugVisualizerCamera(cameraDistance=1.75, cameraYaw=-25, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.4], physicsClientId=self.id)
+        p.configureDebugVisualizer(p.COV_ENABLE_MOUSE_PICKING, 0, physicsClientId=self.id)
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0, physicsClientId=self.id)
+        p.setTimeStep(self.time_step, physicsClientId=self.id)
+        # Disable real time simulation so that the simulation only advances when we call stepSimulation
+        p.setRealTimeSimulation(0, physicsClientId=self.id)
+        p.setGravity(0, 0, self.gravity, physicsClientId=self.id)
+        self.agents = []
+        self.last_sim_time = None
+        self.iteration = 0
+        self.forces = []
+        self.task_success = 0
 
-        # print('Total time:', self.total_time)
-        # self.total_time += 0.1
-        self.iteration += 1
+    def build_assistive_env(self, furniture_type=None, fixed_robot_base=True, fixed_human_base=True, human_impairment='random', gender='random'):
+        # Build plane, furniture, robot, human, etc. (just like world creation)
+        # Load the ground plane
+        plane = p.loadURDF(os.path.join(self.directory, 'plane', 'plane.urdf'), physicsClientId=self.id)
+        self.plane.init(plane, self.id, self.np_random, indices=-1)
+        # Disable rendering during creation
+        p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=self.id)
+        # Create robot
+        self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_robot_base)
+        self.agents.append(self.robot)
+        # Create human
+        self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
+        if self.human.controllable:
+            self.agents.append(self.human)
+        # Create furniture (wheelchair, bed, or table)
+        if furniture_type is not None:
+            self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted)
+
+    def init_env_variables(self):
+        if len(self.action_space.low) == 1:
+            obs_len = len(self._get_obs())
+            self.observation_space.__init__(low=-np.ones(obs_len), high=np.ones(obs_len), dtype=np.float32)
+            self.update_action_space()
+            # Define action/obs lengths
+            self.action_robot_len = len(self.robot.controllable_joint_indices)
+            self.action_human_len = len(self.human.controllable_joint_indices) if self.human.controllable else 0
+            self.obs_robot_len = len(self._get_obs('robot'))
+            self.obs_human_len = len(self._get_obs('human'))
+
+    def update_action_space(self):
+        action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents])
+        self.action_space.__init__(low=-np.ones(action_len), high=np.ones(action_len), dtype=np.float32)
+
+    def create_human(self, controllable=False, controllable_joint_indices=[], fixed_base=False, human_impairment='random', gender='random', mass=None, radius_scale=1.0, height_scale=1.0):
+        '''
+        human_impairement in ['none', 'limits', 'weakness', 'tremor']
+        gender in ['male', 'female']
+        '''
+        self.human = Human(controllable_joint_indices, controllable=controllable)
+        self.human.init(self.human_creation, self.human_limits_model, fixed_base, human_impairment, gender, None, self.id, self.np_random, mass=mass, radius_scale=radius_scale, height_scale=height_scale)
+        if controllable:
+            self.agents.append(self.human)
+            self.update_action_space()
+        return self.human
+
+    def create_robot(self, robot_class, controllable_joints='right', fixed_base=True):
+        self.robot = robot_class(controllable_joints)
+        self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_base)
+        self.agents.append(self.robot)
+        self.update_action_space()
+        return self.robot
+
+    def take_step(self, actions, gains=0.05, forces=1, action_multiplier=0.05, step_sim=True):
+        if type(gains) not in (list, tuple):
+            gains = [gains]*len(self.agents)
+        if type(forces) not in (list, tuple):
+            forces = [forces]*len(self.agents)
         if self.last_sim_time is None:
             self.last_sim_time = time.time()
-
-        action *= action_multiplier
-        action_robot = action
-
-        # If the human is controllable, split the action into action_robot and action_human
-        human_control = self.human_control or (self.human.impairment == 'tremor' and self.human.controllable_joint_indices)
-        if human_control:
-            human_len = len(self.human.controllable_joint_indices)
-            if self.human_control:
-                action_robot = action[:self.action_robot_len]
-                action_human = action[self.action_robot_len:]
-            else:
-                action_human = np.zeros(human_len)
-            if len(action_human) != human_len:
-                print('Received human actions of length %d does not match expected action length of %d' % (len(action_human), human_len))
+        self.iteration += 1
+        self.forces = []
+        actions = np.clip(actions, a_min=self.action_space.low, a_max=self.action_space.high)
+        actions *= action_multiplier
+        action_index = 0
+        for i, agent in enumerate(self.agents):
+            agent_action_len = len(agent.controllable_joint_indices)
+            action = np.copy(actions[action_index:action_index+agent_action_len])
+            if len(action) != agent_action_len:
+                print('Received agent actions of length %d does not match expected action length of %d' % (len(action), agent_action_len))
                 exit()
-            human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
-
-        if append_action_to_target:
-            # Append the new action to the previous target joint angles
-            if self.target_robot_joint_angles is None:
-                self.target_robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
-            robot_joint_angles = self.target_robot_joint_angles
-        else:
             # Append the new action to the current measured joint angles
-            robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
-
-        # Update the target robot/human joint angles based on the proposed action and joint limits
-        for _ in range(self.frame_skip):
-            action_robot[robot_joint_angles + action_robot < self.robot.controllable_joint_lower_limits] = 0
-            action_robot[robot_joint_angles + action_robot > self.robot.controllable_joint_upper_limits] = 0
-            robot_joint_angles += action_robot
-            if human_control:
-                action_human[human_joint_angles + action_human < self.human.controllable_joint_lower_limits] = 0
-                action_human[human_joint_angles + action_human > self.human.controllable_joint_upper_limits] = 0
-                if self.human.impairment == 'tremor':
-                    human_joint_angles = self.human.target_joint_angles + self.human.tremors * (1 if self.iteration % 2 == 0 else -1)
-                    self.human.target_joint_angles += action_human
-                human_joint_angles += action_human
-
-        self.robot.control(self.robot.controllable_joint_indices, robot_joint_angles, gains, forces)
-        if human_control:
-            self.human.control(self.human.controllable_joint_indices, human_joint_angles, human_gains, human_forces*self.human.strength)
-
+            agent_joint_angles = agent.get_joint_angles(agent.controllable_joint_indices)
+            # Update the target robot/human joint angles based on the proposed action and joint limits
+            for _ in range(self.frame_skip):
+                action[agent_joint_angles + action < agent.controllable_joint_lower_limits] = 0
+                action[agent_joint_angles + action > agent.controllable_joint_upper_limits] = 0
+                if type(agent) == Human and agent.impairment == 'tremor':
+                    agent.target_joint_angles += action
+                    agent_joint_angles = agent.target_joint_angles + agent.tremors * (1 if self.iteration % 2 == 0 else -1)
+                else:
+                    agent_joint_angles += action
+            agent.control(agent.controllable_joint_indices, agent_joint_angles, gains[i], forces[i])
         if step_sim:
-            # Update robot position
+            # Update all agent positions
             for _ in range(self.frame_skip):
                 p.stepSimulation(physicsClientId=self.id)
-                if self.human_control:
-                    self.human.enforce_realistic_joint_limits()
-                self.human.enforce_joint_limits()
+                for agent in self.agents:
+                    if type(agent) == Human:
+                        agent.enforce_joint_limits()
+                        if agent.controllable:
+                            agent.enforce_realistic_joint_limits()
                 self.update_targets()
                 if self.gui:
                     # Slow down time so that the simulation matches real time
                     self.slow_time()
-            self.record_video_frame()
 
     def human_preferences(self, end_effector_velocity=0, total_force_on_human=0, tool_force_at_target=0, food_hit_human_reward=0, food_mouth_velocities=[], dressing_forces=[[]], arm_manipulation_tool_forces_on_human=[0, 0], arm_manipulation_total_force_on_human=0):
         # Slow end effector velocities
@@ -194,35 +220,41 @@ class AssistiveEnv(gym.Env):
             time.sleep(self.time_step - t)
         self.last_sim_time = time.time()
 
-    def setup_timing(self):
-        self.total_time = 0
-        self.last_sim_time = None
-        self.iteration = 0
-        self.target_robot_joint_angles = None
-
-    def setup_record_video(self, task='scratch_itch_pr2'):
-        if self.record_video and self.gui:
-            if self.video_writer is not None:
-                self.video_writer.release()
-            now = datetime.datetime.now()
-            date = now.strftime('%Y-%m-%d_%H-%M-%S')
-            # self.video_writer = cv2.VideoWriter('%s_%s.avi' % (task, date), cv2.VideoWriter_fourcc(*'MJPG'), 10, (self.width, self.height))
-
-    def record_video_frame(self):
-        if self.record_video and self.gui:
-            frame = np.reshape(p.getCameraImage(width=self.width, height=self.height, renderer=p.ER_BULLET_HARDWARE_OPENGL, physicsClientId=self.id)[2], (self.height, self.width, 4))[:, :, :3]
-            # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            # self.video_writer.write(frame)
-
     def update_targets(self):
         pass
 
     def render(self, mode='human'):
         if not self.gui:
             self.gui = True
-            p.disconnect(self.id)
+            if self.id is not None:
+                p.disconnect(self.id)
+            try:
+                self.width = get_monitors()[0].width
+                self.height = get_monitors()[0].height
+            except Exception as e:
+                self.width = 1920
+                self.height = 1080
             self.id = p.connect(p.GUI, options='--background_color_red=0.8 --background_color_green=0.9 --background_color_blue=1.0 --width=%d --height=%d' % (self.width, self.height))
-
-            self.world_creation = WorldCreation(self.id, self, task=self.task, time_step=self.time_step, np_random=self.np_random, config=self.config)
             self.util = Util(self.id, self.np_random)
+
+    def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False):
+        sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1
+        sphere_visual = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=radius, rgbaColor=rgba, physicsClientId=self.id) if visual else -1
+        if return_collision_visual:
+            return sphere_collision, sphere_visual
+        body = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=sphere_collision, baseVisualShapeIndex=sphere_visual, basePosition=pos, useMaximalCoordinates=maximal_coordinates, physicsClientId=self.id)
+        sphere = Agent()
+        sphere.init(body, self.id, self.np_random, indices=-1)
+        return sphere
+
+    def create_spheres(self, radius=0.01, mass=0.0, batch_positions=[[0, 0, 0]], visual=True, collision=True, rgba=[0, 1, 1, 1]):
+        sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1
+        sphere_visual = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=radius, rgbaColor=rgba, physicsClientId=self.id) if visual else -1
+        last_sphere_id = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=sphere_collision, baseVisualShapeIndex=sphere_visual, basePosition=[0, 0, 0], useMaximalCoordinates=False, batchPositions=batch_positions, physicsClientId=self.id)
+        spheres = []
+        for body in list(range(last_sphere_id-len(batch_positions)+1, last_sphere_id+1)):
+            sphere = Agent()
+            sphere.init(body, self.id, self.np_random, indices=-1)
+            spheres.append(sphere)
+        return spheres
 

@@ -4,25 +4,21 @@ import numpy as np
 import pybullet as p
 
 from .env import AssistiveEnv
-from .agents import human
-from .agents.human import Human
 
 class DrinkingEnv(AssistiveEnv):
-    def __init__(self, robot, human_control=False):
-        human_controllable_joint_indices = human.head_joints
-        super(DrinkingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='drinking', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
+    def __init__(self, robot, human):
+        super(DrinkingEnv, self).__init__(robot=robot, human=human, task='drinking')
 
     def step(self, action):
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
 
-        robot_force_on_human, cup_force_on_human = self.get_total_force()
-        total_force_on_human = robot_force_on_human + cup_force_on_human
+        obs = self._get_obs()
+
         reward_water, water_mouth_velocities, water_hit_human_reward = self.get_water_rewards()
-        end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.right_end_effector))
-        obs = self._get_obs([cup_force_on_human], [robot_force_on_human, cup_force_on_human])
 
         # Get human preferences
-        preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=robot_force_on_human, tool_force_at_target=cup_force_on_human, food_hit_human_reward=water_hit_human_reward, food_mouth_velocities=water_mouth_velocities)
+        end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.right_end_effector))
+        preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=self.total_force_on_human, tool_force_at_target=self.cup_force_on_human, food_hit_human_reward=water_hit_human_reward, food_mouth_velocities=water_mouth_velocities)
 
         cup_pos, cup_orient = self.tool.get_base_pos_orient()
         cup_pos, cup_orient = p.multiplyTransforms(cup_pos, cup_orient, [0, 0.06, 0], p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), physicsClientId=self.id)
@@ -39,7 +35,7 @@ class DrinkingEnv(AssistiveEnv):
         if self.gui and reward_water != 0:
             print('Task success:', self.task_success, 'Water reward:', reward_water)
 
-        info = {'total_force_on_human': total_force_on_human, 'task_success': int(self.task_success >= self.total_water_count*self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
+        info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.total_water_count*self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         done = False
 
         return obs, reward, done, info
@@ -86,45 +82,45 @@ class DrinkingEnv(AssistiveEnv):
         self.waters = [w for w in self.waters if w not in waters_to_remove]
         return water_reward, water_mouth_velocities, water_hit_human_reward
 
-    def _get_obs(self, forces, forces_human):
+    def _get_obs(self, agent=None):
         cup_pos, cup_orient = self.tool.get_base_pos_orient()
         cup_pos_real, cup_orient_real = self.robot.convert_to_realworld(cup_pos, cup_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
         head_pos, head_orient = self.human.get_pos_orient(self.human.head)
         head_pos_real, head_orient_real = self.robot.convert_to_realworld(head_pos, head_orient)
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
-        if self.human_control:
+        self.robot_force_on_human, self.cup_force_on_human = self.get_total_force()
+        self.total_force_on_human = self.robot_force_on_human + self.cup_force_on_human
+        if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             cup_pos_human, cup_orient_human = self.human.convert_to_realworld(cup_pos, cup_orient)
             head_pos_human, head_orient_human = self.human.convert_to_realworld(head_pos, head_orient)
             target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
 
-        robot_obs = np.concatenate([cup_pos_real, cup_orient_real, cup_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, forces]).ravel()
-        if self.human_control:
-            human_obs = np.concatenate([cup_pos_human, cup_orient_human, cup_pos_human - target_pos_human, human_joint_angles, head_pos_human, head_orient_human, forces_human]).ravel()
+        robot_obs = np.concatenate([cup_pos_real, cup_orient_real, cup_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, [self.cup_force_on_human]]).ravel()
+        if self.human.controllable:
+            human_obs = np.concatenate([cup_pos_human, cup_orient_human, cup_pos_human - target_pos_human, human_joint_angles, head_pos_human, head_orient_human, [self.robot_force_on_human, self.cup_force_on_human]]).ravel()
         else:
             human_obs = []
 
+        if agent == 'robot':
+            return robot_obs
+        elif agent == 'human':
+            return human_obs
         return np.concatenate([robot_obs, human_obs]).ravel()
 
     def reset(self):
-        self.setup_timing()
-        self.task_success = 0
-        self.wheelchair = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', gender='random')
+        super(DrinkingEnv, self).reset()
+        self.build_assistive_env('wheelchair')
         if self.robot.wheelchair_mounted:
-            wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
-            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
+            wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
+            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         joints_positions += [(self.human.j_head_x, self.np_random.uniform(-30, 30)), (self.human.j_head_y, self.np_random.uniform(-30, 30)), (self.human.j_head_z, self.np_random.uniform(-30, 30))]
         self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None)
 
-        # Set target on mouth
-        self.mouth_pos = [0, -0.11, 0.03] if self.human.gender == 'male' else [0, -0.1, 0.03]
-        head_pos, head_orient = self.human.get_pos_orient(self.human.head)
-        target_pos, target_orient = p.multiplyTransforms(head_pos, head_orient, self.mouth_pos, [0, 0, 0, 1], physicsClientId=self.id)
-        self.target = self.world_creation.create_sphere(radius=0.01, mass=0.0, pos=target_pos, collision=False, rgba=[0, 1, 0, 1])
-        self.update_targets()
+        self.generate_target()
 
         p.resetDebugVisualizerCamera(cameraDistance=1.10, cameraYaw=55, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.75], physicsClientId=self.id)
 
@@ -139,14 +135,13 @@ class DrinkingEnv(AssistiveEnv):
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
-        self.tool.init(self.robot, self.task, self.world_creation.directory, self.id, self.np_random, right=True, mesh_scale=[0.045]*3, alpha=0.75)
+        self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=True, mesh_scale=[0.045]*3, alpha=0.75)
         self.cup_top_center_offset = np.array([0, 0, -0.055])
         self.cup_bottom_center_offset = np.array([0, 0, 0.07])
 
-        p.setGravity(0, 0, -9.81, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.robot.body, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.human.body, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.tool.body, physicsClientId=self.id)
+        self.robot.set_gravity(0, 0, 0)
+        self.human.set_gravity(0, 0, 0)
+        self.tool.set_gravity(0, 0, 0)
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
@@ -159,7 +154,7 @@ class DrinkingEnv(AssistiveEnv):
             for j in range(4):
                 for k in range(4):
                     batch_positions.append(np.array([i*2*water_radius-0.02, j*2*water_radius-0.02, k*2*water_radius+0.075]) + cup_pos)
-        self.waters = self.world_creation.create_spheres(radius=water_radius, mass=water_mass, batch_positions=batch_positions, visual=False, collision=True)
+        self.waters = self.create_spheres(radius=water_radius, mass=water_mass, batch_positions=batch_positions, visual=False, collision=True)
         for w in self.waters:
             p.changeVisualShape(w.body, -1, rgbaColor=[0.25, 0.5, 1, 1], physicsClientId=self.id)
         self.total_water_count = len(self.waters)
@@ -171,7 +166,16 @@ class DrinkingEnv(AssistiveEnv):
         for _ in range(50):
             p.stepSimulation(physicsClientId=self.id)
 
-        return self._get_obs([0], [0, 0])
+        self.init_env_variables()
+        return self._get_obs()
+
+    def generate_target(self):
+        # Set target on mouth
+        self.mouth_pos = [0, -0.11, 0.03] if self.human.gender == 'male' else [0, -0.1, 0.03]
+        head_pos, head_orient = self.human.get_pos_orient(self.human.head)
+        target_pos, target_orient = p.multiplyTransforms(head_pos, head_orient, self.mouth_pos, [0, 0, 0, 1], physicsClientId=self.id)
+        self.target = self.create_sphere(radius=0.01, mass=0.0, pos=target_pos, collision=False, rgba=[0, 1, 0, 1])
+        self.update_targets()
 
     def update_targets(self):
         head_pos, head_orient = self.human.get_pos_orient(self.human.head)

@@ -1,4 +1,3 @@
-# from assistive_gym.envs.human_testing import HumanTestingEnv
 from assistive_gym.envs.scratch_itch_envs import ScratchItchPR2Env, ScratchItchBaxterEnv, ScratchItchSawyerEnv, ScratchItchJacoEnv, ScratchItchPR2HumanEnv, ScratchItchBaxterHumanEnv, ScratchItchSawyerHumanEnv, ScratchItchJacoHumanEnv
 from assistive_gym.envs.bed_bathing_envs import BedBathingPR2Env, BedBathingBaxterEnv, BedBathingSawyerEnv, BedBathingJacoEnv, BedBathingPR2HumanEnv, BedBathingBaxterHumanEnv, BedBathingSawyerHumanEnv, BedBathingJacoHumanEnv
 from assistive_gym.envs.drinking_envs import DrinkingPR2Env, DrinkingBaxterEnv, DrinkingSawyerEnv, DrinkingJacoEnv, DrinkingPR2HumanEnv, DrinkingBaxterHumanEnv, DrinkingSawyerHumanEnv, DrinkingJacoHumanEnv

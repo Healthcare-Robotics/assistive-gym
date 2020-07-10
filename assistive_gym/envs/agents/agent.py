@@ -54,7 +54,7 @@ class Agent:
     def convert_to_realworld(self, pos, orient=[0, 0, 0, 1]):
         base_pos, base_orient = self.get_base_pos_orient()
         base_pos_inv, base_orient_inv = p.invertTransform(base_pos, base_orient, physicsClientId=self.id)
-        real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, orient, physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, orient if len(orient) == 4 else p.getQuaternionFromEuler(orient, physicsClientId=self.id), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
     def get_base_pos_orient(self):
@@ -108,8 +108,8 @@ class Agent:
     def get_force_torque_sensor(self, joint):
         return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
 
-    def set_base_pos_orient(self, pos, orient, euler=False):
-        p.resetBasePositionAndOrientation(self.body, pos, orient if not euler else p.getQuaternionFromEuler(orient, physicsClientId=self.id), physicsClientId=self.id)
+    def set_base_pos_orient(self, pos, orient):
+        p.resetBasePositionAndOrientation(self.body, pos, orient if len(orient) == 4 else p.getQuaternionFromEuler(orient, physicsClientId=self.id), physicsClientId=self.id)
 
     def set_base_velocity(self, linear_velocity, angular_velocity):
         p.resetBaseVelocity(self.body, linearVelocity=linear_velocity, angularVelocity=angular_velocity, physicsClientId=self.id)
@@ -157,7 +157,11 @@ class Agent:
         p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)
 
     def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0]):
-        return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, p.getQuaternionFromEuler(parent_orient, physicsClientId=self.id), p.getQuaternionFromEuler(child_orient, physicsClientId=self.id), physicsClientId=self.id)
+        if len(parent_orient) < 4:
+            parent_orient = p.getQuaternionFromEuler(parent_orient, physicsClientId=self.id)
+        if len(child_orient) < 4:
+            child_orient = p.getQuaternionFromEuler(child_orient, physicsClientId=self.id)
+        return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, parent_orient, child_orient, physicsClientId=self.id)
 
     def update_joint_limits(self, indices=None):
         if indices is None:
@@ -203,6 +207,8 @@ class Agent:
                 p.resetJointState(self.body, jointIndex=j, targetValue=self.upper_limits[j], targetVelocity=0, physicsClientId=self.id)
 
     def ik(self, target_joint, target_pos, target_orient, ik_indices, max_iterations=1000, half_range=False):
+        if len(target_orient) < 4:
+            target_orient = p.getQuaternionFromEuler(target_orient, physicsClientId=self.id)
         ik_joint_ranges = self.ik_upper_limits - self.ik_lower_limits
         if half_range:
             ik_joint_ranges /= 2.0

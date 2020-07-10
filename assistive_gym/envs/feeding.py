@@ -4,26 +4,23 @@ import numpy as np
 import pybullet as p
 
 from .env import AssistiveEnv
-from .agents import human, furniture
-from .agents.human import Human
+from .agents import furniture
 from .agents.furniture import Furniture
 
 class FeedingEnv(AssistiveEnv):
-    def __init__(self, robot, human_control=False):
-        human_controllable_joint_indices = human.head_joints
-        super(FeedingEnv, self).__init__(robot=robot, human=Human(human_controllable_joint_indices), task='feeding', human_control=human_control, frame_skip=5, time_step=0.02, obs_robot_len=25, obs_human_len=(23 if human_control else 0))
+    def __init__(self, robot, human):
+        super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding')
 
     def step(self, action):
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'), human_gains=0.0005)
+        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
 
-        robot_force_on_human, spoon_force_on_human = self.get_total_force()
-        total_force_on_human = robot_force_on_human + spoon_force_on_human
+        obs = self._get_obs()
+
         reward_food, food_mouth_velocities, food_hit_human_reward = self.get_food_rewards()
-        end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.right_end_effector))
-        obs = self._get_obs([spoon_force_on_human], [robot_force_on_human, spoon_force_on_human])
 
         # Get human preferences
-        preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=robot_force_on_human, tool_force_at_target=spoon_force_on_human, food_hit_human_reward=food_hit_human_reward, food_mouth_velocities=food_mouth_velocities)
+        end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.right_end_effector))
+        preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=self.total_force_on_human, tool_force_at_target=self.spoon_force_on_human, food_hit_human_reward=food_hit_human_reward, food_mouth_velocities=food_mouth_velocities)
 
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
 
@@ -35,7 +32,7 @@ class FeedingEnv(AssistiveEnv):
         if self.gui and reward_food != 0:
             print('Task success:', self.task_success, 'Food reward:', reward_food)
 
-        info = {'total_force_on_human': total_force_on_human, 'task_success': int(self.task_success >= self.total_food_count*self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
+        info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.total_food_count*self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         done = False
 
         return obs, reward, done, info
@@ -76,34 +73,39 @@ class FeedingEnv(AssistiveEnv):
         self.foods = [f for f in self.foods if f not in foods_to_remove]
         return food_reward, food_mouth_velocities, food_hit_human_reward
 
-    def _get_obs(self, forces, forces_human):
+    def _get_obs(self, agent=None):
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
         spoon_pos_real, spoon_orient_real = self.robot.convert_to_realworld(spoon_pos, spoon_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
         head_pos, head_orient = self.human.get_pos_orient(self.human.head)
         head_pos_real, head_orient_real = self.robot.convert_to_realworld(head_pos, head_orient)
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
-        if self.human_control:
+        self.robot_force_on_human, self.spoon_force_on_human = self.get_total_force()
+        self.total_force_on_human = self.robot_force_on_human + self.spoon_force_on_human
+        if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             spoon_pos_human, spoon_orient_human = self.human.convert_to_realworld(spoon_pos, spoon_orient)
             head_pos_human, head_orient_human = self.human.convert_to_realworld(head_pos, head_orient)
             target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
 
-        robot_obs = np.concatenate([spoon_pos_real, spoon_orient_real, spoon_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, forces]).ravel()
-        if self.human_control:
-            human_obs = np.concatenate([spoon_pos_human, spoon_orient_human, spoon_pos_human - target_pos_human, human_joint_angles, head_pos_human, head_orient_human, forces_human]).ravel()
+        robot_obs = np.concatenate([spoon_pos_real, spoon_orient_real, spoon_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, [self.spoon_force_on_human]]).ravel()
+        if self.human.controllable:
+            human_obs = np.concatenate([spoon_pos_human, spoon_orient_human, spoon_pos_human - target_pos_human, human_joint_angles, head_pos_human, head_orient_human, [self.robot_force_on_human, self.spoon_force_on_human]]).ravel()
         else:
             human_obs = []
 
+        if agent == 'robot':
+            return robot_obs
+        elif agent == 'human':
+            return human_obs
         return np.concatenate([robot_obs, human_obs]).ravel()
 
     def reset(self):
-        self.setup_timing()
-        self.task_success = 0
-        self.wheelchair = self.world_creation.create_new_world(furniture_type='wheelchair', static_human_base=True, human_impairment='random', gender='random')
+        super(FeedingEnv, self).reset()
+        self.build_assistive_env('wheelchair')
         if self.robot.wheelchair_mounted:
-            wheelchair_pos, wheelchair_orient = self.wheelchair.get_base_pos_orient()
-            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0], euler=True)
+            wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
+            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         joints_positions += [(self.human.j_head_x, self.np_random.uniform(-30, 30)), (self.human.j_head_y, self.np_random.uniform(-30, 30)), (self.human.j_head_z, self.np_random.uniform(-30, 30))]
@@ -111,14 +113,9 @@ class FeedingEnv(AssistiveEnv):
 
         # Create a table
         self.table = Furniture()
-        self.table.init('table', self.world_creation.directory, self.id, self.np_random)
+        self.table.init('table', self.directory, self.id, self.np_random)
 
-        # Set target on mouth
-        self.mouth_pos = [0, -0.11, 0.03] if self.human.gender == 'male' else [0, -0.1, 0.03]
-        head_pos, head_orient = self.human.get_pos_orient(self.human.head)
-        target_pos, target_orient = p.multiplyTransforms(head_pos, head_orient, self.mouth_pos, [0, 0, 0, 1], physicsClientId=self.id)
-        self.target = self.world_creation.create_sphere(radius=0.01, mass=0.0, pos=target_pos, collision=False, rgba=[0, 1, 0, 1])
-        self.update_targets()
+        self.generate_target()
 
         p.resetDebugVisualizerCamera(cameraDistance=1.10, cameraYaw=40, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.75], physicsClientId=self.id)
 
@@ -133,16 +130,15 @@ class FeedingEnv(AssistiveEnv):
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
-        self.tool.init(self.robot, self.task, self.world_creation.directory, self.id, self.np_random, right=True, mesh_scale=[0.08]*3)
+        self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=True, mesh_scale=[0.08]*3)
 
         # Place a bowl on a table
         self.bowl = Furniture()
-        self.bowl.init('bowl', self.world_creation.directory, self.id, self.np_random)
+        self.bowl.init('bowl', self.directory, self.id, self.np_random)
 
-        p.setGravity(0, 0, -9.81, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.robot.body, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.human.body, physicsClientId=self.id)
-        p.setGravity(0, 0, 0, body=self.tool.body, physicsClientId=self.id)
+        self.robot.set_gravity(0, 0, 0)
+        self.human.set_gravity(0, 0, 0)
+        self.tool.set_gravity(0, 0, 0)
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
@@ -155,7 +151,7 @@ class FeedingEnv(AssistiveEnv):
             for j in range(2):
                 for k in range(2):
                     batch_positions.append(np.array([i*2*food_radius-0.005, j*2*food_radius, k*2*food_radius+0.01]) + spoon_pos)
-        self.foods = self.world_creation.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
+        self.foods = self.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
         self.foods_hit_person = []
         self.total_food_count = len(self.foods)
 
@@ -166,7 +162,16 @@ class FeedingEnv(AssistiveEnv):
         for _ in range(25):
             p.stepSimulation(physicsClientId=self.id)
 
-        return self._get_obs([0], [0, 0])
+        self.init_env_variables()
+        return self._get_obs()
+
+    def generate_target(self):
+        # Set target on mouth
+        self.mouth_pos = [0, -0.11, 0.03] if self.human.gender == 'male' else [0, -0.1, 0.03]
+        head_pos, head_orient = self.human.get_pos_orient(self.human.head)
+        target_pos, target_orient = p.multiplyTransforms(head_pos, head_orient, self.mouth_pos, [0, 0, 0, 1], physicsClientId=self.id)
+        self.target = self.create_sphere(radius=0.01, mass=0.0, pos=target_pos, collision=False, rgba=[0, 1, 0, 1])
+        self.update_targets()
 
     def update_targets(self):
         head_pos, head_orient = self.human.get_pos_orient(self.human.head)
