@@ -207,7 +207,7 @@ class Agent:
                 p.resetJointState(self.body, jointIndex=j, targetValue=self.upper_limits[j], targetVelocity=0, physicsClientId=self.id)
 
     def ik(self, target_joint, target_pos, target_orient, ik_indices, max_iterations=1000, half_range=False):
-        if len(target_orient) < 4:
+        if target_orient is not None and len(target_orient) < 4:
             target_orient = p.getQuaternionFromEuler(target_orient, physicsClientId=self.id)
         ik_joint_ranges = self.ik_upper_limits - self.ik_lower_limits
         if half_range:

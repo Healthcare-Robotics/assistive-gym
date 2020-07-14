@@ -10,7 +10,7 @@ from .agents.tool import Tool
 
 class ArmManipulationEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(ArmManipulationEnv, self).__init__(robot=robot, human=human, task='arm_manipulation')
+        super(ArmManipulationEnv, self).__init__(robot=robot, human=human, task='arm_manipulation', obs_robot_len=(31 + len(robot.controllable_joint_indices)), obs_human_len=(32 + len(human.controllable_joint_indices)))
         self.tool_right = self.tool
         if self.robot.has_single_arm:
             self.tool_left = self.tool_right

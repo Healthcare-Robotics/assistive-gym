@@ -7,7 +7,7 @@ from .env import AssistiveEnv
 
 class DrinkingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(DrinkingEnv, self).__init__(robot=robot, human=human, task='drinking')
+        super(DrinkingEnv, self).__init__(robot=robot, human=human, task='drinking', obs_robot_len=(18 + len(robot.controllable_joint_indices)), obs_human_len=(19 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))

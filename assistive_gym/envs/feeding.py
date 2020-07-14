@@ -9,7 +9,7 @@ from .agents.furniture import Furniture
 
 class FeedingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding')
+        super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding', obs_robot_len=(18 + len(robot.controllable_joint_indices)), obs_human_len=(19 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))

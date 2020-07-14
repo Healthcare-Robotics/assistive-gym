@@ -9,7 +9,7 @@ from .agents.furniture import Furniture
 
 class BedBathingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing')
+        super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices)), obs_human_len=(18 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))

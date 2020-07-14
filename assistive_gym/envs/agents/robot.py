@@ -68,7 +68,7 @@ class Robot(Agent):
         p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=positions, positionGains=np.array([0.05]*len(indices)), forces=[force]*len(indices), physicsClientId=self.id)
 
     def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False):
-        if len(target_orient) < 4:
+        if target_orient is not None and len(target_orient) < 4:
             target_orient = p.getQuaternionFromEuler(target_orient, physicsClientId=self.id)
         orient_orig = target_orient
         best_ik_angles = None

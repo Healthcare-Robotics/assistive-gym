@@ -7,7 +7,7 @@ from .env import AssistiveEnv
 
 class DressingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(DressingEnv, self).__init__(robot=robot, human=human, task='dressing')
+        super(DressingEnv, self).__init__(robot=robot, human=human, task='dressing', obs_robot_len=(17 + len(robot.controllable_joint_indices)), obs_human_len=(18 + len(human.controllable_joint_indices)))
         self.tt = None
 
     def step(self, action):

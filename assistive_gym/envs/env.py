@@ -16,7 +16,7 @@ from .agents.tool import Tool
 from .agents.furniture import Furniture
 
 class AssistiveEnv(gym.Env):
-    def __init__(self, robot=None, human=None, task=None, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
+    def __init__(self, robot=None, human=None, task=None, obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
         self.task = task
         self.time_step = time_step
         self.frame_skip = frame_skip
@@ -28,12 +28,17 @@ class AssistiveEnv(gym.Env):
             self.render()
         else:
             self.id = p.connect(p.DIRECT)
+            self.util = Util(self.id, self.np_random)
 
         self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
         self.human_creation = HumanCreation(self.id, np_random=self.np_random, cloth=False)
         self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
-        self.action_space = spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
-        self.observation_space = spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
+        self.action_robot_len = len(robot.controllable_joint_indices)
+        self.action_human_len = len(human.controllable_joint_indices) if human.controllable else 0
+        self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len)), high=np.array([1.0]*(self.action_robot_len+self.action_human_len)), dtype=np.float32)
+        self.obs_robot_len = obs_robot_len
+        self.obs_human_len = obs_human_len if human.controllable else 0
+        self.observation_space = spaces.Box(low=np.array([-1.0]*(self.obs_robot_len+self.obs_human_len)), high=np.array([1.0]*(self.obs_robot_len+self.obs_human_len)), dtype=np.float32)
 
         self.agents = []
         self.plane = Agent()
