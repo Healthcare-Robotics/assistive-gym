@@ -134,7 +134,7 @@ class Human(Agent):
         if result == 1:
             # This is a valid pose for the person
             self.arm_previous_valid_pose[right] = [tz, tx, ty, qe]
-        elif result == 0 and self.right_arm_previous_valid_pose is not None:
+        elif result == 0 and self.arm_previous_valid_pose[right] is not None:
             # The person is in an invalid pose. Move joint angles back to the most recent valid pose.
             self.set_joint_angles(indices, self.arm_previous_valid_pose[right])
 
