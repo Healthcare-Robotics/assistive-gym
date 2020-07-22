@@ -95,7 +95,7 @@ class AssistiveEnv(gym.Env):
         self.agents.append(self.robot)
         # Create human
         self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
-        if self.human.controllable:
+        if self.human.controllable or self.human.impairment == 'tremor':
             self.agents.append(self.human)
         # Create furniture (wheelchair, bed, or table)
         if furniture_type is not None:
@@ -113,7 +113,7 @@ class AssistiveEnv(gym.Env):
             self.obs_human_len = len(self._get_obs('human'))
 
     def update_action_space(self):
-        action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents])
+        action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents if type(a) != Human or a.controllable])
         self.action_space.__init__(low=-np.ones(action_len), high=np.ones(action_len), dtype=np.float32)
 
     def create_human(self, controllable=False, controllable_joint_indices=[], fixed_base=False, human_impairment='random', gender='random', mass=None, radius_scale=1.0, height_scale=1.0):
@@ -123,7 +123,7 @@ class AssistiveEnv(gym.Env):
         '''
         self.human = Human(controllable_joint_indices, controllable=controllable)
         self.human.init(self.human_creation, self.human_limits_model, fixed_base, human_impairment, gender, None, self.id, self.np_random, mass=mass, radius_scale=radius_scale, height_scale=height_scale)
-        if controllable:
+        if controllable or self.human.impairment == 'tremor':
             self.agents.append(self.human)
             self.update_action_space()
         return self.human
@@ -148,19 +148,23 @@ class AssistiveEnv(gym.Env):
         actions *= action_multiplier
         action_index = 0
         for i, agent in enumerate(self.agents):
-            agent_action_len = len(agent.controllable_joint_indices)
-            action = np.copy(actions[action_index:action_index+agent_action_len])
-            if len(action) != agent_action_len:
-                print('Received agent actions of length %d does not match expected action length of %d' % (len(action), agent_action_len))
-                exit()
+            needs_action = type(agent) != Human or agent.controllable
+            if needs_action:
+                agent_action_len = len(agent.controllable_joint_indices)
+                action = np.copy(actions[action_index:action_index+agent_action_len])
+                if len(action) != agent_action_len:
+                    print('Received agent actions of length %d does not match expected action length of %d' % (len(action), agent_action_len))
+                    exit()
             # Append the new action to the current measured joint angles
             agent_joint_angles = agent.get_joint_angles(agent.controllable_joint_indices)
             # Update the target robot/human joint angles based on the proposed action and joint limits
             for _ in range(self.frame_skip):
-                action[agent_joint_angles + action < agent.controllable_joint_lower_limits] = 0
-                action[agent_joint_angles + action > agent.controllable_joint_upper_limits] = 0
+                if needs_action:
+                    action[agent_joint_angles + action < agent.controllable_joint_lower_limits] = 0
+                    action[agent_joint_angles + action > agent.controllable_joint_upper_limits] = 0
                 if type(agent) == Human and agent.impairment == 'tremor':
-                    agent.target_joint_angles += action
+                    if needs_action:
+                        agent.target_joint_angles += action
                     agent_joint_angles = agent.target_joint_angles + agent.tremors * (1 if self.iteration % 2 == 0 else -1)
                 else:
                     agent_joint_angles += action
