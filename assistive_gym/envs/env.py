@@ -23,7 +23,7 @@ class AssistiveEnv(gym.Env):
         self.gravity = gravity
         self.id = None
         self.gui = False
-        self.np_random, seed = seeding.np_random(seed)
+        self.seed(seed)
         if render:
             self.render()
         else:
@@ -66,6 +66,10 @@ class AssistiveEnv(gym.Env):
 
     def config(self, tag, section=None):
         return float(self.configp[self.task if section is None else section][tag])
+
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
 
     def reset(self):
         p.resetSimulation(physicsClientId=self.id)
