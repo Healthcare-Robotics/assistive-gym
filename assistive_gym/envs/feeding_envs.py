@@ -4,6 +4,7 @@ from .agents.pr2 import PR2
 from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
+from .agents.stretch import Stretch
 from .agents.human import Human
 
 robot_arm = 'right'
@@ -24,6 +25,10 @@ class FeedingJacoEnv(FeedingEnv):
     def __init__(self):
         super(FeedingJacoEnv, self).__init__(robot=Jaco(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
+class FeedingStretchEnv(FeedingEnv):
+    def __init__(self):
+        super(FeedingStretchEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
+
 class FeedingPR2HumanEnv(FeedingEnv):
     def __init__(self):
         super(FeedingPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
@@ -39,4 +44,8 @@ class FeedingSawyerHumanEnv(FeedingEnv):
 class FeedingJacoHumanEnv(FeedingEnv):
     def __init__(self):
         super(FeedingJacoHumanEnv, self).__init__(robot=Jaco(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class FeedingStretchHumanEnv(FeedingEnv):
+    def __init__(self):
+        super(FeedingStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
 

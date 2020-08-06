@@ -4,6 +4,7 @@ import pybullet as p
 class Agent:
     def __init__(self):
         self.base = -1
+        self.body = None
         self.lower_limits = None
         self.upper_limits = None
         self.ik_lower_limits = None
@@ -64,6 +65,9 @@ class Agent:
         if link == self.base:
             return p.getBaseVelocity(self.body, physicsClientId=self.id)[0]
         return p.getLinkState(self.body, link, computeForwardKinematics=True, computeLinkVelocity=True, physicsClientId=self.id)[6]
+
+    def get_mass(self, link):
+        return p.getDynamicsInfo(self.body, link, physicsClientId=self.id)[0]
 
     def get_motor_joint_states(self):
         # Get the position, velocity, and torque for nonfixed joint motors

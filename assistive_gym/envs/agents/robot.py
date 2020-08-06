@@ -3,15 +3,16 @@ import pybullet as p
 from .agent import Agent
 
 class Robot(Agent):
-    def __init__(self, controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, controllable_joint_indices=None, flags=None):
+    def __init__(self, controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, controllable_joint_indices=None, action_duplication=None, action_multiplier=1, flags=None):
         self.controllable_joints = controllable_joints if controllable_joint_indices is None else ''
         self.right_arm_joint_indices = right_arm_joint_indices # Controllable arm joints
         self.left_arm_joint_indices = left_arm_joint_indices # Controllable arm joints
         self.wheel_joint_indices = wheel_joint_indices # Controllable wheel joints
+        self.mobile = 'wheel' in controllable_joints
         if controllable_joint_indices is not None:
             self.controllable_joint_indices = controllable_joint_indices
         else:
-            self.controllable_joint_indices = self.wheel_joint_indices if 'wheel' in controllable_joints else []
+            self.controllable_joint_indices = self.wheel_joint_indices if self.mobile else []
             self.controllable_joint_indices = self.controllable_joint_indices + (self.right_arm_joint_indices if 'right' in controllable_joints else self.left_arm_joint_indices if 'left' in controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
         self.right_end_effector = right_end_effector # Used to get the pose of the end effector
         self.left_end_effector = left_end_effector # Used to get the pose of the end effector
@@ -28,13 +29,15 @@ class Robot(Agent):
         self.toc_ee_orient_rpy = toc_ee_orient_rpy # Initial end effector orientation
         self.wheelchair_mounted = wheelchair_mounted
         self.half_range = half_range # Try setting this to true if the robot is struggling to find IK solutions
+        self.action_duplication = action_duplication
+        self.action_multiplier = action_multiplier
         self.flags = flags # Used to store any additional information for the robot
         self.has_single_arm = self.right_end_effector == self.left_end_effector
         super(Robot, self).__init__()
 
     def init(self, body, id, np_random):
         super(Robot, self).init(body, id, np_random)
-        if 'wheel' in self.controllable_joints:
+        if self.mobile:
             self.controllable_joint_lower_limits[:len(self.wheel_joint_indices)] = -np.inf
             self.controllable_joint_upper_limits[:len(self.wheel_joint_indices)] = np.inf
         self.right_arm_lower_limits = [self.lower_limits[i] for i in self.right_arm_joint_indices]
@@ -202,16 +205,4 @@ class Robot(Agent):
         # Joint-limited-weighting
         joint_limit_weight = np.diag(weights)
         return joint_limit_weight
-
-    def disable_gripper_tool_collisions(self, tool, right):
-        if right:
-
-            # Disable collisions between the tool and robot
-            for j in (self.right_gripper_collision_indices if right else self.left_gripper_collision_indices):
-                for tj in tool.all_joint_indices + [tool.base]:
-                    p.setCollisionFilterPair(self.body, tool.body, j, tj, False, physicsClientId=self.id)
-            # Create constraint that keeps the tool in the gripper
-            constraint = p.createConstraint(self.body, self.right_tool_joint if right else self.left_tool_joint, tool.body, -1, p.JOINT_FIXED, [0, 0, 0], parentFramePosition=pos_offset, childFramePosition=[0, 0, 0], parentFrameOrientation=orient_offset, physicsClientId=self.id)
-
-        p.changeConstraint(constraint, maxForce=500, physicsClientId=self.id)
 

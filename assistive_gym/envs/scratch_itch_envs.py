@@ -4,6 +4,7 @@ from .agents.pr2 import PR2
 from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
+from .agents.stretch import Stretch
 from .agents.human import Human
 
 robot_arm = 'left'
@@ -24,6 +25,10 @@ class ScratchItchJacoEnv(ScratchItchEnv):
     def __init__(self):
         super(ScratchItchJacoEnv, self).__init__(robot=Jaco(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
+class ScratchItchStretchEnv(ScratchItchEnv):
+    def __init__(self):
+        super(ScratchItchStretchEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
+
 class ScratchItchPR2HumanEnv(ScratchItchEnv):
     def __init__(self):
         super(ScratchItchPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
@@ -39,4 +44,8 @@ class ScratchItchSawyerHumanEnv(ScratchItchEnv):
 class ScratchItchJacoHumanEnv(ScratchItchEnv):
     def __init__(self):
         super(ScratchItchJacoHumanEnv, self).__init__(robot=Jaco(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class ScratchItchStretchHumanEnv(ScratchItchEnv):
+    def __init__(self):
+        super(ScratchItchStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
 

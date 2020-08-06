@@ -9,9 +9,10 @@ from keras.models import load_model
 
 from .util import Util
 from .human_creation import HumanCreation
-from .agents import agent, human, tool, furniture
+from .agents import agent, human, robot, tool, furniture
 from .agents.agent import Agent
 from .agents.human import Human
+from .agents.robot import Robot
 from .agents.tool import Tool
 from .agents.furniture import Furniture
 
@@ -156,6 +157,8 @@ class AssistiveEnv(gym.Env):
             if needs_action:
                 agent_action_len = len(agent.controllable_joint_indices)
                 action = np.copy(actions[action_index:action_index+agent_action_len])
+                if isinstance(agent, Robot):
+                    action *= agent.action_multiplier
                 if len(action) != agent_action_len:
                     print('Received agent actions of length %d does not match expected action length of %d' % (len(action), agent_action_len))
                     exit()
@@ -164,15 +167,23 @@ class AssistiveEnv(gym.Env):
             # Update the target robot/human joint angles based on the proposed action and joint limits
             for _ in range(self.frame_skip):
                 if needs_action:
-                    action[agent_joint_angles + action < agent.controllable_joint_lower_limits] = 0
-                    action[agent_joint_angles + action > agent.controllable_joint_upper_limits] = 0
+                    below_lower_limits = agent_joint_angles + action < agent.controllable_joint_lower_limits
+                    above_upper_limits = agent_joint_angles + action > agent.controllable_joint_upper_limits
+                    action[below_lower_limits] = 0
+                    action[above_upper_limits] = 0
+                    agent_joint_angles[below_lower_limits] = agent.controllable_joint_lower_limits[below_lower_limits]
+                    agent_joint_angles[above_upper_limits] = agent.controllable_joint_upper_limits[above_upper_limits]
                 if type(agent) == Human and agent.impairment == 'tremor':
                     if needs_action:
                         agent.target_joint_angles += action
                     agent_joint_angles = agent.target_joint_angles + agent.tremors * (1 if self.iteration % 2 == 0 else -1)
                 else:
                     agent_joint_angles += action
-            agent.control(agent.controllable_joint_indices, agent_joint_angles, gains[i], forces[i])
+            if isinstance(agent, Robot) and agent.action_duplication is not None:
+                agent_joint_angles = np.concatenate([[a]*d for a, d in zip(agent_joint_angles, self.robot.action_duplication)])
+                agent.control(agent.all_controllable_joints, agent_joint_angles, agent.gains, agent.forces)
+            else:
+                agent.control(agent.controllable_joint_indices, agent_joint_angles, gains[i], forces[i])
         if step_sim:
             # Update all agent positions
             for _ in range(self.frame_skip):

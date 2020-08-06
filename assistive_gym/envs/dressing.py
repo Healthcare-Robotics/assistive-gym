@@ -7,7 +7,7 @@ from .env import AssistiveEnv
 
 class DressingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(DressingEnv, self).__init__(robot=robot, human=human, task='dressing', obs_robot_len=(17 + len(robot.controllable_joint_indices)), obs_human_len=(18 + len(human.controllable_joint_indices)))
+        super(DressingEnv, self).__init__(robot=robot, human=human, task='dressing', obs_robot_len=(17 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(18 + len(human.controllable_joint_indices)))
         self.tt = None
 
     def step(self, action):
@@ -78,6 +78,9 @@ class DressingEnv(AssistiveEnv):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
         end_effector_pos_real, end_effector_orient_real = self.robot.convert_to_realworld(end_effector_pos, end_effector_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        if self.robot.mobile:
+            # Don't include joint angles for the wheels
+            robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
         shoulder_pos = self.human.get_pos_orient(self.human.left_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.left_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.left_wrist)[0]
@@ -127,6 +130,18 @@ class DressingEnv(AssistiveEnv):
         if self.robot.wheelchair_mounted:
             # Use IK to find starting joint angles for mounted robots
             self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
+        elif self.robot.mobile:
+            # Randomize robot base pose
+            pos_random = self.np_random.uniform(-0.1, 0.1, size=3)
+            pos = np.array(self.robot.toc_base_pos_offset[self.task])
+            pos[:2] += pos_random[:2]
+            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+            # orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+            self.robot.set_base_pos_orient(pos, orient)
+            # Randomize starting joint angles
+            self.robot.set_joint_angles([3], [0.75+pos_random[2]])
+            # Randomly set friction of the ground
+            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
             target_ee_orient_shoulder = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task][1]), physicsClientId=self.id))
@@ -140,15 +155,24 @@ class DressingEnv(AssistiveEnv):
         self.start_ee_pos, self.start_ee_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
         self.cloth_orig_pos = np.array([0.34658437, -0.30296362, 1.20023387])
         self.cloth_offset = self.start_ee_pos - self.cloth_orig_pos
+        self.cloth_orig_pos = np.array([0.38, -0.4, 0.84]) + (self.start_right_ee_pos - np.array([0.34658437, -0.30296362, 1.20023387])) / 1.4
 
         self.cloth_attachment = self.create_sphere(radius=0.0001, mass=0, pos=self.start_ee_pos, visual=True, collision=False, rgba=[0, 0, 0, 0], maximal_coordinates=True)
 
-        # Load cloth
-        self.cloth = p.loadCloth(os.path.join(self.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=np.array([0.02, -0.38, 0.83]) + self.cloth_offset/1.4, orientation=p.getQuaternionFromEuler([0, 0, np.pi], physicsClientId=self.id), bodyAnchorId=self.cloth_attachment.body, anchors=[2087, 3879, 3681, 3682, 2086, 2041, 987, 2042, 2088, 1647, 2332, 719, 1569, 1528, 721], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
-        p.clothParams(self.cloth, kLST=0.055, kAST=1.0, kVST=0.5, kDP=0.01, kDG=10, kDF=0.39, kCHR=1.0, kKHR=1.0, kAHR=1.0, piterations=5, physicsClientId=self.id)
-        # Points along the opening of sleeve
-        self.triangle1_point_indices = [1180, 2819, 30]
-        self.triangle2_point_indices = [1322, 13, 696]
+        if self.robot.mobile:
+            # Load cloth
+            self.cloth = p.loadCloth(os.path.join(self.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=self.cloth_orig_pos, orientation=p.getQuaternionFromEuler([0, 0, np.pi], physicsClientId=self.id), bodyAnchorId=self.cloth_attachment.body, anchors=[705, 706, 1975, 3913], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
+            p.clothParams(self.cloth, kLST=0.055, kAST=1.0, kVST=0.5, kDP=0.01, kDG=10, kDF=0.39, kCHR=1.0, kKHR=1.0, kAHR=1.0, piterations=5, physicsClientId=self.id)
+            # Points along the opening of the right arm sleeve
+            self.triangle1_right_point_indices = [1814, 1869, 1121]
+            self.triangle2_right_point_indices = [2115, 540, 365]
+        else:
+            # Load cloth
+            self.cloth = p.loadCloth(os.path.join(self.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=np.array([0.02, -0.38, 0.83]) + self.cloth_offset/1.4, orientation=p.getQuaternionFromEuler([0, 0, np.pi], physicsClientId=self.id), bodyAnchorId=self.cloth_attachment.body, anchors=[2087, 3879, 3681, 3682, 2086, 2041, 987, 2042, 2088, 1647, 2332, 719, 1569, 1528, 721], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
+            p.clothParams(self.cloth, kLST=0.055, kAST=1.0, kVST=0.5, kDP=0.01, kDG=10, kDF=0.39, kCHR=1.0, kKHR=1.0, kAHR=1.0, piterations=5, physicsClientId=self.id)
+            # Points along the opening of sleeve
+            self.triangle1_point_indices = [1180, 2819, 30]
+            self.triangle2_point_indices = [1322, 13, 696]
 
         # double m_kLST;       // Material: Linear stiffness coefficient [0,1]
         # double m_kAST;       // Material: Area/Angular stiffness coefficient [0,1]
@@ -170,7 +194,8 @@ class DressingEnv(AssistiveEnv):
         # int m_diterations;   // Drift solver iterations
 
         p.setGravity(0, 0, -9.81/2, physicsClientId=self.id) # Let the cloth settle more gently
-        self.robot.set_gravity(0, 0, 0)
+        if not self.robot.mobile:
+            self.robot.set_gravity(0, 0, 0)
         self.human.set_gravity(0, 0, -1)
         self.cloth_attachment.set_gravity(0, 0, 0)
 

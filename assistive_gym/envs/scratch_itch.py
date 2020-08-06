@@ -7,7 +7,10 @@ from .env import AssistiveEnv
 
 class ScratchItchEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(ScratchItchEnv, self).__init__(robot=robot, human=human, task='scratch_itch', obs_robot_len=(23 + len(robot.controllable_joint_indices)), obs_human_len=(24 + len(human.controllable_joint_indices)))
+        # if robot.mobile:
+        #     super(ScratchItchEnv, self).__init__(robot=robot, human=human, task='scratch_itch', obs_robot_len=(30 + len(robot.controllable_joint_indices) - len(robot.wheel_joint_indices)), obs_human_len=(24 + len(human.controllable_joint_indices)))
+        # else:
+        super(ScratchItchEnv, self).__init__(robot=robot, human=human, task='scratch_itch', obs_robot_len=(23 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(24 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
@@ -56,6 +59,9 @@ class ScratchItchEnv(AssistiveEnv):
         tool_pos, tool_orient = self.tool.get_pos_orient(1)
         tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        if self.robot.mobile:
+            # Don't include joint angles for the wheels
+            robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
         shoulder_pos = self.human.get_pos_orient(self.human.right_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
@@ -72,7 +78,13 @@ class ScratchItchEnv(AssistiveEnv):
             wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
             target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
 
+        # if self.robot.mobile:
+        #     human_pos, human_orient = self.human.get_base_pos_orient()
+        #     human_pos_real, human_orient_real = self.robot.convert_to_realworld(human_pos, human_orient)
+        #     robot_obs = np.concatenate([human_pos_real, human_orient_real, tool_pos_real, tool_orient_real, tool_pos_real - target_pos_real, target_pos_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.tool_force]]).ravel()
+        # else:
         robot_obs = np.concatenate([tool_pos_real, tool_orient_real, tool_pos_real - target_pos_real, target_pos_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.tool_force]]).ravel()
+
         if self.human.controllable:
             human_obs = np.concatenate([tool_pos_human, tool_orient_human, tool_pos_human - target_pos_human, target_pos_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, [self.total_force_on_human, self.tool_force_at_target]]).ravel()
         else:
@@ -107,6 +119,21 @@ class ScratchItchEnv(AssistiveEnv):
         if self.robot.wheelchair_mounted:
             # Use IK to find starting joint angles for mounted robots
             self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
+        elif self.robot.mobile:
+            # Randomize robot base pose
+            pos = np.array(self.robot.toc_base_pos_offset[self.task])
+            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
+            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+            self.robot.set_base_pos_orient(pos, orient)
+            # Randomize starting joint angles
+            self.robot.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+            # angles = self.np_random.uniform(self.robot.left_arm_lower_limits[2:], np.array(self.robot.left_arm_upper_limits[2:])/2.0)
+            # self.robot.set_joint_angles(self.robot.controllable_joint_indices[2:], angles)
+
+            # Randomly set friction of the ground
+            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
+            # self.robot.set_frictions(self.robot.wheel_joint_indices, lateral_friction=10, spinning_friction=0, rolling_friction=0)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
             self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
@@ -117,7 +144,8 @@ class ScratchItchEnv(AssistiveEnv):
 
         self.generate_target()
 
-        self.robot.set_gravity(0, 0, 0)
+        if not self.robot.mobile:
+            self.robot.set_gravity(0, 0, 0)
         self.human.set_gravity(0, 0, 0)
         self.tool.set_gravity(0, 0, 0)
 
