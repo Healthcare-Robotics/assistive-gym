@@ -210,13 +210,16 @@ class Agent:
             elif joint_angles[j] > self.upper_limits[j]:
                 p.resetJointState(self.body, jointIndex=j, targetValue=self.upper_limits[j], targetVelocity=0, physicsClientId=self.id)
 
-    def ik(self, target_joint, target_pos, target_orient, ik_indices, max_iterations=1000, half_range=False):
+    def ik(self, target_joint, target_pos, target_orient, ik_indices, max_iterations=1000, half_range=False, use_current_as_rest=False):
         if target_orient is not None and len(target_orient) < 4:
             target_orient = p.getQuaternionFromEuler(target_orient, physicsClientId=self.id)
         ik_joint_ranges = self.ik_upper_limits - self.ik_lower_limits
         if half_range:
             ik_joint_ranges /= 2.0
-        ik_rest_poses = self.np_random.uniform(self.ik_lower_limits, self.ik_upper_limits)
+        if use_current_as_rest:
+            ik_rest_poses = np.array(self.get_motor_joint_states()[1])
+        else:
+            ik_rest_poses = self.np_random.uniform(self.ik_lower_limits, self.ik_upper_limits)
 
         # print('JPO:', target_joint, target_pos, target_orient)
         # print('Lower:', self.ik_lower_limits)

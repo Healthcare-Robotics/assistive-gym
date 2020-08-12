@@ -7,9 +7,6 @@ from .env import AssistiveEnv
 
 class ScratchItchEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        # if robot.mobile:
-        #     super(ScratchItchEnv, self).__init__(robot=robot, human=human, task='scratch_itch', obs_robot_len=(30 + len(robot.controllable_joint_indices) - len(robot.wheel_joint_indices)), obs_human_len=(24 + len(human.controllable_joint_indices)))
-        # else:
         super(ScratchItchEnv, self).__init__(robot=robot, human=human, task='scratch_itch', obs_robot_len=(23 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(24 + len(human.controllable_joint_indices)))
 
     def step(self, action):
@@ -28,7 +25,7 @@ class ScratchItchEnv(AssistiveEnv):
         reward_force_scratch = 0.0 # Reward force near the target
         if self.target_contact_pos is not None and np.linalg.norm(self.target_contact_pos - self.prev_target_contact_pos) > 0.01 and self.tool_force_at_target < 10:
             # Encourage the robot to move around near the target to simulate scratching
-            reward_force_scratch = 10
+            reward_force_scratch = 5
             self.prev_target_contact_pos = self.target_contact_pos
             self.task_success += 1
 
@@ -78,11 +75,6 @@ class ScratchItchEnv(AssistiveEnv):
             wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
             target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
 
-        # if self.robot.mobile:
-        #     human_pos, human_orient = self.human.get_base_pos_orient()
-        #     human_pos_real, human_orient_real = self.robot.convert_to_realworld(human_pos, human_orient)
-        #     robot_obs = np.concatenate([human_pos_real, human_orient_real, tool_pos_real, tool_orient_real, tool_pos_real - target_pos_real, target_pos_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.tool_force]]).ravel()
-        # else:
         robot_obs = np.concatenate([tool_pos_real, tool_orient_real, tool_pos_real - target_pos_real, target_pos_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.tool_force]]).ravel()
 
         if self.human.controllable:
@@ -116,10 +108,7 @@ class ScratchItchEnv(AssistiveEnv):
 
         target_ee_pos = np.array([-0.5, 0, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
-        if self.robot.wheelchair_mounted:
-            # Use IK to find starting joint angles for mounted robots
-            self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
-        elif self.robot.mobile:
+        if self.robot.mobile:
             # Randomize robot base pose
             pos = np.array(self.robot.toc_base_pos_offset[self.task])
             pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
@@ -134,6 +123,9 @@ class ScratchItchEnv(AssistiveEnv):
             # Randomly set friction of the ground
             self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
             # self.robot.set_frictions(self.robot.wheel_joint_indices, lateral_friction=10, spinning_friction=0, rolling_friction=0)
+        elif self.robot.wheelchair_mounted:
+            # Use IK to find starting joint angles for mounted robots
+            self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
             self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)

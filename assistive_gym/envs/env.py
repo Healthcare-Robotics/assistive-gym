@@ -32,7 +32,7 @@ class AssistiveEnv(gym.Env):
             self.util = Util(self.id, self.np_random)
 
         self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
-        self.human_creation = HumanCreation(self.id, np_random=self.np_random, cloth=False)
+        self.human_creation = HumanCreation(self.id, np_random=self.np_random, cloth=('dressing' in task))
         self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
         self.action_robot_len = len(robot.controllable_joint_indices)
         self.action_human_len = len(human.controllable_joint_indices) if human.controllable else 0

@@ -9,7 +9,7 @@ from .agents.furniture import Furniture
 
 class FeedingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding', obs_robot_len=(18 + len(robot.controllable_joint_indices)), obs_human_len=(19 + len(human.controllable_joint_indices)))
+        super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding', obs_robot_len=(18 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(19 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
@@ -78,6 +78,9 @@ class FeedingEnv(AssistiveEnv):
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
         spoon_pos_real, spoon_orient_real = self.robot.convert_to_realworld(spoon_pos, spoon_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        if self.robot.mobile:
+            # Don't include joint angles for the wheels
+            robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
         head_pos, head_orient = self.human.get_pos_orient(self.human.head)
         head_pos_real, head_orient_real = self.robot.convert_to_realworld(head_pos, head_orient)
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
@@ -122,7 +125,18 @@ class FeedingEnv(AssistiveEnv):
 
         target_ee_pos = np.array([-0.15, -0.65, 1.15]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
-        if self.robot.wheelchair_mounted:
+        if self.robot.mobile:
+            # Randomize robot base pose
+            pos = np.array(self.robot.toc_base_pos_offset[self.task])
+            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
+            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+            self.robot.set_base_pos_orient(pos, orient)
+            # Randomize starting joint angles
+            self.robot.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+            # Randomly set friction of the ground
+            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
+        elif self.robot.wheelchair_mounted:
             # Use IK to find starting joint angles for mounted robots
             self.robot.ik_random_restarts(right=True, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.01, step_sim=True, check_env_collisions=True)
         else:
@@ -137,7 +151,8 @@ class FeedingEnv(AssistiveEnv):
         self.bowl = Furniture()
         self.bowl.init('bowl', self.directory, self.id, self.np_random)
 
-        self.robot.set_gravity(0, 0, 0)
+        if not self.robot.mobile:
+            self.robot.set_gravity(0, 0, 0)
         self.human.set_gravity(0, 0, 0)
         self.tool.set_gravity(0, 0, 0)
 

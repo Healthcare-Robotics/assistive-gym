@@ -18,11 +18,11 @@ class Stretch(Robot):
         # right_gripper_collision_indices = [9, 10, 11, 12, 13, 14, 15] # Used to disable collision between gripper and tools
         right_gripper_collision_indices = list(range(36)) # Used to disable collision between gripper and tools
         left_gripper_collision_indices = right_gripper_collision_indices # Used to disable collision between gripper and tools
-        gripper_pos = {'scratch_itch': [0.1, 0.1], 'feeding': [0, 0], 'dressing': [0, 0]}#, 'drinking': [0.025, -0.025], 'bed_bathing': [0.0125, -0.0125], 'dressing': [0, 0], 'arm_manipulation': [0.01, -0.01]} # Gripper open position for holding tools
-        tool_pos_offset = {'scratch_itch': [0, 0, 0], 'feeding': [0.1, 0, -0.02]}#, 'drinking': [0.05, 0.125, 0], 'bed_bathing': [0, 0.1175, 0], 'arm_manipulation': [0.075, 0.235, 0]} # Position offset between tool and robot tool joint
-        tool_orient_offset = {'scratch_itch': [0, 0, 0], 'feeding': [np.pi/2.0-0.1, 0, -np.pi/2.0]}#, 'drinking': [0, 0, np.pi/2.0], 'bed_bathing': [np.pi/2.0, 0, np.pi/2.0], 'arm_manipulation': [0, 0, np.pi/2.0]} # RPY orientation offset between tool and robot tool joint
-        toc_base_pos_offset = {'scratch_itch': [-1.0, -0.1, 0.1], 'feeding': [-1.1, -0.3, 0.09], 'dressing': [[-0.6, -0.7, 0.09], [0.6, -0.55, 0.09]]}#, 'feeding': [-0.9, -0.3, 0.09], 'drinking': [-0.1, 0.2, 0.975], 'bed_bathing': [-0.2, 0, 0.975], 'dressing': [1.8, 0.7, 0.975], 'arm_manipulation': [-0.3, 0.6, 0.975]} # Robot base offset before TOC base pose optimization
-        toc_ee_orient_rpy = {'scratch_itch': [0, 0, np.pi/2.0], 'feeding': [0, 0, np.pi/2.0], 'dressing': [[0, 0, np.pi/2.0], [0, 0, -np.pi/2.0]]}#, 'feeding': [np.pi/2.0, 0, np.pi/2.0], 'drinking': [0, -np.pi/2.0, np.pi], 'bed_bathing': [0, np.pi/2.0, 0], 'dressing': [[0, -np.pi/2.0, 0], [np.pi/2.0, -np.pi/2.0, 0]], 'arm_manipulation': [0, -np.pi/2.0, np.pi]} # Initial end effector orientation
+        gripper_pos = {'scratch_itch': [0.1, 0.1], 'feeding': [0, 0], 'bed_bathing': [0.1, 0.1], 'dressing': [0, 0]} # Gripper open position for holding tools
+        tool_pos_offset = {'scratch_itch': [0, 0, 0], 'feeding': [0.1, 0, -0.02], 'bed_bathing': [0, 0, 0]} # Position offset between tool and robot tool joint
+        tool_orient_offset = {'scratch_itch': [0, 0, 0], 'feeding': [np.pi/2.0-0.1, 0, -np.pi/2.0], 'bed_bathing': [0, 0, 0]} # RPY orientation offset between tool and robot tool joint
+        toc_base_pos_offset = {'scratch_itch': [-1.0, -0.1, 0.1], 'feeding': [-1.1, -0.3, 0.09], 'bed_bathing': [-1.1, -0.1, 0.1], 'dressing': [0.75, -0.4, 0.09]} # 'dressing_dual': [[-0.6, -0.7, 0.09], [0.6, -0.55, 0.09]] # Robot base offset before TOC base pose optimization
+        toc_ee_orient_rpy = {'scratch_itch': [0, 0, np.pi/2.0], 'feeding': [0, 0, np.pi/2.0], 'bed_bathing': [0, 0, np.pi/2.0], 'dressing': [[0, 0, -np.pi/2.0]]} # 'dressing_dual': [[0, 0, np.pi/2.0], [0, 0, -np.pi/2.0]] # Initial end effector orientation
         wheelchair_mounted = False
 
         self.gains = [0.1]*2 + [0.01] + [0.025]*5
@@ -39,8 +39,7 @@ class Stretch(Robot):
         # TODO: Inertia from urdf file is not correct.
         # It does not adhere to the property: ixx <= iyy+izz and iyy <= ixx+izz and izz <= ixx+iyy
         # self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated.urdf'), useFixedBase=False, basePosition=[-2, -2, 0.975], flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=id)
-        # self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated.urdf'), useFixedBase=False, basePosition=[-2, -2, 0.975], physicsClientId=id)
-        self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated2.urdf'), useFixedBase=False, basePosition=[-2, -2, 0.975], physicsClientId=id)
+        self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated.urdf'), useFixedBase=False, basePosition=[-2, -2, 0.975], physicsClientId=id)
         super(Stretch, self).init(self.body, id, np_random)
 
         # Fix mass

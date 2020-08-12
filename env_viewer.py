@@ -7,8 +7,8 @@ if sys.version_info < (3, 0):
     exit()
 
 parser = argparse.ArgumentParser(description='Assistive Gym Environment Viewer')
-parser.add_argument('--env', default='ScratchItchJaco-v0',
-                    help='Environment to test (default: ScratchItchJaco-v0)')
+parser.add_argument('--env', default='ScratchItchJaco-v1',
+                    help='Environment to test (default: ScratchItchJaco-v1)')
 args = parser.parse_args()
 
 env = gym.make(args.env)

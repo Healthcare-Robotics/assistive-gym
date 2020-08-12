@@ -169,7 +169,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="meshes/base_link.STL"/>
+          <mesh filename="meshes/base_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
@@ -178,7 +178,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="meshes/base_link.STL"/>
+          <mesh filename="meshes/base_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -205,7 +205,7 @@
     </collision>
   </link>
   <joint name="joint_right_wheel" type="continuous">
-    <origin rpy="-1.57079632679489 -1.11022302462516E-16 7.28583859910277E-17" xyz="-0.00300000000000034 -0.15765 0.0508000000000004"/>
+    <origin rpy="-1.57079632679489 -1.11022302462516E-16 7.28583859910277E-17" xyz="-0.003 -0.15765 0.0508"/>
     <parent link="base_link"/>
     <child link="link_right_wheel"/>
     <axis xyz="0 0 1"/>
@@ -233,7 +233,7 @@
     </collision>
   </link>
   <joint name="joint_left_wheel" type="continuous">
-    <origin rpy="-1.5707963267949 3.16227047920818E-31 7.88745438253713E-16" xyz="-0.00300000000001899 0.15765 0.0507999999999994"/>
+    <origin rpy="-1.5707963267949 3.16227047920818E-31 7.88745438253713E-16" xyz="-0.003 0.15765 0.0508"/>
     <parent link="base_link"/>
     <child link="link_left_wheel"/>
     <axis xyz="0 0 1"/>

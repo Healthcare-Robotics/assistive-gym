@@ -9,7 +9,7 @@ from .agents.furniture import Furniture
 
 class BedBathingEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices)), obs_human_len=(18 + len(human.controllable_joint_indices)))
+        super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(18 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
@@ -77,6 +77,9 @@ class BedBathingEnv(AssistiveEnv):
         tool_pos, tool_orient = self.tool.get_pos_orient(1)
         tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        if self.robot.mobile:
+            # Don't include joint angles for the wheels
+            robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
         shoulder_pos = self.human.get_pos_orient(self.human.right_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
@@ -136,8 +139,20 @@ class BedBathingEnv(AssistiveEnv):
 
         target_ee_pos = np.array([-0.6, 0.2, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
-        # Use TOC with JLWKI to find an optimal base position for the robot near the person
-        base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
+        if self.robot.mobile:
+            # Randomize robot base pose
+            pos = np.array(self.robot.toc_base_pos_offset[self.task])
+            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
+            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+            self.robot.set_base_pos_orient(pos, orient)
+            # Randomize starting joint angles
+            self.robot.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
+            # Randomly set friction of the ground
+            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
+        else:
+            # Use TOC with JLWKI to find an optimal base position for the robot near the person
+            base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
         if self.robot.wheelchair_mounted:
             # Load a nightstand in the environment for the jaco arm
             self.nightstand = Furniture()
@@ -151,7 +166,8 @@ class BedBathingEnv(AssistiveEnv):
         self.generate_targets()
 
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
-        self.robot.set_gravity(0, 0, 0)
+        if not self.robot.mobile:
+            self.robot.set_gravity(0, 0, 0)
         self.human.set_gravity(0, 0, -1)
         self.tool.set_gravity(0, 0, 0)
 

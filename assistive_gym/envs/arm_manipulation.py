@@ -10,7 +10,7 @@ from .agents.tool import Tool
 
 class ArmManipulationEnv(AssistiveEnv):
     def __init__(self, robot, human):
-        super(ArmManipulationEnv, self).__init__(robot=robot, human=human, task='arm_manipulation', obs_robot_len=(31 + len(robot.controllable_joint_indices)), obs_human_len=(32 + len(human.controllable_joint_indices)))
+        super(ArmManipulationEnv, self).__init__(robot=robot, human=human, task='arm_manipulation', obs_robot_len=(31 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(32 + len(human.controllable_joint_indices)))
         self.tool_right = self.tool
         if self.robot.has_single_arm:
             self.tool_left = self.tool_right
@@ -68,6 +68,9 @@ class ArmManipulationEnv(AssistiveEnv):
         tool_right_pos_real, tool_right_orient_real = self.robot.convert_to_realworld(tool_right_pos, tool_right_orient)
         tool_left_pos_real, tool_left_orient_real = self.robot.convert_to_realworld(tool_left_pos, tool_left_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        if self.robot.mobile:
+            # Don't include joint angles for the wheels
+            robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
         shoulder_pos = self.human.get_pos_orient(self.human.right_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
@@ -113,7 +116,8 @@ class ArmManipulationEnv(AssistiveEnv):
         self.human.set_base_pos_orient([-0.25, 0.2, 0.95], [-np.pi/2.0, 0, 0])
 
         p.setGravity(0, 0, -1, physicsClientId=self.id)
-        self.robot.set_gravity(0, 0, 0)
+        if not self.robot.mobile:
+            self.robot.set_gravity(0, 0, 0)
 
         # Add small variation in human joint positions
         motor_indices, motor_positions, motor_velocities, motor_torques = self.human.get_motor_joint_states()
@@ -143,8 +147,19 @@ class ArmManipulationEnv(AssistiveEnv):
         target_ee_right_pos = np.array([-0.9, -0.3, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_left_pos = np.array([-0.9, 0.7, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
-        # Use TOC with JLWKI to find an optimal base position for the robot near the person
-        if self.robot.has_single_arm:
+        if self.robot.mobile:
+            # Randomize robot base pose
+            pos = np.array(self.robot.toc_base_pos_offset[self.task])
+            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
+            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+            self.robot.set_base_pos_orient(pos, orient)
+            # Randomize starting joint angles
+            self.robot.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+            # Randomly set friction of the ground
+            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
+        elif self.robot.has_single_arm:
+            # Use TOC with JLWKI to find an optimal base position for the robot near the person
             target_ee_right_pos = np.array([-0.9, 0.4, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
             base_position, _, _ = self.robot.position_robot_toc(self.task, 'right', [(target_ee_right_pos, target_ee_orient)], [(wrist_pos, None), (waist_pos, None), (elbow_pos, None), (stomach_pos, None)], self.human, step_sim=True, check_env_collisions=False)
         else:

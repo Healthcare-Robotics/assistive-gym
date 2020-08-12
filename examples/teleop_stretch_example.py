@@ -1,8 +1,13 @@
-import gym, assistive_gym
+import gym, assistive_gym, argparse
 import pybullet as p
 import numpy as np
 
-env = gym.make('ScratchItchStretch-v1')
+parser = argparse.ArgumentParser(description='Assistive Gym Environment Viewer')
+parser.add_argument('--env', default='ScratchItchStretch-v1',
+                    help='Environment to test (default: ScratchItchStretch-v1)')
+args = parser.parse_args()
+
+env = gym.make(args.env)
 env.render()
 observation = env.reset()
 env.robot.print_joint_info()
