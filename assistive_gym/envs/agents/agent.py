@@ -109,6 +109,17 @@ class Agent:
         contact_distance = [c[8] for c in cp]
         return linkA, linkB, posA, posB, contact_distance
 
+    def get_heights(self):
+        min_z = np.inf
+        max_z = -np.inf
+        for i in self.all_joint_indices:
+            min_pos, max_pos = p.getAABB(self.body, i, physicsClientId=self.id)
+            min_z = min(min_z, min_pos[-1])
+            max_z = max(max_z, max_pos[-1])
+        height = max_z - min_z
+        base_height = self.get_pos_orient(self.base)[0][-1] - min_z
+        return height, base_height
+
     def get_force_torque_sensor(self, joint):
         return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
 

@@ -17,7 +17,7 @@ from .agents.tool import Tool
 from .agents.furniture import Furniture
 
 class AssistiveEnv(gym.Env):
-    def __init__(self, robot=None, human=None, task=None, obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
+    def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
         self.task = task
         self.time_step = time_step
         self.frame_skip = frame_skip
@@ -34,11 +34,11 @@ class AssistiveEnv(gym.Env):
         self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
         self.human_creation = HumanCreation(self.id, np_random=self.np_random, cloth=('dressing' in task))
         self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
-        self.action_robot_len = len(robot.controllable_joint_indices)
-        self.action_human_len = len(human.controllable_joint_indices) if human.controllable else 0
+        self.action_robot_len = len(robot.controllable_joint_indices) if robot is not None else 0
+        self.action_human_len = len(human.controllable_joint_indices) if human is not None and human.controllable else 0
         self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len)), high=np.array([1.0]*(self.action_robot_len+self.action_human_len)), dtype=np.float32)
         self.obs_robot_len = obs_robot_len
-        self.obs_human_len = obs_human_len if human.controllable else 0
+        self.obs_human_len = obs_human_len if human is not None and human.controllable else 0
         self.observation_space = spaces.Box(low=np.array([-1.0]*(self.obs_robot_len+self.obs_human_len)), high=np.array([1.0]*(self.obs_robot_len+self.obs_human_len)), dtype=np.float32)
 
         self.agents = []
@@ -96,12 +96,14 @@ class AssistiveEnv(gym.Env):
         # Disable rendering during creation
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=self.id)
         # Create robot
-        self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_robot_base)
-        self.agents.append(self.robot)
+        if self.robot is not None:
+            self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_robot_base)
+            self.agents.append(self.robot)
         # Create human
-        self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
-        if self.human.controllable or self.human.impairment == 'tremor':
-            self.agents.append(self.human)
+        if self.human is not None:
+            self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
+            if self.human.controllable or self.human.impairment == 'tremor':
+                self.agents.append(self.human)
         # Create furniture (wheelchair, bed, or table)
         if furniture_type is not None:
             self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted)

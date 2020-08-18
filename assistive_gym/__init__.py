@@ -13,3 +13,9 @@ for task in tasks:
                 max_episode_steps=200,
             )
 
+register(
+    id='HumanTesting-v1',
+    entry_point='assistive_gym.envs:HumanTestingEnv',
+    max_episode_steps=200,
+)
+

@@ -4,3 +4,4 @@ from assistive_gym.envs.drinking_envs import DrinkingPR2Env, DrinkingBaxterEnv, 
 from assistive_gym.envs.feeding_envs import FeedingPR2Env, FeedingBaxterEnv, FeedingSawyerEnv, FeedingJacoEnv, FeedingStretchEnv, FeedingPR2HumanEnv, FeedingBaxterHumanEnv, FeedingSawyerHumanEnv, FeedingJacoHumanEnv, FeedingStretchHumanEnv
 from assistive_gym.envs.dressing_envs import DressingPR2Env, DressingBaxterEnv, DressingSawyerEnv, DressingJacoEnv, DressingStretchEnv, DressingPR2HumanEnv, DressingBaxterHumanEnv, DressingSawyerHumanEnv, DressingJacoHumanEnv, DressingStretchHumanEnv
 from assistive_gym.envs.arm_manipulation_envs import ArmManipulationPR2Env, ArmManipulationBaxterEnv, ArmManipulationSawyerEnv, ArmManipulationJacoEnv, ArmManipulationStretchEnv, ArmManipulationPR2HumanEnv, ArmManipulationBaxterHumanEnv, ArmManipulationSawyerHumanEnv, ArmManipulationJacoHumanEnv, ArmManipulationStretchHumanEnv
+from assistive_gym.envs.human_testing import HumanTestingEnv

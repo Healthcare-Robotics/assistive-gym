@@ -1,4 +1,4 @@
-import os
+import os, colorsys
 import pybullet as p
 import numpy as np
 
@@ -55,11 +55,16 @@ class HumanCreation:
         self.shoulder_radius = 0.0
         self.id = pid
 
-    def create_human(self, static=True, limit_scale=1.0, specular_color=[0.1, 0.1, 0.1], gender='random', config=None, mass=None, radius_scale=1.0, height_scale=1.0):
+    def create_human(self, static=True, limit_scale=1.0, skin_color='random', specular_color=[0.1, 0.1, 0.1], gender='random', config=None, mass=None, radius_scale=1.0, height_scale=1.0):
         if gender not in ['male', 'female']:
             gender = self.np_random.choice(['male', 'female'])
+        if skin_color == 'random':
+            hsv = list(colorsys.rgb_to_hsv(0.8, 0.6, 0.4))
+            hsv[-1] = self.np_random.uniform(0.4, 0.8)
+            skin_color = list(colorsys.hsv_to_rgb(*hsv)) + [1]
+            # print(hsv, skin_color, colorsys.rgb_to_hls(0.8, 0.6, 0.4))
         def create_body(shape=p.GEOM_CAPSULE, radius=0, length=0, position_offset=[0, 0, 0], orientation=[0, 0, 0, 1]):
-            visual_shape = p.createVisualShape(shape, radius=radius, length=length, rgbaColor=[0.8, 0.6, 0.4, 1], specularColor=specular_color, visualFramePosition=position_offset, visualFrameOrientation=orientation, physicsClientId=self.id)
+            visual_shape = p.createVisualShape(shape, radius=radius, length=length, rgbaColor=skin_color, specularColor=specular_color, visualFramePosition=position_offset, visualFrameOrientation=orientation, physicsClientId=self.id)
             collision_shape = p.createCollisionShape(shape, radius=radius, height=length, collisionFramePosition=position_offset, collisionFrameOrientation=orientation, physicsClientId=self.id)
             return collision_shape, visual_shape
 
@@ -87,7 +92,7 @@ class HumanCreation:
             thigh_c, thigh_v = create_body(shape=p.GEOM_CAPSULE, radius=0.08*rs, length=0.424*hs, position_offset=[0, 0, -0.424/2.0*hs])
             shin_c, shin_v = create_body(shape=p.GEOM_CAPSULE, radius=0.05*rs, length=0.403*hs, position_offset=[0, 0, -0.403/2.0*hs])
             foot_c, foot_v = create_body(shape=p.GEOM_CAPSULE, radius=0.05*rs, length=0.215*hs, position_offset=[0, -0.1, -0.025*rs], orientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id))
-            elbow_v = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=(0.043+0.033)/2*rs, length=0, rgbaColor=[0.8, 0.6, 0.4, 1], visualFramePosition=[0, 0.01, 0], physicsClientId=self.id)
+            elbow_v = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=(0.043+0.033)/2*rs, length=0, rgbaColor=skin_color, visualFramePosition=[0, 0.01, 0], physicsClientId=self.id)
             if self.cloth:
                 # Cloth penetrates the spheres at the end of each capsule, so we create physical spheres at the joints
                 invisible_v = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.01*rs, length=0, rgbaColor=[0.8, 0.6, 0.4, 0], physicsClientId=self.id)
@@ -98,7 +103,7 @@ class HumanCreation:
             head_scale = [0.89]*3
             head_pos = [0.09, 0.08, -0.07 + 0.01]
             head_c = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'head_female_male', 'BaseHeadMeshes_v5_male_cropped_reduced_compressed_vhacd.obj'), collisionFramePosition=head_pos, collisionFrameOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), meshScale=head_scale, physicsClientId=self.id)
-            head_v = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'head_female_male', 'BaseHeadMeshes_v5_male_cropped_reduced_compressed.obj'), rgbaColor=[0.8, 0.6, 0.4, 1], specularColor=specular_color, visualFramePosition=head_pos, visualFrameOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), meshScale=head_scale, physicsClientId=self.id)
+            head_v = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'head_female_male', 'BaseHeadMeshes_v5_male_cropped_reduced_compressed.obj'), rgbaColor=skin_color, specularColor=specular_color, visualFramePosition=head_pos, visualFrameOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), meshScale=head_scale, physicsClientId=self.id)
 
             joint_p, joint_o = [0, 0, 0], [0, 0, 0, 1]
             chest_p = [0, 0, 1.2455*hs]
@@ -138,7 +143,7 @@ class HumanCreation:
             thigh_c, thigh_v = create_body(shape=p.GEOM_CAPSULE, radius=0.0775*rs, length=0.391*hs, position_offset=[0, 0, -0.391/2.0*hs])
             shin_c, shin_v = create_body(shape=p.GEOM_CAPSULE, radius=0.045*rs, length=0.367*hs, position_offset=[0, 0, -0.367/2.0*hs])
             foot_c, foot_v = create_body(shape=p.GEOM_CAPSULE, radius=0.045*rs, length=0.195*hs, position_offset=[0, -0.09, -0.0225*rs], orientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id))
-            elbow_v = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=(0.0355+0.027)/2*rs, length=0, rgbaColor=[0.8, 0.6, 0.4, 1], visualFramePosition=[0, 0.01, 0], physicsClientId=self.id)
+            elbow_v = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=(0.0355+0.027)/2*rs, length=0, rgbaColor=skin_color, visualFramePosition=[0, 0.01, 0], physicsClientId=self.id)
             if self.cloth:
                 # Cloth penetrates the spheres at the end of each capsule, so we create physical spheres at the joints
                 invisible_v = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.01*rs, length=0, rgbaColor=[0.8, 0.6, 0.4, 0], physicsClientId=self.id)
@@ -149,7 +154,7 @@ class HumanCreation:
             head_scale = [0.89]*3
             head_pos = [-0.089, -0.09, -0.07]
             head_c = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'head_female_male', 'BaseHeadMeshes_v5_female_cropped_reduced_compressed_vhacd.obj'), collisionFramePosition=head_pos, collisionFrameOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), meshScale=head_scale, physicsClientId=self.id)
-            head_v = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'head_female_male', 'BaseHeadMeshes_v5_female_cropped_reduced_compressed.obj'), rgbaColor=[0.8, 0.6, 0.4, 1], specularColor=specular_color, visualFramePosition=head_pos, visualFrameOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), meshScale=head_scale, physicsClientId=self.id)
+            head_v = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'head_female_male', 'BaseHeadMeshes_v5_female_cropped_reduced_compressed.obj'), rgbaColor=skin_color, specularColor=specular_color, visualFramePosition=head_pos, visualFrameOrientation=p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), meshScale=head_scale, physicsClientId=self.id)
 
             joint_p, joint_o = [0, 0, 0], [0, 0, 0, 1]
             chest_p = [0, 0, 1.148*hs]
