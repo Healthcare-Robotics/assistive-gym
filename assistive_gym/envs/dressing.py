@@ -120,7 +120,7 @@ class DressingEnv(AssistiveEnv):
         elbow_pos = self.human.get_pos_orient(self.human.left_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.left_wrist)[0]
 
-        target_ee_pos = np.array([0.45, -0.3, 1.2]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_pos = np.array([0.45, -0.3, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task][0]), physicsClientId=self.id))
         offset = np.array([0, 0, 0.1])
         if self.robot.mobile:
