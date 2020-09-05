@@ -1,4 +1,4 @@
-import os, pickle, torch, smplx, trimesh, colorsys, tempfile
+import os, pickle, torch, smplx, trimesh, colorsys, tempfile, gc
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import pybullet as p
@@ -77,6 +77,7 @@ class HumanMesh(Agent):
         self.mesh_file = None
 
     def init(self, directory, id, np_random, gender='female', height=1.7, body_shape=None, joint_angles=[], position=[0, 0, 0], orientation=[0, 0, 0], skin_color='random', specular_color=[0.1, 0.1, 0.1]):
+        gc.collect()
         # Choose gender
         self.gender = gender
         if self.gender not in ['male', 'female']:
@@ -92,7 +93,8 @@ class HumanMesh(Agent):
         model_folder = os.path.join(directory, 'smpl_models')
         model = smplx.create(model_folder, model_type='smplx', gender=self.gender)
 
-        self.right_arm_vertex_indices = np.loadtxt(os.path.join(model_folder, 'right_arm_vertex_indices.csv'), delimiter=',', dtype=np.int)
+        if self.right_arm_vertex_indices is None:
+            self.right_arm_vertex_indices = np.loadtxt(os.path.join(model_folder, 'right_arm_vertex_indices.csv'), delimiter=',', dtype=np.int)
 
         # Define body shape
         if type(body_shape) == str:
