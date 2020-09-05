@@ -100,13 +100,13 @@ class AssistiveEnv(gym.Env):
             self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_robot_base)
             self.agents.append(self.robot)
         # Create human
-        if self.human is not None:
+        if self.human is not None and type(self.human) == Human:
             self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
             if self.human.controllable or self.human.impairment == 'tremor':
                 self.agents.append(self.human)
         # Create furniture (wheelchair, bed, or table)
         if furniture_type is not None:
-            self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted)
+            self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted if self.robot is not None else False)
 
     def init_env_variables(self):
         if len(self.action_space.low) == 1:

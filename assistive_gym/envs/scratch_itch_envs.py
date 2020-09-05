@@ -1,11 +1,13 @@
 from .scratch_itch import ScratchItchEnv
-from .agents import pr2, baxter, sawyer, jaco, human
+from .scratch_itch_mesh import ScratchItchMeshEnv
+from .agents import pr2, baxter, sawyer, jaco, human, human_mesh
 from .agents.pr2 import PR2
 from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
 from .agents.stretch import Stretch
 from .agents.human import Human
+from .agents.human_mesh import HumanMesh
 
 robot_arm = 'left'
 human_controllable_joint_indices = human.right_arm_joints
@@ -48,4 +50,25 @@ class ScratchItchJacoHumanEnv(ScratchItchEnv):
 class ScratchItchStretchHumanEnv(ScratchItchEnv):
     def __init__(self):
         super(ScratchItchStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class ScratchItchPR2MeshEnv(ScratchItchMeshEnv):
+    def __init__(self):
+        super(ScratchItchPR2MeshEnv, self).__init__(robot=PR2(robot_arm), human=HumanMesh())
+
+class ScratchItchBaxterMeshEnv(ScratchItchMeshEnv):
+    def __init__(self):
+        super(ScratchItchBaxterMeshEnv, self).__init__(robot=Baxter(robot_arm), human=HumanMesh())
+
+class ScratchItchSawyerMeshEnv(ScratchItchMeshEnv):
+    def __init__(self):
+        super(ScratchItchSawyerMeshEnv, self).__init__(robot=Sawyer(robot_arm), human=HumanMesh())
+
+class ScratchItchJacoMeshEnv(ScratchItchMeshEnv):
+    def __init__(self):
+        super(ScratchItchJacoMeshEnv, self).__init__(robot=Jaco(robot_arm), human=HumanMesh())
+
+class ScratchItchStretchMeshEnv(ScratchItchMeshEnv):
+    def __init__(self):
+        super(ScratchItchStretchMeshEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=HumanMesh())
+
 

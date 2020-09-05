@@ -12,14 +12,14 @@
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
       <geometry>
         <mesh filename="nightstand.obj" scale="0.275 0.275 0.275"/>
       </geometry>
       <material name="gray"/>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
       <geometry>
         <mesh filename="nightstand.obj" scale="0.275 0.275 0.275"/>
       </geometry>

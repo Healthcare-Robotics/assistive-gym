@@ -32,6 +32,8 @@ class Agent:
     def get_joint_angles(self, indices=None):
         if indices is None:
             indices = self.all_joint_indices
+        elif not indices:
+            return []
         robot_joint_states = p.getJointStates(self.body, jointIndices=indices, physicsClientId=self.id)
         return np.array([x[0] for x in robot_joint_states])
 
@@ -86,11 +88,15 @@ class Agent:
         joint_infos = [p.getJointInfo(self.body, i, physicsClientId=self.id) for i in indices]
         return [j[10] for j in joint_infos]
 
-    def get_contact_points(self, agentB=None):
-        if agentB is None:
-            cp = p.getContactPoints(bodyA=self.body, physicsClientId=self.id)
-        else:
-            cp = p.getContactPoints(bodyA=self.body, bodyB=agentB.body, physicsClientId=self.id)
+    def get_contact_points(self, agentB=None, linkA=None, linkB=None):
+        args = dict(bodyA=self.body, physicsClientId=self.id)
+        if agentB is not None:
+            args['bodyB'] = agentB.body
+        if linkA is not None:
+            args['linkIndexA'] = linkA
+        if linkB is not None:
+            args['linkIndexB'] = linkB
+        cp = p.getContactPoints(**args)
         if cp is None:
             return [], [], [], [], []
         linkA = [c[3] for c in cp]
@@ -100,8 +106,13 @@ class Agent:
         force = [c[9] for c in cp]
         return linkA, linkB, posA, posB, force
 
-    def get_closest_points(self, agentB, distance=4.0):
-        cp = p.getClosestPoints(bodyA=self.body, bodyB=agentB.body, distance=distance, physicsClientId=self.id)
+    def get_closest_points(self, agentB, distance=4.0, linkA=None, linkB=None):
+        args = dict(bodyA=self.body, bodyB=agentB.body, distance=distance, physicsClientId=self.id)
+        if linkA is not None:
+            args['linkIndexA'] = linkA
+        if linkB is not None:
+            args['linkIndexB'] = linkB
+        cp = p.getClosestPoints(**args)
         linkA = [c[3] for c in cp]
         linkB = [c[4] for c in cp]
         posA = [c[5] for c in cp]
@@ -109,15 +120,17 @@ class Agent:
         contact_distance = [c[8] for c in cp]
         return linkA, linkB, posA, posB, contact_distance
 
-    def get_heights(self):
+    def get_heights(self, set_on_ground=False):
         min_z = np.inf
         max_z = -np.inf
-        for i in self.all_joint_indices:
+        for i in self.all_joint_indices + [self.base]:
             min_pos, max_pos = p.getAABB(self.body, i, physicsClientId=self.id)
             min_z = min(min_z, min_pos[-1])
             max_z = max(max_z, max_pos[-1])
         height = max_z - min_z
         base_height = self.get_pos_orient(self.base)[0][-1] - min_z
+        if set_on_ground:
+            self.set_on_ground(base_height)
         return height, base_height
 
     def get_force_torque_sensor(self, joint):
@@ -132,6 +145,12 @@ class Agent:
     def set_joint_angles(self, indices, angles, use_limits=True):
         for j, a in zip(indices, angles):
             p.resetJointState(self.body, jointIndex=j, targetValue=min(max(a, self.lower_limits[j]), self.upper_limits[j]) if use_limits else a, targetVelocity=0, physicsClientId=self.id)
+
+    def set_on_ground(self, base_height=None):
+        if base_height is None:
+            _, base_height = self.get_heights()
+        pos, orient = self.get_base_pos_orient()
+        self.set_base_pos_orient([pos[0], pos[1], base_height], orient)
 
     def reset_joints(self):
         # Reset all joints to 0 position, 0 velocity

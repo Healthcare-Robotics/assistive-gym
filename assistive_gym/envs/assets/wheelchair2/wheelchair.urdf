@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="bed">
+<robot name="wheelchair">
 
   <material name="white">
     <color rgba="1 1 1 1"/>
@@ -12,16 +12,16 @@
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
-      <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
+      <origin rpy="1.57079632679 0 -1.62079632679" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="bed_single_reduced.obj" scale="1.1 1.1 1.1"/>
+        <mesh filename="wheelchair_new_compressed.obj" scale="0.36 0.28 0.36"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
+      <origin rpy="1.57079632679 0 -1.62079632679" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="bed_single_reduced_vhacd.obj" scale="1.1 1.1 1.1"/>
+        <mesh filename="wheelchair_new_compressed_vhacd.obj" scale="0.36 0.28 0.36"/>
       </geometry>
     </collision>
   </link>
