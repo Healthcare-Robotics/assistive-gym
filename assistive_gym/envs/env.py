@@ -74,6 +74,11 @@ class AssistiveEnv(gym.Env):
 
     def reset(self):
         p.resetSimulation(physicsClientId=self.id)
+        if not self.gui:
+            # Reconnect the physics engine to forcefully clear memory when running long training scripts
+            p.disconnect(self.id)
+            self.id = p.connect(p.DIRECT)
+            self.util = Util(self.id, self.np_random)
         # Configure camera position
         p.resetDebugVisualizerCamera(cameraDistance=1.75, cameraYaw=-25, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.4], physicsClientId=self.id)
         p.configureDebugVisualizer(p.COV_ENABLE_MOUSE_PICKING, 0, physicsClientId=self.id)

@@ -13,7 +13,7 @@ for task in tasks:
                 max_episode_steps=200,
             )
 
-for task in ['ScratchItch']:
+for task in ['ScratchItch', 'Feeding']:
     for robot in robots:
         register(
             id='%s%sMesh-v1' % (task, robot),

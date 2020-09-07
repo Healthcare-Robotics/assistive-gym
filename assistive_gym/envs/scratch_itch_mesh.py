@@ -71,10 +71,10 @@ class ScratchItchMeshEnv(ScratchItchEnv):
                 self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
             elif self.robot.wheelchair_mounted:
                 # Use IK to find starting joint angles for mounted robots
-                self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
+                self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False)
             else:
                 # Use TOC with JLWKI to find an optimal base position for the robot near the person
-                self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(self.target_pos, None)], self.human, step_sim=False, check_env_collisions=False)
+                self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(self.target_pos, None)], self.human, step_sim=False, check_env_collisions=False, attempts=50)
             # Check if the robot is colliding with the person
             _, _, _, _, dists = self.robot.get_closest_points(self.human, distance=0)
             # print(len(dists))

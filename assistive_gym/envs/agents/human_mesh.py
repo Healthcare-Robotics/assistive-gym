@@ -74,10 +74,8 @@ class HumanMesh(Agent):
         self.joint_positions = None
         self.right_arm_vertex_indices = None
         self.bottom_index = 5574
-        self.mesh_file = None
 
     def init(self, directory, id, np_random, gender='female', height=1.7, body_shape=None, joint_angles=[], position=[0, 0, 0], orientation=[0, 0, 0], skin_color='random', specular_color=[0.1, 0.1, 0.1]):
-        gc.collect()
         # Choose gender
         self.gender = gender
         if self.gender not in ['male', 'female']:
@@ -138,15 +136,13 @@ class HumanMesh(Agent):
         # out_mesh.apply_transform(scale)
         # rot = trimesh.transformations.rotation_matrix(np.deg2rad(90), [1, 0, 0])
         # out_mesh.apply_transform(rot)
-        if self.mesh_file is not None:
-            self.mesh_file.close()
-        self.mesh_file = tempfile.NamedTemporaryFile(suffix='.obj')
-        out_mesh.export(self.mesh_file.name)
 
         # Load mesh into environment
-        human_visual = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=self.mesh_file.name, meshScale=1.0, rgbaColor=self.skin_color, specularColor=specular_color, physicsClientId=id)
-        human_collision = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=self.mesh_file.name, meshScale=1.0, flags=p.GEOM_FORCE_CONCAVE_TRIMESH, physicsClientId=id)
-        self.body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=human_collision, baseVisualShapeIndex=human_visual, basePosition=position, baseOrientation=p.getQuaternionFromEuler(orientation, physicsClientId=id), useMaximalCoordinates=False, physicsClientId=id)
+        with tempfile.NamedTemporaryFile(suffix='.obj') as f:
+            out_mesh.export(f.name)
+            human_visual = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=f.name, meshScale=1.0, rgbaColor=self.skin_color, specularColor=specular_color, physicsClientId=id)
+            human_collision = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=f.name, meshScale=1.0, flags=p.GEOM_FORCE_CONCAVE_TRIMESH, physicsClientId=id)
+            self.body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=human_collision, baseVisualShapeIndex=human_visual, basePosition=position, baseOrientation=p.getQuaternionFromEuler(orientation, physicsClientId=id), useMaximalCoordinates=False, physicsClientId=id)
 
         super(HumanMesh, self).init(self.body, id, np_random, indices=-1)
 
@@ -154,10 +150,9 @@ class HumanMesh(Agent):
         self.obj_verts = out_mesh.vertices
         self.joint_positions = joints
 
+        gc.collect()
         # human_height, human_base_height = self.get_heights()
         # print('Mesh size:', out_mesh.extents, human_height, 'Target:', height)
-
-        # return vertices, out_mesh.vertices, joints
 
     def get_pos_orient(self, joint):
         if joint == self.base:
