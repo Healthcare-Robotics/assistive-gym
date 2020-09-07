@@ -69,7 +69,8 @@ class FeedingMeshEnv(FeedingEnv):
         # Randomize human pose
         joint_angles = [(self.human.j_left_hip_x, -90), (self.human.j_right_hip_x, -90), (self.human.j_left_knee_x, 70), (self.human.j_right_knee_x, 70), (self.human.j_left_shoulder_z, -45), (self.human.j_right_shoulder_z, 45), (self.human.j_left_elbow_y, -90), (self.human.j_right_elbow_y, 90)]
         u = self.np_random.uniform
-        joint_angles += [(self.human.j_waist_x, u(-30, 45)), (self.human.j_waist_y, u(-45, 45)), (self.human.j_waist_z, u(-30, 30)), (self.human.j_lower_neck_x, u(-30, 30)), (self.human.j_lower_neck_y, u(-30, 30)), (self.human.j_lower_neck_z, u(-10, 10)), (self.human.j_upper_neck_x, u(-45, 45)), (self.human.j_upper_neck_y, u(-30, 30)), (self.human.j_upper_neck_z, u(-30, 30))]
+        # joint_angles += [(self.human.j_waist_x, u(-30, 45)), (self.human.j_waist_y, u(-45, 45)), (self.human.j_waist_z, u(-30, 30)), (self.human.j_lower_neck_x, u(-30, 30)), (self.human.j_lower_neck_y, u(-30, 30)), (self.human.j_lower_neck_z, u(-10, 10)), (self.human.j_upper_neck_x, u(-45, 45)), (self.human.j_upper_neck_y, u(-30, 30)), (self.human.j_upper_neck_z, u(-30, 30))]
+        joint_angles += [(self.human.j_waist_x, u(-20, 30)), (self.human.j_waist_y, u(-45, 0)), (self.human.j_waist_z, u(0, 30)), (self.human.j_lower_neck_x, u(-30, 30)), (self.human.j_lower_neck_y, u(-30, 30)), (self.human.j_lower_neck_z, u(-10, 10)), (self.human.j_upper_neck_x, u(-30, 30)), (self.human.j_upper_neck_y, u(-30, 30)), (self.human.j_upper_neck_z, u(-30, 30))]
         self.human.init(self.directory, self.id, self.np_random, gender=gender, height=human_height, body_shape=body_shape, joint_angles=joint_angles, position=[0, 0, 0], orientation=[0, 0, 0])
 
         # Place human in chair
@@ -92,7 +93,9 @@ class FeedingMeshEnv(FeedingEnv):
         target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
         while True:
             # Continually resample initial end effector poses until we find one where the robot isn't colliding with the person
-            target_ee_pos = np.array([-0.1, -0.6, 1.2]) + np.array([self.np_random.uniform(-0.1, 0.1), self.np_random.uniform(-0.2, 0.3), self.np_random.uniform(-0.1, 0.1)])
+            # target_ee_pos = np.array([-0.1, -0.6, 1.2]) + np.array([self.np_random.uniform(-0.1, 0.1), self.np_random.uniform(-0.2, 0.3), self.np_random.uniform(-0.1, 0.1)])
+            mouth_pos = self.human.get_pos_orient(self.human.mouth)[0]
+            target_ee_pos = mouth_pos + np.array([self.np_random.uniform(-0.3, 0), self.np_random.uniform(-0.6, -0.3), self.np_random.uniform(-0.3, 0.1)])
             if self.robot.mobile:
                 # Randomize robot base pose
                 pos = np.array(self.robot.toc_base_pos_offset[self.task])
@@ -116,12 +119,13 @@ class FeedingMeshEnv(FeedingEnv):
             _, _, _, _, dists_human = self.robot.get_closest_points(self.human, distance=0)
             _, _, _, _, dists_table = self.robot.get_closest_points(self.table, distance=0)
             _, _, _, _, dists_tool = self.tool.get_closest_points(self.human, distance=0)
-            # print(len(dists))
             if not dists_human and not dists_table and not dists_tool:
                 break
 
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
+        # Initialize the tool in the robot's gripper
+        # self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=True, mesh_scale=[0.08]*3)
 
         # Place a bowl on a table
         self.bowl = Furniture()
