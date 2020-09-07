@@ -115,7 +115,7 @@ class FeedingMeshEnv(FeedingEnv):
             self.tool.reset_pos_orient()
             _, _, _, _, dists_human = self.robot.get_closest_points(self.human, distance=0)
             _, _, _, _, dists_table = self.robot.get_closest_points(self.table, distance=0)
-            _, _, _, _, dists_tool = self.tool.get_closest_points(self.human, distance=0.05)
+            _, _, _, _, dists_tool = self.tool.get_closest_points(self.human, distance=0)
             # print(len(dists))
             if not dists_human and not dists_table and not dists_tool:
                 break
