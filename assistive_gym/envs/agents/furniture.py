@@ -9,7 +9,11 @@ class Furniture(Agent):
 
     def init(self, furniture_type, directory, id, np_random, wheelchair_mounted=False):
         if 'wheelchair' in furniture_type:
-            furniture = p.loadURDF(os.path.join(directory, furniture_type, 'wheelchair.urdf' if not wheelchair_mounted else 'wheelchair_jaco.urdf'), basePosition=[0, 0, 0.06], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
+            left = False
+            if 'left' in furniture_type:
+                furniture_type = 'wheelchair'
+                left = True
+            furniture = p.loadURDF(os.path.join(directory, furniture_type, 'wheelchair.urdf' if not wheelchair_mounted else ('wheelchair_jaco.urdf' if not left else 'wheelchair_jaco_left.urdf')), basePosition=[0, 0, 0.06], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
         elif furniture_type == 'bed':
             furniture = p.loadURDF(os.path.join(directory, 'bed', 'bed.urdf'), basePosition=[-0.1, 0, 0], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
 

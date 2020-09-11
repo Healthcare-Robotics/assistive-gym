@@ -107,7 +107,7 @@ class DressingEnv(AssistiveEnv):
 
     def reset(self):
         super(DressingEnv, self).reset()
-        self.build_assistive_env('wheelchair')
+        self.build_assistive_env('wheelchair_left')
         self.cloth_forces = np.zeros((1, 1))
         if self.robot.wheelchair_mounted:
             wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()

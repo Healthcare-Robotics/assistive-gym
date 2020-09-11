@@ -12,14 +12,14 @@
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="1.57079632679 0 3.14159265359" xyz="0 0 0"/>
       <geometry>
         <mesh filename="wheelchair_permobil_reduced_compressed.obj" scale="0.15 0.15 0.15"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="1.57079632679 0 3.14159265359" xyz="0 0 0"/>
       <geometry>
         <mesh filename="wheelchair_permobil_reduced_compressed_vhacd.obj" scale="0.15 0.15 0.15"/>
       </geometry>
@@ -51,7 +51,7 @@
   <joint name="wheelchair_joint" type="fixed">
     <parent link="root"/>
     <child link="wheelchair_link"/>
-    <origin xyz="0 0 0"/>
+    <origin xyz="0 0 0" rpy="1.57079632679 0 3.14159265359"/>
   </joint>
 
   <link name="wheelchair_link2">
@@ -81,6 +81,6 @@
   <joint name="wheelchair_joint2" type="fixed">
     <parent link="root"/>
     <child link="wheelchair_link2"/>
-    <origin xyz="0 0 0"/>
+    <origin xyz="0 0 0" rpy="1.57079632679 0 3.14159265359"/>
   </joint>
 </robot>
