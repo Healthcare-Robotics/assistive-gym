@@ -56,6 +56,7 @@ class DrinkingEnv(AssistiveEnv):
         water_hit_human_reward = 0
         water_mouth_velocities = []
         waters_to_remove = []
+        waters_active_to_remove = []
         for w in self.waters:
             water_pos, water_orient = w.get_base_pos_orient()
             if not self.util.points_in_cylinder(top_center_pos, bottom_center_pos, 0.05, np.array(water_pos)):
@@ -68,18 +69,21 @@ class DrinkingEnv(AssistiveEnv):
                     water_velocity = np.linalg.norm(w.get_velocity(w.base))
                     water_mouth_velocities.append(water_velocity)
                     waters_to_remove.append(w)
+                    waters_active_to_remove.append(w)
                     w.set_base_pos_orient(self.np_random.uniform(1000, 2000, size=3), [0, 0, 0, 1])
                     continue
-                elif water_pos[-1] < 0.5:
+                elif len(w.get_closest_points(self.tool, distance=0.1)[-1]) == 0:
                     # Delete particle and give robot a penalty for spilling water
                     water_reward -= 1
                     waters_to_remove.append(w)
                     continue
-                if len(w.get_contact_points(self.human)) > 0:
-                    # Record that this water particle just hit the person, so that we can penalize the robot
-                    waters_to_remove.append(w)
-                    water_hit_human_reward -= 1
+        for w in self.waters_active:
+            if len(w.get_contact_points(self.human)[-1]) > 0:
+                # Record that this water particle just hit the person, so that we can penalize the robot
+                water_hit_human_reward -= 1
+                waters_active_to_remove.append(w)
         self.waters = [w for w in self.waters if w not in waters_to_remove]
+        self.waters_active = [w for w in self.waters_active if w not in waters_active_to_remove]
         return water_reward, water_mouth_velocities, water_hit_human_reward
 
     def _get_obs(self, agent=None):
@@ -173,6 +177,7 @@ class DrinkingEnv(AssistiveEnv):
         for w in self.waters:
             p.changeVisualShape(w.body, -1, rgbaColor=[0.25, 0.5, 1, 1], physicsClientId=self.id)
         self.total_water_count = len(self.waters)
+        self.waters_active = [w for w in self.waters]
 
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)

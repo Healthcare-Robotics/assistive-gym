@@ -148,8 +148,8 @@ class FeedingMeshEnv(FeedingEnv):
                 for k in range(2):
                     batch_positions.append(np.array([i*2*food_radius-0.005, j*2*food_radius, k*2*food_radius+0.01]) + spoon_pos)
         self.foods = self.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
-        self.foods_hit_person = []
         self.total_food_count = len(self.foods)
+        self.foods_active = [f for f in self.foods]
 
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)

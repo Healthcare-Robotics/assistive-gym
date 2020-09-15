@@ -50,6 +50,7 @@ class FeedingEnv(AssistiveEnv):
         food_hit_human_reward = 0
         food_mouth_velocities = []
         foods_to_remove = []
+        foods_active_to_remove = []
         for f in self.foods:
             food_pos, food_orient = f.get_base_pos_orient()
             distance_to_mouth = np.linalg.norm(self.target_pos - food_pos)
@@ -60,18 +61,21 @@ class FeedingEnv(AssistiveEnv):
                 food_velocity = np.linalg.norm(f.get_velocity(f.base))
                 food_mouth_velocities.append(food_velocity)
                 foods_to_remove.append(f)
+                foods_active_to_remove.append(f)
                 f.set_base_pos_orient(self.np_random.uniform(1000, 2000, size=3), [0, 0, 0, 1])
                 continue
-            elif food_pos[-1] < 0.5 or len(f.get_contact_points(self.table)[-1]) > 0 or len(f.get_contact_points(self.bowl)[-1]) > 0:
+            elif len(f.get_closest_points(self.tool, distance=0.1)[-1]) == 0:
                 # Delete particle and give robot a penalty for spilling food
                 food_reward -= 5
                 foods_to_remove.append(f)
                 continue
-            if len(f.get_contact_points(self.human)) > 0 and f not in self.foods_hit_person:
+        for f in self.foods_active:
+            if len(f.get_contact_points(self.human)[-1]) > 0:
                 # Record that this food particle just hit the person, so that we can penalize the robot
-                self.foods_hit_person.append(f)
                 food_hit_human_reward -= 1
+                foods_active_to_remove.append(f)
         self.foods = [f for f in self.foods if f not in foods_to_remove]
+        self.foods_active = [f for f in self.foods_active if f not in foods_active_to_remove]
         return food_reward, food_mouth_velocities, food_hit_human_reward
 
     def _get_obs(self, agent=None):
@@ -168,8 +172,8 @@ class FeedingEnv(AssistiveEnv):
                 for k in range(2):
                     batch_positions.append(np.array([i*2*food_radius-0.005, j*2*food_radius, k*2*food_radius+0.01]) + spoon_pos)
         self.foods = self.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
-        self.foods_hit_person = []
         self.total_food_count = len(self.foods)
+        self.foods_active = [f for f in self.foods]
 
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
