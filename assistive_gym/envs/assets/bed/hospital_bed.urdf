@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<robot name="bed">
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+  <link name="frame">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual>
+      <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 -0.15 0"/>
+      <geometry>
+        <mesh filename="hospital_bed_frame_reduced.obj" scale="1 1.2 1"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 -0.15 0"/>
+      <geometry>
+        <mesh filename="hospital_bed_frame_vhacd.obj" scale="1 1.2 1"/>
+      </geometry>
+    </collision>
+  </link>
+
+    <link name="bottom">
+        <visual>
+            <origin xyz="0 -0.625 0.075" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.88 1.25 0.15"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <origin xyz="0 -0.625 0.075" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.88 1.25 0.15"/>
+            </geometry>
+        </collision>
+        <contact>
+            <rolling_friction value="0.001"/>
+            <spinning_friction value="0.001"/>
+        </contact>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
+    </link>
+
+    <link name="top">
+        <visual>
+            <origin xyz="0 0.425 0.075" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.88 0.85 0.15"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0.425 0.075" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.88 0.85 0.15"/>
+            </geometry>
+        </collision>
+        <contact>
+            <rolling_friction value="0.001"/>
+            <spinning_friction value="0.001"/>
+        </contact>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
+    </link>
+
+    <joint name="j_weld1" type="fixed">
+        <parent link="frame"/>
+        <child link="bottom"/>
+        <origin xyz="0 0 0"/>
+    </joint>
+    <joint name="j_weld2" type="revolute">
+        <parent link="bottom"/>
+        <child link="top"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="0" upper="1.57079632679"/>
+    </joint>
+</robot>
+

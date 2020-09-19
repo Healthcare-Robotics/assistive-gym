@@ -26,7 +26,8 @@ class ScratchItchMeshEnv(ScratchItchEnv):
         if self.general_model:
             # Randomize the human body shape
             gender = self.np_random.choice(['male', 'female'])
-            body_shape = self.np_random.randn(1, self.human.num_body_shape)
+            # body_shape = self.np_random.randn(1, self.human.num_body_shape)
+            body_shape = self.np_random.uniform(-2, 5, (1, self.human.num_body_shape))
             # human_height = self.np_random.uniform(1.59, 1.91) if gender == 'male' else self.np_random.uniform(1.47, 1.78)
             human_height = self.np_random.uniform(1.5, 1.9)
         else:
@@ -36,8 +37,10 @@ class ScratchItchMeshEnv(ScratchItchEnv):
 
         # Randomize human pose
         joint_angles = [(self.human.j_left_hip_x, -90), (self.human.j_right_hip_x, -90), (self.human.j_left_knee_x, 70), (self.human.j_right_knee_x, 70), (self.human.j_left_shoulder_z, -45), (self.human.j_left_elbow_y, -90)]
-        u = self.np_random.uniform
-        joint_angles += [(self.human.j_right_pecs_y, u(-20, 20)), (self.human.j_right_pecs_z, u(-20, 20)), (self.human.j_right_shoulder_x, u(-45, 45)), (self.human.j_right_shoulder_y, u(-45, 45)), (self.human.j_right_shoulder_z, u(-45, 45)), (self.human.j_right_elbow_y, u(0, 90)), (self.human.j_waist_x, u(-30, 45)), (self.human.j_waist_y, u(-45, 45)), (self.human.j_waist_z, u(-30, 30))]
+        joint_angles += [(self.human.j_right_shoulder_z, 45+self.np_random.uniform(-10, 10)), (self.human.j_right_elbow_y, 90+self.np_random.uniform(-10, 10))]
+        # u = self.np_random.uniform
+        # joint_angles += [(self.human.j_right_pecs_y, u(-20, 20)), (self.human.j_right_pecs_z, u(-20, 20)), (self.human.j_right_shoulder_x, u(-45, 45)), (self.human.j_right_shoulder_y, u(-45, 45)), (self.human.j_right_shoulder_z, u(-45, 45)), (self.human.j_right_elbow_y, u(0, 90)), (self.human.j_waist_x, u(-30, 45)), (self.human.j_waist_y, u(-45, 45)), (self.human.j_waist_z, u(-30, 30))]
+        joint_angles += [(j, self.np_random.uniform(-10, 10)) for j in (self.human.j_right_pecs_y, self.human.j_right_pecs_z, self.human.j_right_shoulder_x, self.human.j_right_shoulder_y, self.human.j_waist_x, self.human.j_waist_y, self.human.j_waist_z)]
 
         # Set joint angles for human joints (in degrees)
         # joint_angles = [(self.human.j_left_hip_x, -90), (self.human.j_right_hip_x, -90), (self.human.j_left_knee_x, 70), (self.human.j_right_knee_x, 70), (self.human.j_left_shoulder_z, -45), (self.human.j_right_shoulder_z, 45), (self.human.j_left_elbow_y, -90), (self.human.j_right_elbow_y, 90)]
@@ -45,7 +48,7 @@ class ScratchItchMeshEnv(ScratchItchEnv):
 
         # Place human in chair
         chair_seat_position = np.array([0, 0.05, 0.6])
-        self.human.set_base_pos_orient(chair_seat_position - self.human.get_vertex_positions(self.human.bottom_index), [0, 0, 0, 1])
+        self.human.set_base_pos_orient(self.furniture.get_base_pos_orient()[0] + chair_seat_position - self.human.get_vertex_positions(self.human.bottom_index), [0, 0, 0, 1])
 
         shoulder_pos = self.human.get_pos_orient(self.human.right_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]

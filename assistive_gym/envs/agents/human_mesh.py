@@ -67,6 +67,9 @@ class HumanMesh(Agent):
         self.j_right_elbow_x, self.j_right_elbow_y, self.j_right_elbow_z = 54, 55, 56
         self.j_left_wrist_x, self.j_left_wrist_y, self.j_left_wrist_z = 57, 58, 59
         self.j_right_wrist_x, self.j_right_wrist_y, self.j_right_wrist_z = 60, 61, 62
+        # SMPL only joints (not SMPL-X)
+        self.j_left_fingers_x, self.j_left_fingers_y, self.j_left_fingers_z = 63, 64, 65
+        self.j_right_fingers_x, self.j_right_fingers_y, self.j_right_fingers_z = 66, 67, 68
 
         self.num_body_shape = 10
         self.vertex_positions = None
@@ -75,7 +78,7 @@ class HumanMesh(Agent):
         self.right_arm_vertex_indices = None
         self.bottom_index = 5574
 
-    def init(self, directory, id, np_random, gender='female', height=1.7, body_shape=None, joint_angles=[], position=[0, 0, 0], orientation=[0, 0, 0], skin_color='random', specular_color=[0.1, 0.1, 0.1]):
+    def init(self, directory, id, np_random, gender='female', height=1.7, body_shape=None, joint_angles=[], position=[0, 0, 0], orientation=[0, 0, 0], skin_color='random', specular_color=[0.1, 0.1, 0.1], body_pose=None):
         # Choose gender
         self.gender = gender
         if self.gender not in ['male', 'female']:
@@ -105,9 +108,10 @@ class HumanMesh(Agent):
             betas = torch.Tensor(body_shape)
 
         # Set human body pose
-        body_pose = np.zeros((1, model.NUM_BODY_JOINTS*3))
-        for joint_index, angle in joint_angles:
-            body_pose[0, joint_index] = np.deg2rad(angle)
+        if body_pose is None:
+            body_pose = np.zeros((1, model.NUM_BODY_JOINTS*3))
+            for joint_index, angle in joint_angles:
+                body_pose[0, joint_index] = np.deg2rad(angle)
 
         # Generate standing human mesh and determine default height of the mesh
         output = model(betas=betas, body_pose=torch.Tensor(np.zeros((1, model.NUM_BODY_JOINTS*3))), return_verts=True)
@@ -123,14 +127,17 @@ class HumanMesh(Agent):
         # Generate human mesh with correct height scaling
         height_scale = height/out_mesh.extents[-1]
         # print('Scale:', height_scale, '=', height, '/', out_mesh.extents[-1])
-        output = model(betas=betas, body_pose=torch.Tensor(body_pose), return_verts=True)
+        output = model(betas=betas, body_pose=torch.Tensor(body_pose), return_verts=True) # global_orient=torch.Tensor(orientation)
         vertices = output.vertices.detach().cpu().numpy().squeeze()
         joints = output.joints.detach().cpu().numpy().squeeze()
         # Scale vertices and rotate
+        orient_quat = p.getQuaternionFromEuler(orientation, physicsClientId=id)
         vertices = vertices*height_scale
         vertices = vertices.dot(R.from_euler('x', -90, degrees=True).as_matrix())
+        vertices = vertices.dot(R.from_quat(orient_quat).as_matrix())
         joints = joints*height_scale
         joints = joints.dot(R.from_euler('x', -90, degrees=True).as_matrix())
+        joints = joints.dot(R.from_quat(orient_quat).as_matrix())
         out_mesh = trimesh.Trimesh(vertices, model.faces)
         # scale = trimesh.transformations.scale_matrix(height_scale, [0, 0, 0])
         # out_mesh.apply_transform(scale)
@@ -142,7 +149,7 @@ class HumanMesh(Agent):
             out_mesh.export(f.name)
             human_visual = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=f.name, meshScale=1.0, rgbaColor=self.skin_color, specularColor=specular_color, physicsClientId=id)
             human_collision = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=f.name, meshScale=1.0, flags=p.GEOM_FORCE_CONCAVE_TRIMESH, physicsClientId=id)
-            self.body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=human_collision, baseVisualShapeIndex=human_visual, basePosition=position, baseOrientation=p.getQuaternionFromEuler(orientation, physicsClientId=id), useMaximalCoordinates=False, physicsClientId=id)
+            self.body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=human_collision, baseVisualShapeIndex=human_visual, basePosition=position, baseOrientation=[0, 0, 0, 1], useMaximalCoordinates=False, physicsClientId=id)
 
         super(HumanMesh, self).init(self.body, id, np_random, indices=-1)
 

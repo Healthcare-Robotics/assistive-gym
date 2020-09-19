@@ -118,6 +118,11 @@ class Human(Agent):
             forces = [reactive_force * self.strength] * len(self.target_joint_angles)
             self.control(self.controllable_joint_indices, self.target_joint_angles, reactive_gain, forces)
 
+    def get_body_params():
+        body_shape = np.zeros(10)
+        joint_ranges = np.zeros(21, 2).flatten()
+        return np.concatenate([body_shape, joint_ranges])
+
     def enforce_realistic_joint_limits(self):
         # Only enforce limits for the human arm that is moveable (if either arm is even moveable)
         if (self.j_right_shoulder_x not in self.controllable_joint_indices) and (self.j_left_shoulder_x not in self.controllable_joint_indices):

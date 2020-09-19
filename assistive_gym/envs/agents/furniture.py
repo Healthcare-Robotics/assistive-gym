@@ -23,6 +23,10 @@ class Furniture(Agent):
             # furniture = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=bed_collision, baseVisualShapeIndex=bed_visual, basePosition=[0, 0, 0], useMaximalCoordinates=True, physicsClientId=self.id)
             # # Initialize bed position
             # p.resetBasePositionAndOrientation(furniture, [-0.1, 0, 0], p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), physicsClientId=self.id)
+        elif furniture_type == 'hospital_bed':
+            furniture = p.loadURDF(os.path.join(directory, 'bed', 'hospital_bed.urdf'), basePosition=[0, 0, 0], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
+            self.controllable_joint_indices = [1]
+            super(Furniture, self).init(furniture, id, np_random)
         elif furniture_type == 'table':
             furniture = p.loadURDF(os.path.join(directory, 'table', 'table_tall.urdf'), basePosition=[0.25, -1.0, 0], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
         elif furniture_type == 'bowl':
