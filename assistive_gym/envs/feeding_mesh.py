@@ -17,39 +17,9 @@ class FeedingMeshEnv(FeedingEnv):
         self.body_shape_filename = '%s_1.pkl' % self.gender
         self.human_height = 1.6
 
-    def _get_obs(self, agent=None):
-        spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
-        spoon_pos_real, spoon_orient_real = self.robot.convert_to_realworld(spoon_pos, spoon_orient)
-        robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
-        if self.robot.mobile:
-            # Don't include joint angles for the wheels
-            robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
-        mouth_pos, _ = self.human.get_pos_orient(self.human.mouth)
-        mouth_pos_real, _ = self.robot.convert_to_realworld(mouth_pos)
-        target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
-        self.robot_force_on_human, self.spoon_force_on_human = self.get_total_force()
-        self.total_force_on_human = self.robot_force_on_human + self.spoon_force_on_human
-        if self.human.controllable:
-            human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
-            spoon_pos_human, spoon_orient_human = self.human.convert_to_realworld(spoon_pos, spoon_orient)
-            mouth_pos_human, _ = self.human.convert_to_realworld(mouth_pos)
-            target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
-
-        robot_obs = np.concatenate([spoon_pos_real, spoon_orient_real, spoon_pos_real - target_pos_real, robot_joint_angles, mouth_pos_real, [self.spoon_force_on_human]]).ravel()
-        if self.human.controllable:
-            human_obs = np.concatenate([spoon_pos_human, spoon_orient_human, spoon_pos_human - target_pos_human, human_joint_angles, mouth_pos_human, [self.robot_force_on_human, self.spoon_force_on_human]]).ravel()
-        else:
-            human_obs = []
-
-        if agent == 'robot':
-            return robot_obs
-        elif agent == 'human':
-            return human_obs
-        return np.concatenate([robot_obs, human_obs]).ravel()
-
     def reset(self):
         super(FeedingEnv, self).reset()
-        self.build_assistive_env('wheelchair2')
+        self.build_assistive_env('wheelchair')
         self.furniture.set_on_ground()
         if self.robot.wheelchair_mounted:
             wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()

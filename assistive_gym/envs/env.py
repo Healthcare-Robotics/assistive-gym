@@ -17,9 +17,8 @@ from .agents.tool import Tool
 from .agents.furniture import Furniture
 
 class AssistiveEnv(gym.Env):
-    def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001, personalized=False):
+    def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
         self.task = task
-        self.personalized = personalized
         self.time_step = time_step
         self.frame_skip = frame_skip
         self.gravity = gravity
@@ -106,7 +105,7 @@ class AssistiveEnv(gym.Env):
             self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_robot_base)
             self.agents.append(self.robot)
         # Create human
-        if self.human is not None and type(self.human) == Human:
+        if self.human is not None and isinstance(self.human, Human):
             self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
             if self.human.controllable or self.human.impairment == 'tremor':
                 self.agents.append(self.human)
@@ -126,7 +125,7 @@ class AssistiveEnv(gym.Env):
             self.obs_human_len = len(self._get_obs('human'))
 
     def update_action_space(self):
-        action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents if type(a) != Human or a.controllable])
+        action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents if not isinstance(a, Human) or a.controllable])
         self.action_space.__init__(low=-np.ones(action_len), high=np.ones(action_len), dtype=np.float32)
 
     def create_human(self, controllable=False, controllable_joint_indices=[], fixed_base=False, human_impairment='random', gender='random', mass=None, radius_scale=1.0, height_scale=1.0):
@@ -161,10 +160,11 @@ class AssistiveEnv(gym.Env):
         actions *= action_multiplier
         action_index = 0
         for i, agent in enumerate(self.agents):
-            needs_action = type(agent) != Human or agent.controllable
+            needs_action = not isinstance(agent, Human) or agent.controllable
             if needs_action:
                 agent_action_len = len(agent.controllable_joint_indices)
                 action = np.copy(actions[action_index:action_index+agent_action_len])
+                action_index += agent_action_len
                 if isinstance(agent, Robot):
                     action *= agent.action_multiplier
                 if len(action) != agent_action_len:
@@ -181,7 +181,7 @@ class AssistiveEnv(gym.Env):
                     action[above_upper_limits] = 0
                     agent_joint_angles[below_lower_limits] = agent.controllable_joint_lower_limits[below_lower_limits]
                     agent_joint_angles[above_upper_limits] = agent.controllable_joint_upper_limits[above_upper_limits]
-                if type(agent) == Human and agent.impairment == 'tremor':
+                if isinstance(agent, Human) and agent.impairment == 'tremor':
                     if needs_action:
                         agent.target_joint_angles += action
                     agent_joint_angles = agent.target_joint_angles + agent.tremors * (1 if self.iteration % 2 == 0 else -1)
@@ -197,7 +197,7 @@ class AssistiveEnv(gym.Env):
             for _ in range(self.frame_skip):
                 p.stepSimulation(physicsClientId=self.id)
                 for agent in self.agents:
-                    if type(agent) == Human:
+                    if isinstance(agent, Human):
                         agent.enforce_joint_limits()
                         if agent.controllable:
                             agent.enforce_realistic_joint_limits()
@@ -268,6 +268,12 @@ class AssistiveEnv(gym.Env):
                 self.height = 1080
             self.id = p.connect(p.GUI, options='--background_color_red=0.8 --background_color_green=0.9 --background_color_blue=1.0 --width=%d --height=%d' % (self.width, self.height))
             self.util = Util(self.id, self.np_random)
+
+    def get_euler(self, quaternion):
+        return np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=self.id))
+
+    def get_quaternion(self, euler):
+        return np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=self.id))
 
     def create_sphere(self, radius=0.01, mass=0.0, pos=[0, 0, 0], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False):
         sphere_collision = p.createCollisionShape(shapeType=p.GEOM_SPHERE, radius=radius, physicsClientId=self.id) if collision else -1

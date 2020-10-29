@@ -72,7 +72,7 @@ class Robot(Agent):
 
     def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False):
         if target_orient is not None and len(target_orient) < 4:
-            target_orient = p.getQuaternionFromEuler(target_orient, physicsClientId=self.id)
+            target_orient = self.get_quaternion(target_orient)
         orient_orig = target_orient
         best_ik_angles = None
         best_ik_distance = 0
@@ -85,7 +85,7 @@ class Robot(Agent):
                     p.stepSimulation(physicsClientId=self.id)
                 if len(p.getContactPoints(bodyA=self.body, bodyB=self.body, physicsClientId=self.id)) > 0 and orient_orig is not None:
                     # The robot's arm is in contact with itself. Continually randomize end effector orientation until a solution is found
-                    target_orient = p.getQuaternionFromEuler(p.getEulerFromQuaternion(orient_orig, physicsClientId=self.id) + np.deg2rad(self.np_random.uniform(-45, 45, size=3)), physicsClientId=self.id)
+                    target_orient = self.get_quaternion(self.get_euler(orient_orig) + np.deg2rad(self.np_random.uniform(-45, 45, size=3)))
             if check_env_collisions:
                 for _ in range(25):
                     p.stepSimulation(physicsClientId=self.id)
@@ -119,7 +119,7 @@ class Robot(Agent):
             iteration += 1
             # Randomize base position and orientation
             random_pos = np.array([self.np_random.uniform(-random_position if right_side else 0, 0 if right_side else random_position), self.np_random.uniform(-random_position, random_position), 0])
-            random_orientation = p.getQuaternionFromEuler([base_euler_orient[0], base_euler_orient[1], base_euler_orient[2] + np.deg2rad(self.np_random.uniform(-random_rotation, random_rotation))], physicsClientId=self.id)
+            random_orientation = self.get_quaternion([base_euler_orient[0], base_euler_orient[1], base_euler_orient[2] + np.deg2rad(self.np_random.uniform(-random_rotation, random_rotation))])
             self.set_base_pos_orient(np.array([-0.85, -0.4, 0]) + self.toc_base_pos_offset[task] + random_pos, random_orientation)
             # Reset all robot joints to their defaults
             self.reset_joints()

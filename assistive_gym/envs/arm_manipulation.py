@@ -68,6 +68,8 @@ class ArmManipulationEnv(AssistiveEnv):
         tool_right_pos_real, tool_right_orient_real = self.robot.convert_to_realworld(tool_right_pos, tool_right_orient)
         tool_left_pos_real, tool_left_orient_real = self.robot.convert_to_realworld(tool_left_pos, tool_left_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        # Fix joint angles to be in [-pi, pi]
+        robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
         if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
@@ -146,7 +148,7 @@ class ArmManipulationEnv(AssistiveEnv):
 
         target_ee_right_pos = np.array([-0.9, -0.3, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_left_pos = np.array([-0.9, 0.7, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
         if self.robot.mobile:
             # Randomize robot base pose
             pos = np.array(self.robot.toc_base_pos_offset[self.task])
@@ -168,7 +170,7 @@ class ArmManipulationEnv(AssistiveEnv):
             # Load a nightstand in the environment for the jaco arm
             self.nightstand = Furniture()
             self.nightstand.init('nightstand', self.directory, self.id, self.np_random)
-            self.nightstand.set_base_pos_orient(np.array([-0.9, 0.7, 0]) + base_position, [np.pi/2.0, 0, 0])
+            self.nightstand.set_base_pos_orient(np.array([-0.9, 0.7, 0]) + base_position, [0, 0, 0, 1])
         # Open gripper to hold the tools
         self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper

@@ -8,8 +8,8 @@ from .agents import furniture
 from .agents.furniture import Furniture
 
 class BedBathingEnv(AssistiveEnv):
-    def __init__(self, robot, human, personalized=False):
-        super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(18 + len(human.controllable_joint_indices)), personalized=personalized)
+    def __init__(self, robot, human):
+        super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(18 + len(human.controllable_joint_indices)))
 
     def step(self, action):
         self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
@@ -77,6 +77,8 @@ class BedBathingEnv(AssistiveEnv):
         tool_pos, tool_orient = self.tool.get_pos_orient(1)
         tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        # Fix joint angles to be in [-pi, pi]
+        robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
         if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
@@ -104,24 +106,18 @@ class BedBathingEnv(AssistiveEnv):
             return robot_obs
         elif agent == 'human':
             return human_obs
-        if self.personalized:
-            return np.concatenate([self.human.get_body_params(), robot_obs, human_obs]).ravel()
         return np.concatenate([robot_obs, human_obs]).ravel()
 
     def reset(self):
         super(BedBathingEnv, self).reset()
-        self.build_assistive_env('hospital_bed', fixed_human_base=False)
-        self.furniture.set_on_ground()
-
-        p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
+        self.build_assistive_env('bed', fixed_human_base=False)
 
         self.furniture.set_friction(self.furniture.base, friction=5)
 
         # Setup human in the air and let them settle into a resting pose on the bed
         joints_positions = [(self.human.j_right_shoulder_x, 30)]
         self.human.setup_joints(joints_positions, use_static_joints=False, reactive_force=None)
-        # self.human.set_base_pos_orient([-0.15, 0.2, 0.95], [-np.pi/2.0, 0, 0])
-        self.human.set_base_pos_orient([0, 0.2, 0.95], [-np.pi/2.0, 0, 0])
+        self.human.set_base_pos_orient([-0.15, 0.2, 0.95], [-np.pi/2.0, 0, 0])
 
         p.setGravity(0, 0, -1, physicsClientId=self.id)
 
@@ -143,42 +139,31 @@ class BedBathingEnv(AssistiveEnv):
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
 
-        # Open gripper to hold the tool
-        self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
-        # Initialize the tool in the robot's gripper
-        self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=False, mesh_scale=[1]*3)
-
-        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
-        while True:
-            target_ee_pos = np.array([-0.4, 0.2, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-            if self.robot.mobile:
-                # Randomize robot base pose
-                pos = np.array(self.robot.toc_base_pos_offset[self.task])
-                pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
-                orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
-                orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
-                self.robot.set_base_pos_orient(pos, orient)
-                # Randomize starting joint angles
-                self.robot.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
-                # Randomly set friction of the ground
-                self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
-            else:
-                # Use TOC with JLWKI to find an optimal base position for the robot near the person
-                base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=False, check_env_collisions=False, attempts=50)
-            # Check if the robot is colliding with the person
-            self.tool.reset_pos_orient()
-            _, _, _, _, dists_human = self.robot.get_closest_points(self.human, distance=0)
-            # _, _, _, _, dists_bed = self.robot.get_closest_points(self.bed, distance=0)
-            _, _, _, _, dists_tool = self.tool.get_closest_points(self.human, distance=0)
-            if not dists_human and not dists_tool:
-                break
+        target_ee_pos = np.array([-0.6, 0.2, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
+        if self.robot.mobile:
+            # Randomize robot base pose
+            pos = np.array(self.robot.toc_base_pos_offset[self.task])
+            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
+            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+            self.robot.set_base_pos_orient(pos, orient)
+            # Randomize starting joint angles
+            self.robot.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
+            # Randomly set friction of the ground
+            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
+        else:
+            # Use TOC with JLWKI to find an optimal base position for the robot near the person
+            base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
         if self.robot.wheelchair_mounted:
             # Load a nightstand in the environment for the jaco arm
             self.nightstand = Furniture()
             self.nightstand.init('nightstand', self.directory, self.id, self.np_random)
-            self.nightstand.set_base_pos_orient(np.array([-0.9, 0.7, 0]) + base_position, [np.pi/2.0, 0, 0])
+            self.nightstand.set_base_pos_orient(np.array([-0.9, 0.7, 0]) + base_position, [0, 0, 0, 1])
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
+        # Initialize the tool in the robot's gripper
+        self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=False, mesh_scale=[1]*3)
 
         self.generate_targets()
 

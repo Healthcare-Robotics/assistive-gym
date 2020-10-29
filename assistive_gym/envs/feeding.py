@@ -82,6 +82,8 @@ class FeedingEnv(AssistiveEnv):
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()
         spoon_pos_real, spoon_orient_real = self.robot.convert_to_realworld(spoon_pos, spoon_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        # Fix joint angles to be in [-pi, pi]
+        robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
         if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
@@ -128,7 +130,7 @@ class FeedingEnv(AssistiveEnv):
         p.resetDebugVisualizerCamera(cameraDistance=1.10, cameraYaw=40, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.75], physicsClientId=self.id)
 
         target_ee_pos = np.array([-0.15, -0.65, 1.15]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
         if self.robot.mobile:
             # Randomize robot base pose
             pos = np.array(self.robot.toc_base_pos_offset[self.task])
@@ -160,7 +162,7 @@ class FeedingEnv(AssistiveEnv):
         self.human.set_gravity(0, 0, 0)
         self.tool.set_gravity(0, 0, 0)
 
-        p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
+        # p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
         # Generate food
         spoon_pos, spoon_orient = self.tool.get_base_pos_orient()

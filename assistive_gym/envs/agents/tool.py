@@ -49,7 +49,7 @@ class Tool(Agent):
     def get_transform(self):
         if self.robot is not None:
             self.pos_offset = self.robot.tool_pos_offset[self.task]
-            self.orient_offset = p.getQuaternionFromEuler(self.robot.tool_orient_offset[self.task], physicsClientId=self.id)
+            self.orient_offset = self.get_quaternion(self.robot.tool_orient_offset[self.task])
             gripper_pos, gripper_orient = self.robot.get_pos_orient(self.robot.right_tool_joint if self.right else self.robot.left_tool_joint, center_of_mass=True)
             transform_pos, transform_orient = p.multiplyTransforms(positionA=gripper_pos, orientationA=gripper_orient, positionB=self.pos_offset, orientationB=self.orient_offset, physicsClientId=self.id)
         else:

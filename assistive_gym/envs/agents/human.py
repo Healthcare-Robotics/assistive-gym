@@ -128,7 +128,7 @@ class Human(Agent):
         if (self.j_right_shoulder_x not in self.controllable_joint_indices) and (self.j_left_shoulder_x not in self.controllable_joint_indices):
             return
         right = self.j_right_shoulder_x in self.controllable_joint_indices
-        indices = [self.j_right_shoulder_x, self.j_right_shoulder_y, self.j_right_shoulder_z, self.j_right_elbow] if right else [self.j_right_shoulder_x, self.j_right_shoulder_y, self.j_right_shoulder_z, self.j_right_elbow]
+        indices = [self.j_right_shoulder_x, self.j_right_shoulder_y, self.j_right_shoulder_z, self.j_right_elbow] if right else [self.j_left_shoulder_x, self.j_left_shoulder_y, self.j_left_shoulder_z, self.j_left_elbow]
         tz, tx, ty, qe = self.get_joint_angles(indices)
         # Transform joint angles to match those from the Matlab data
         tz2 = (((-1 if right else 1)*tz) + 2*np.pi) % (2*np.pi)

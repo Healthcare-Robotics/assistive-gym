@@ -56,6 +56,8 @@ class ScratchItchEnv(AssistiveEnv):
         tool_pos, tool_orient = self.tool.get_pos_orient(1)
         tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        # Fix joint angles to be in [-pi, pi]
+        robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
         if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
@@ -107,7 +109,7 @@ class ScratchItchEnv(AssistiveEnv):
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
 
         target_ee_pos = np.array([-0.5, 0, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
         if self.robot.mobile:
             # Randomize robot base pose
             pos = np.array(self.robot.toc_base_pos_offset[self.task])

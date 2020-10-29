@@ -74,6 +74,8 @@ class DressingEnv(AssistiveEnv):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
         end_effector_pos_real, end_effector_orient_real = self.robot.convert_to_realworld(end_effector_pos, end_effector_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        # Fix joint angles to be in [-pi, pi]
+        robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
         if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
@@ -121,7 +123,7 @@ class DressingEnv(AssistiveEnv):
         wrist_pos = self.human.get_pos_orient(self.human.left_wrist)[0]
 
         target_ee_pos = np.array([0.45, -0.3, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task][0]), physicsClientId=self.id))
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task][0])
         offset = np.array([0, 0, 0.1])
         if self.robot.mobile:
             # Randomize robot base pose
@@ -142,7 +144,7 @@ class DressingEnv(AssistiveEnv):
             self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
         else:
             # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            target_ee_orient_shoulder = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task][1]), physicsClientId=self.id))
+            target_ee_orient_shoulder = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task][1])
             self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos+offset, target_ee_orient_shoulder), (elbow_pos+offset, target_ee_orient), (wrist_pos+offset, target_ee_orient)], self.human, base_euler_orient=[0, 0, np.pi], step_sim=True, check_env_collisions=False, right_side=False)
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
@@ -157,7 +159,7 @@ class DressingEnv(AssistiveEnv):
         self.cloth_attachment = self.create_sphere(radius=0.0001, mass=0, pos=self.start_ee_pos, visual=True, collision=False, rgba=[0, 0, 0, 0], maximal_coordinates=True)
 
         # Load cloth
-        self.cloth = p.loadCloth(os.path.join(self.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=np.array([0.02, -0.38, 0.84]) + self.cloth_offset/1.4, orientation=p.getQuaternionFromEuler([0, 0, np.pi], physicsClientId=self.id), bodyAnchorId=self.cloth_attachment.body, anchors=[2086, 2087, 2088, 2041], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
+        self.cloth = p.loadCloth(os.path.join(self.directory, 'clothing', 'hospitalgown_reduced.obj'), scale=1.4, mass=0.16, position=np.array([0.02, -0.38, 0.84]) + self.cloth_offset/1.4, orientation=self.get_quaternion([0, 0, np.pi]), bodyAnchorId=self.cloth_attachment.body, anchors=[2086, 2087, 2088, 2041], collisionMargin=0.04, rgbaColor=np.array([139./256., 195./256., 74./256., 0.6]), rgbaLineColor=np.array([197./256., 225./256., 165./256., 1]), physicsClientId=self.id)
         p.clothParams(self.cloth, kLST=0.055, kAST=1.0, kVST=0.5, kDP=0.01, kDG=10, kDF=0.39, kCHR=1.0, kKHR=1.0, kAHR=1.0, piterations=5, physicsClientId=self.id)
         # Points along the opening of the left arm sleeve
         self.triangle1_point_indices = [1180, 2819, 30]

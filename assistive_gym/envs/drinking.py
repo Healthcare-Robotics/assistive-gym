@@ -21,13 +21,13 @@ class DrinkingEnv(AssistiveEnv):
         preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=self.total_force_on_human, tool_force_at_target=self.cup_force_on_human, food_hit_human_reward=water_hit_human_reward, food_mouth_velocities=water_mouth_velocities)
 
         cup_pos, cup_orient = self.tool.get_base_pos_orient()
-        cup_pos, cup_orient = p.multiplyTransforms(cup_pos, cup_orient, [0, 0.06, 0], p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), physicsClientId=self.id)
+        cup_pos, cup_orient = p.multiplyTransforms(cup_pos, cup_orient, [0, 0.06, 0], self.get_quaternion([np.pi/2.0, 0, 0]), physicsClientId=self.id)
         cup_top_center_pos, _ = p.multiplyTransforms(cup_pos, cup_orient, self.cup_top_center_offset, [0, 0, 0, 1], physicsClientId=self.id)
         reward_distance_mouth_target = -np.linalg.norm(self.target_pos - np.array(cup_top_center_pos)) # Penalize distances between top of cup and mouth
         reward_action = -np.linalg.norm(action) # Penalize actions
 
         # Encourage robot to have a tilted end effector / cup
-        cup_euler = p.getEulerFromQuaternion(cup_orient, physicsClientId=self.id)
+        cup_euler = self.get_quaternion(cup_orient)
         reward_tilt = -abs(cup_euler[0] - np.pi/2)
 
         reward = self.config('distance_weight')*reward_distance_mouth_target + self.config('action_weight')*reward_action + self.config('cup_tilt_weight')*reward_tilt + self.config('drinking_reward_weight')*reward_water + preferences_score
@@ -49,7 +49,7 @@ class DrinkingEnv(AssistiveEnv):
         # Check all water particles to see if they have entered the person's mouth or have left the scene
         # Delete such particles and give the robot a reward or penalty depending on particle status
         cup_pos, cup_orient = self.tool.get_base_pos_orient()
-        cup_pos, cup_orient = p.multiplyTransforms(cup_pos, cup_orient, [0, 0.06, 0], p.getQuaternionFromEuler([np.pi/2.0, 0, 0], physicsClientId=self.id), physicsClientId=self.id)
+        cup_pos, cup_orient = p.multiplyTransforms(cup_pos, cup_orient, [0, 0.06, 0], self.get_quaternion([np.pi/2.0, 0, 0]), physicsClientId=self.id)
         top_center_pos = np.array(p.multiplyTransforms(cup_pos, cup_orient, self.cup_top_center_offset, [0, 0, 0, 1], physicsClientId=self.id)[0])
         bottom_center_pos = np.array(p.multiplyTransforms(cup_pos, cup_orient, self.cup_bottom_center_offset, [0, 0, 0, 1], physicsClientId=self.id)[0])
         water_reward = 0
@@ -90,6 +90,8 @@ class DrinkingEnv(AssistiveEnv):
         cup_pos, cup_orient = self.tool.get_base_pos_orient()
         cup_pos_real, cup_orient_real = self.robot.convert_to_realworld(cup_pos, cup_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
+        # Fix joint angles to be in [-pi, pi]
+        robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
         if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
@@ -132,7 +134,7 @@ class DrinkingEnv(AssistiveEnv):
         p.resetDebugVisualizerCamera(cameraDistance=1.10, cameraYaw=55, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.75], physicsClientId=self.id)
 
         target_ee_pos = np.array([-0.2, -0.5, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = np.array(p.getQuaternionFromEuler(np.array(self.robot.toc_ee_orient_rpy[self.task]), physicsClientId=self.id))
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
         if self.robot.mobile:
             # Randomize robot base pose
             pos = np.array(self.robot.toc_base_pos_offset[self.task])
