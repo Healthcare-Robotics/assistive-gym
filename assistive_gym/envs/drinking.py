@@ -27,7 +27,7 @@ class DrinkingEnv(AssistiveEnv):
         reward_action = -np.linalg.norm(action) # Penalize actions
 
         # Encourage robot to have a tilted end effector / cup
-        cup_euler = self.get_quaternion(cup_orient)
+        cup_euler = self.get_euler(cup_orient)
         reward_tilt = -abs(cup_euler[0] - np.pi/2)
 
         reward = self.config('distance_weight')*reward_distance_mouth_target + self.config('action_weight')*reward_action + self.config('cup_tilt_weight')*reward_tilt + self.config('drinking_reward_weight')*reward_water + preferences_score
