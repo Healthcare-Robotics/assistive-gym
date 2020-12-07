@@ -20,19 +20,26 @@ Z. Erickson, V. Gangaram, A. Kapusta, C. K. Liu, and C. C. Kemp, “Assistive Gy
 ```
 
 ## Install
-### Simple installation using a python virtual environment.
-We encourage installing Assistive Gym and the custom PyBullet engine in a python virtualenv.  
+### Basic install (if you just want to use existing environments without changing them)
+```bash
+pip3 install --upgrade pip
+pip3 install git+https://github.com/Healthcare-Robotics/assistive-gym.git
+```
+
+We recommend using Python 3.6 (although other Python 3.x versions may still work). You can either download [Python 3.6 here](https://www.python.org/downloads/), or use [pyenv](https://github.com/pyenv/pyenv) to install Python 3.6 in a local directory, e.g. `pyenv install 3.6.5; pyenv local 3.6.5`
+
+### Full installation (to edit/create environments) using a python virtual environment
+We encourage installing Assistive Gym and its dependencies in a python virtualenv.  
 A detailed description of each installation step can be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install).  
-Installation instructions for Windows can also be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install#installing-on-windows)
+Installation instructions for Windows can also be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install#installing-on-windows).
 ```bash
 python3 -m pip install --user virtualenv
 python3 -m venv env
 source env/bin/activate
-pip3 install git+https://github.com/Zackory/bullet3.git
+pip3 install --upgrade pip
 git clone https://github.com/Healthcare-Robotics/assistive-gym.git
 cd assistive-gym
-pip3 install .
-# Leave virtual env with: deactivate
+pip3 install -e .
 ```
 
 ## Getting Started
@@ -41,7 +48,7 @@ We provide a [10 Minute Getting Started Guide](https://github.com/Healthcare-Rob
 You can visualize the various Assistive Gym environments using the environment viewer.  
 A full list of available environment can be found [Here (Environments)](https://github.com/Healthcare-Robotics/assistive-gym/wiki/2.-Environments).
 ```bash
-python3 env_viewer.py --env "FeedingJaco-v0"
+python3 -m assistive_gym --env "FeedingJaco-v1"
 ```
 
 We provide pretrained control policies for each robot and assistive task.  
@@ -50,6 +57,29 @@ See [Running Pretrained Policies](https://github.com/Healthcare-Robotics/assisti
 See [Training New Policies](https://github.com/Healthcare-Robotics/assistive-gym/wiki/5.-Training-New-Policies) for documentation on how to train new control policies for Assistive Gym environments.
 
 Finally, [Creating a New Assistive Environment](https://github.com/Healthcare-Robotics/assistive-gym/wiki/6.-Creating-a-New-Assistive-Environment) discusses the process of creating an Assistive Gym environment for your own human-robot interaction tasks.
+
+## New Features in v1.0
+### Clean code syntax
+#### v1.0 example (getting robot left end effector velocity)
+```python
+end_effector_velocity = self.robot.get_velocity(self.robot.left_end_effector)
+```
+#### Old v0.1
+```python
+end_effector_velocity = p.getLinkState(self.robot, 76 if self.robot_type=='pr2' else 19 if self.robot_type=='sawyer' else 48 if self.robot_type=='baxter' else 8, computeForwardKinematics=True, computeLinkVelocity=True, physicsClientId=self.id)[6]
+```
+
+### Support for mobile bases (mobile manipulation)
+
+### Support for the Stretch and PANDA robots
+
+### Multi-robot control support
+
+### Integration with iGibson
+
+### Static human mesh models (with SMPL-X)
+
+
 
 ## Features
 ### Human and robot models 
