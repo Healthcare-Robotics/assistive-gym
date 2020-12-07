@@ -24,6 +24,7 @@ class AssistiveEnv(gym.Env):
         self.gravity = gravity
         self.id = None
         self.gui = False
+        self.gpu = False
         self.seed(seed)
         if render:
             self.render()
@@ -72,6 +73,9 @@ class AssistiveEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def enable_gpu(self):
+        self.gpu = True
+
     def reset(self):
         p.resetSimulation(physicsClientId=self.id)
         if not self.gui:
@@ -79,6 +83,8 @@ class AssistiveEnv(gym.Env):
             p.disconnect(self.id)
             self.id = p.connect(p.DIRECT)
             self.util = Util(self.id, self.np_random)
+        if self.gpu:
+            self.util.enable_gpu()
         # Configure camera position
         p.resetDebugVisualizerCamera(cameraDistance=1.75, cameraYaw=-25, cameraPitch=-45, cameraTargetPosition=[-0.2, 0, 0.4], physicsClientId=self.id)
         p.configureDebugVisualizer(p.COV_ENABLE_MOUSE_PICKING, 0, physicsClientId=self.id)
