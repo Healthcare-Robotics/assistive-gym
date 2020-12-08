@@ -35,6 +35,9 @@ class Robot(Agent):
         self.has_single_arm = self.right_end_effector == self.left_end_effector
         super(Robot, self).__init__()
 
+    def enable_wheels(self):
+        self.controllable_joint_indices = self.wheel_joint_indices + (self.right_arm_joint_indices if 'right' in self.controllable_joints else self.left_arm_joint_indices if 'left' in self.controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
+
     def init(self, body, id, np_random):
         super(Robot, self).init(body, id, np_random)
         if self.mobile:

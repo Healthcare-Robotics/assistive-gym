@@ -20,6 +20,12 @@ Z. Erickson, V. Gangaram, A. Kapusta, C. K. Liu, and C. C. Kemp, “Assistive Gy
 ```
 
 ## Install
+### Google Colab
+[Try out Assistive Gym in Google Colab](https://colab.research.google.com/drive/1PAY5HnLKRB-TBsPaevRr6myMfpVt_yzF?usp=sharing)
+Assistive Gym is fully supported in Google Colab (online Python Jupyter notebook). Click on the link above for an example. Everything runs online, so you won't need to install anything on your local machine!
+
+All of the available Google Colab examples are listed on the [Wiki-Google Colab](https://github.com/Healthcare-Robotics/assistive-gym/wiki/7.-Google-Colab)
+
 ### Basic install (if you just want to use existing environments without changing them)
 ```bash
 pip3 install --upgrade pip
@@ -70,6 +76,9 @@ end_effector_velocity = p.getLinkState(self.robot, 76 if self.robot_type=='pr2' 
 ```
 
 ### Support for mobile bases (mobile manipulation)
+For robots with mobile bases, locomotion control is now supported. Ground frictions and slip can be dynamically changed for domain randomization.
+
+Reference this [Google Colab notebook](https://colab.research.google.com/drive/1pfYvTcHK1LF8M9p4Gp31S8SziWIiN0Sq?usp=sharing) for an example of mobile base control.
 
 ### Support for the Stretch and PANDA robots
 

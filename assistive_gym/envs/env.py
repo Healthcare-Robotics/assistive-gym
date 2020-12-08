@@ -74,6 +74,9 @@ class AssistiveEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def set_seed(self, seed=1000):
+        self.np_random.seed(seed)
+
     def enable_gpu_rendering(self):
         self.gpu = True
 
@@ -120,8 +123,8 @@ class AssistiveEnv(gym.Env):
         if furniture_type is not None:
             self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted if self.robot is not None else False)
 
-    def init_env_variables(self):
-        if len(self.action_space.low) == 1:
+    def init_env_variables(self, force=False):
+        if len(self.action_space.low) == 1 or force:
             obs_len = len(self._get_obs())
             self.observation_space.__init__(low=-np.ones(obs_len), high=np.ones(obs_len), dtype=np.float32)
             self.update_action_space()
