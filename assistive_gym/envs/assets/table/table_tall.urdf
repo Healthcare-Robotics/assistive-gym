@@ -1,5 +1,8 @@
 <?xml version="1.0" ?>
 <robot name="table.urdf">
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
   <link name="baseLink">
     <contact>
       <lateral_friction value="1.0"/>
@@ -14,9 +17,7 @@
       <geometry>
 				<mesh filename="table.obj" scale="1.5 1 0.05"/>
       </geometry>
-       <material name="white">
-        <color rgba="1 1 1 1"/>
-      </material>
+	  <material name="white"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0.7"/>
@@ -29,27 +30,28 @@
       <geometry>
 	    <mesh filename="table.obj" scale="0.08 0.08 0.7"/>
       </geometry>
-	  <material name="framemat0"/>	 
+	  <material name="white"/>
     </visual>
     <visual>
       <origin rpy="0 0 0" xyz="-0.65 0.4 0.365"/>
       <geometry>
         <mesh filename="table.obj" scale="0.08 0.08 0.7"/>
       </geometry>
-	  <material name="framemat0"/>
+	  <material name="white"/>
 	  </visual>
     <visual>
       <origin rpy="0 0 0" xyz="0.65 -0.4 0.365"/>
       <geometry>
         <mesh filename="table.obj" scale="0.08 0.08 0.7"/>
       </geometry>
-	  <material name="framemat0"/>
+	  <material name="white"/>
 	  </visual>
     <visual>
       <origin rpy="0 0 0" xyz="0.65 0.4 0.365"/>
       <geometry>
         <mesh filename="table.obj" scale="0.08 0.08 0.7"/>
       </geometry>
+	  <material name="white"/>
     </visual>
   </link>
 </robot>

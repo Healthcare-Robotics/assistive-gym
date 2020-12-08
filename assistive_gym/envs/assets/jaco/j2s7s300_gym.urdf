@@ -96,6 +96,7 @@
       <geometry>
         <mesh filename="meshes/ring_big.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -137,6 +138,7 @@
       <geometry>
         <mesh filename="meshes/ring_big.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -178,6 +180,7 @@
       <geometry>
         <mesh filename="meshes/ring_big.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -219,6 +222,7 @@
       <geometry>
         <mesh filename="meshes/ring_small.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -260,6 +264,7 @@
       <geometry>
         <mesh filename="meshes/ring_small.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -301,6 +306,7 @@
       <geometry>
         <mesh filename="meshes/ring_small.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -342,6 +348,7 @@
       <geometry>
         <mesh filename="meshes/ring_small.STL"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
@@ -377,6 +384,7 @@
       <geometry>
         <box size="0 0 0"/>
       </geometry>
+      <material name="carbon_fiber"/>
     </visual>
     <collision>
       <geometry>
