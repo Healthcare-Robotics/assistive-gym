@@ -12,7 +12,7 @@ class BedBathingEnv(AssistiveEnv):
         super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(18 + len(human.controllable_joint_indices)))
 
     def step(self, action):
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
+        self.take_step(action)
 
         obs = self._get_obs()
 
@@ -149,7 +149,7 @@ class BedBathingEnv(AssistiveEnv):
             orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
             self.robot.set_base_pos_orient(pos, orient)
             # Randomize starting joint angles
-            self.robot.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
+            self.robot.randomize_init_joint_angles(self.task)
             # Randomly set friction of the ground
             self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
         else:

@@ -18,7 +18,7 @@ class ArmManipulationEnv(AssistiveEnv):
             self.tool_left = Tool()
 
     def step(self, action):
-        self.take_step(action, gains=self.config('robot_gains'), forces=[self.config('robot_forces'), self.config('human_forces')])
+        self.take_step(action)
 
         obs = self._get_obs()
 
@@ -110,6 +110,10 @@ class ArmManipulationEnv(AssistiveEnv):
         super(ArmManipulationEnv, self).reset()
         self.build_assistive_env('bed', fixed_human_base=False, human_impairment='no_tremor')
 
+        # Update robot and human motor gains
+        self.robot.motor_forces = 5.0
+        self.human.motor_forces = 2.0
+
         self.furniture.set_friction(self.furniture.base, friction=5)
 
         # Setup human in the air and let them settle into a resting pose on the bed
@@ -157,7 +161,7 @@ class ArmManipulationEnv(AssistiveEnv):
             orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
             self.robot.set_base_pos_orient(pos, orient)
             # Randomize starting joint angles
-            self.robot.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+            self.robot.randomize_init_joint_angles(self.task)
             # Randomly set friction of the ground
             self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
         elif self.robot.has_single_arm:

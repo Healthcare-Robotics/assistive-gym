@@ -33,9 +33,12 @@ class Robot(Agent):
         self.action_multiplier = action_multiplier
         self.flags = flags # Used to store any additional information for the robot
         self.has_single_arm = self.right_end_effector == self.left_end_effector
+        self.motor_forces = 1.0
+        self.motor_gains = 0.05
         super(Robot, self).__init__()
 
     def enable_wheels(self):
+        self.mobile = True
         self.controllable_joint_indices = self.wheel_joint_indices + (self.right_arm_joint_indices if 'right' in self.controllable_joints else self.left_arm_joint_indices if 'left' in self.controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
 
     def init(self, body, id, np_random):
@@ -72,6 +75,9 @@ class Robot(Agent):
         if set_instantly:
             self.set_joint_angles(indices, positions, use_limits=True)
         p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=positions, positionGains=np.array([0.05]*len(indices)), forces=[force]*len(indices), physicsClientId=self.id)
+
+    def randomize_init_joint_angles(self, task, offset=0):
+        return
 
     def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False):
         if target_orient is not None and len(target_orient) < 4:

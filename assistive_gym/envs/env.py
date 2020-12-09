@@ -103,7 +103,7 @@ class AssistiveEnv(gym.Env):
         self.forces = []
         self.task_success = 0
 
-    def build_assistive_env(self, furniture_type=None, fixed_robot_base=True, fixed_human_base=True, human_impairment='random', gender='random'):
+    def build_assistive_env(self, furniture_type=None, fixed_human_base=True, human_impairment='random', gender='random'):
         # Build plane, furniture, robot, human, etc. (just like world creation)
         # Load the ground plane
         plane = p.loadURDF(os.path.join(self.directory, 'plane', 'plane.urdf'), physicsClientId=self.id)
@@ -112,7 +112,7 @@ class AssistiveEnv(gym.Env):
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=self.id)
         # Create robot
         if self.robot is not None:
-            self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_robot_base)
+            self.robot.init(self.directory, self.id, self.np_random, fixed_base=not self.robot.mobile)
             self.agents.append(self.robot)
         # Create human
         if self.human is not None and isinstance(self.human, Human):
@@ -123,8 +123,8 @@ class AssistiveEnv(gym.Env):
         if furniture_type is not None:
             self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted if self.robot is not None else False)
 
-    def init_env_variables(self, force=False):
-        if len(self.action_space.low) == 1 or force:
+    def init_env_variables(self, reset=False):
+        if len(self.action_space.low) == 1 or reset:
             obs_len = len(self._get_obs())
             self.observation_space.__init__(low=-np.ones(obs_len), high=np.ones(obs_len), dtype=np.float32)
             self.update_action_space()
@@ -157,10 +157,14 @@ class AssistiveEnv(gym.Env):
         self.update_action_space()
         return self.robot
 
-    def take_step(self, actions, gains=0.05, forces=1, action_multiplier=0.05, step_sim=True):
-        if type(gains) not in (list, tuple):
+    def take_step(self, actions, gains=None, forces=None, action_multiplier=0.05, step_sim=True):
+        if gains is None:
+            gains = [a.motor_gains for a in self.agents]
+        elif type(gains) not in (list, tuple):
             gains = [gains]*len(self.agents)
-        if type(forces) not in (list, tuple):
+        if forces is None:
+            forces = [a.motor_forces for a in self.agents]
+        elif type(forces) not in (list, tuple):
             forces = [forces]*len(self.agents)
         if self.last_sim_time is None:
             self.last_sim_time = time.time()

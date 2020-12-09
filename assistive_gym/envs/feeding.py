@@ -12,7 +12,7 @@ class FeedingEnv(AssistiveEnv):
         super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding', obs_robot_len=(18 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(19 + len(human.controllable_joint_indices)))
 
     def step(self, action):
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
+        self.take_step(action)
 
         obs = self._get_obs()
 
@@ -117,6 +117,9 @@ class FeedingEnv(AssistiveEnv):
             wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
             self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
 
+        # Update robot and human motor gains
+        self.robot.motor_gains = self.human.motor_gains = 0.025
+
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         joints_positions += [(self.human.j_head_x, self.np_random.uniform(-30, 30)), (self.human.j_head_y, self.np_random.uniform(-30, 30)), (self.human.j_head_z, self.np_random.uniform(-30, 30))]
         self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None)
@@ -139,7 +142,7 @@ class FeedingEnv(AssistiveEnv):
             orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
             self.robot.set_base_pos_orient(pos, orient)
             # Randomize starting joint angles
-            self.robot.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+            self.robot.randomize_init_joint_angles(self.task)
             # Randomly set friction of the ground
             self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
         elif self.robot.wheelchair_mounted:

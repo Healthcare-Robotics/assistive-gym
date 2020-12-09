@@ -61,6 +61,9 @@ class Human(Agent):
         self.elbow_radius = 0.0
         self.shoulder_radius = 0.0
 
+        self.motor_forces = 1.0
+        self.motor_gains = 0.05
+
     def init(self, human_creation, limits_model, static_human_base, impairment, gender, config, id, np_random, mass=None, radius_scale=1.0, height_scale=1.0):
         self.limits_model = limits_model
         self.arm_previous_valid_pose = {True: None, False: None}

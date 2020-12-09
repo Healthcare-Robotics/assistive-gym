@@ -35,6 +35,15 @@ class Stretch(Robot):
 
         super(Stretch, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, action_duplication=self.action_duplication, action_multiplier=self.action_multiplier, flags='stretch')
 
+    def randomize_init_joint_angles(self, task, offset=0):
+        if task == 'bed_bathing':
+            self.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
+        elif task == 'dressing':
+            self.set_joint_angles([3], [0.95+offset])
+            pass
+        else:
+            self.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+
     def init(self, directory, id, np_random, fixed_base=False):
         # TODO: Inertia from urdf file is not correct.
         # It does not adhere to the property: ixx <= iyy+izz and iyy <= ixx+izz and izz <= ixx+iyy

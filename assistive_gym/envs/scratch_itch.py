@@ -10,7 +10,7 @@ class ScratchItchEnv(AssistiveEnv):
         super(ScratchItchEnv, self).__init__(robot=robot, human=human, task='scratch_itch', obs_robot_len=(23 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(24 + len(human.controllable_joint_indices)))
 
     def step(self, action):
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
+        self.take_step(action)
 
         obs = self._get_obs()
         # print(np.array_str(obs, precision=3, suppress_small=True))
@@ -118,7 +118,7 @@ class ScratchItchEnv(AssistiveEnv):
             orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
             self.robot.set_base_pos_orient(pos, orient)
             # Randomize starting joint angles
-            self.robot.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
+            self.robot.randomize_init_joint_angles(self.task)
             # angles = self.np_random.uniform(self.robot.left_arm_lower_limits[2:], np.array(self.robot.left_arm_upper_limits[2:])/2.0)
             # self.robot.set_joint_angles(self.robot.controllable_joint_indices[2:], angles)
 

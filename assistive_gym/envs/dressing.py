@@ -14,7 +14,7 @@ class DressingEnv(AssistiveEnv):
         # if self.tt is not None:
         #     print('Time per iteration:', time.time() - self.tt)
         # self.tt = time.time()
-        self.take_step(action, gains=self.config('robot_gains'), forces=self.config('robot_forces'))
+        self.take_step(action)
 
         shoulder_pos = self.human.get_pos_orient(self.human.left_shoulder)[0]
         elbow_pos = self.human.get_pos_orient(self.human.left_elbow)[0]
@@ -115,6 +115,9 @@ class DressingEnv(AssistiveEnv):
             wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
             self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
 
+        # Update robot and human motor gains
+        self.robot.motor_gains = self.human.motor_gains = 0.01
+
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_shoulder_x, -45), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None if self.human.controllable else 1, reactive_gain=0.01)
 
@@ -134,7 +137,7 @@ class DressingEnv(AssistiveEnv):
             # orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
             self.robot.set_base_pos_orient(pos, orient)
             # Randomize starting joint angles
-            self.robot.set_joint_angles([3], [0.95+pos_random[2]])
+            self.robot.randomize_init_joint_angles(self.task, pos_random[2])
             # Randomly set friction of the ground
             self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
             # Change robot gains since we use numSubSteps=8
