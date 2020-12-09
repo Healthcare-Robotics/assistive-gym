@@ -38,10 +38,10 @@ class AssistiveEnv(gym.Env):
         self.human_limits_model = load_model(os.path.join(self.directory, 'realistic_arm_limits_model.h5'))
         self.action_robot_len = len(robot.controllable_joint_indices) if robot is not None else 0
         self.action_human_len = len(human.controllable_joint_indices) if human is not None and human.controllable else 0
-        self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len)), high=np.array([1.0]*(self.action_robot_len+self.action_human_len)), dtype=np.float32)
+        self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len), dtype=np.float32), high=np.array([1.0]*(self.action_robot_len+self.action_human_len), dtype=np.float32), dtype=np.float32)
         self.obs_robot_len = obs_robot_len
         self.obs_human_len = obs_human_len if human is not None and human.controllable else 0
-        self.observation_space = spaces.Box(low=np.array([-1.0]*(self.obs_robot_len+self.obs_human_len)), high=np.array([1.0]*(self.obs_robot_len+self.obs_human_len)), dtype=np.float32)
+        self.observation_space = spaces.Box(low=np.array([-1.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), high=np.array([1.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), dtype=np.float32)
 
         self.agents = []
         self.plane = Agent()
@@ -126,7 +126,7 @@ class AssistiveEnv(gym.Env):
     def init_env_variables(self, reset=False):
         if len(self.action_space.low) == 1 or reset:
             obs_len = len(self._get_obs())
-            self.observation_space.__init__(low=-np.ones(obs_len), high=np.ones(obs_len), dtype=np.float32)
+            self.observation_space.__init__(low=-np.ones(obs_len, dtype=np.float32), high=np.ones(obs_len, dtype=np.float32), dtype=np.float32)
             self.update_action_space()
             # Define action/obs lengths
             self.action_robot_len = len(self.robot.controllable_joint_indices)
@@ -136,7 +136,7 @@ class AssistiveEnv(gym.Env):
 
     def update_action_space(self):
         action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents if not isinstance(a, Human) or a.controllable])
-        self.action_space.__init__(low=-np.ones(action_len), high=np.ones(action_len), dtype=np.float32)
+        self.action_space.__init__(low=-np.ones(action_len, dtype=np.float32), high=np.ones(action_len, dtype=np.float32), dtype=np.float32)
 
     def create_human(self, controllable=False, controllable_joint_indices=[], fixed_base=False, human_impairment='random', gender='random', mass=None, radius_scale=1.0, height_scale=1.0):
         '''
