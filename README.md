@@ -83,12 +83,18 @@ Reference this [Google Colab notebook](https://colab.research.google.com/drive/1
 ### Support for the Stretch and PANDA robots
 
 ### Multi-robot control support
+Assitive Gym now provides an interface for simulating and controlling multiple robots and people. all through the OpenAI Gym framework. See this example of [multi-robot control](https://colab.research.google.com/drive/1NPWZNFpB9NCgTQpbwM78jVHJAC7q_0oR?usp=sharing).
 
 ### Integration with iGibson
+Assistive Gym can now be used with iGibson to simulate human-robot interaction in a visually realistic interactive home environment.  
+After [installing iGibson](), you can run [igibson_example.py](https://github.com/Healthcare-Robotics/assistive-gym/blob/v1.0/examples/igibson_example.py) or [igibson_drinking_example.py](https://github.com/Healthcare-Robotics/assistive-gym/blob/v1.0/examples/igibson_drinking_example.py) to for examples of Assistive Gym + iGibson.
 
 ### Static human mesh models (with SMPL-X)
+SMPL-X human mesh models are now supported in Assistive Gym. See this [wiki page](https://github.com/Healthcare-Robotics/assistive-gym/wiki/8.-Human-Mesh-Models-with-SMPL-X) for details of how to use these human mesh models.
 
+A Google Colab example of building a simple robot-assisted feeding environment with SMPL-X human meshes is also available: [Assistive Gym with SMPL-X in Colab](https://colab.research.google.com/drive/1gz2mQmkTf9g1Jvo6_-WgSQ60cgGHmGOt?usp=sharing)
 
+***
 
 ## Features
 ### Human and robot models 
