@@ -70,9 +70,11 @@ Finally, [Creating a New Assistive Environment](https://github.com/Healthcare-Ro
 ```python
 end_effector_velocity = self.robot.get_velocity(self.robot.left_end_effector)
 ```
-#### Old v0.1
+#### Old v0.1 (using default PyBullet syntax)
 ```python
-end_effector_velocity = p.getLinkState(self.robot, 76 if self.robot_type=='pr2' else 19 if self.robot_type=='sawyer' else 48 if self.robot_type=='baxter' else 8, computeForwardKinematics=True, computeLinkVelocity=True, physicsClientId=self.id)[6]
+end_effector_velocity = p.getLinkState(self.robot, 76 if self.robot_type=='pr2' else 19 if self.robot_type=='sawyer' 
+                                       else 48 if self.robot_type=='baxter' else 8, computeForwardKinematics=True, 
+                                       computeLinkVelocity=True, physicsClientId=self.id)[6]
 ```
 
 ### Support for mobile bases (mobile manipulation)
@@ -83,11 +85,11 @@ Reference this [Google Colab notebook](https://colab.research.google.com/drive/1
 ### Support for the Stretch and PANDA robots
 
 ### Multi-robot control support
-Assitive Gym now provides an interface for simulating and controlling multiple robots and people. all through the OpenAI Gym framework. See this example of [multi-robot control](https://colab.research.google.com/drive/1NPWZNFpB9NCgTQpbwM78jVHJAC7q_0oR?usp=sharing).
+Assitive Gym now provides an interface for simulating and controlling multiple robots and people, all through the OpenAI Gym framework. See this example of [multi-robot control](https://colab.research.google.com/drive/1NPWZNFpB9NCgTQpbwM78jVHJAC7q_0oR?usp=sharing).
 
 ### Integration with iGibson
-Assistive Gym can now be used with iGibson to simulate human-robot interaction in a visually realistic interactive home environment.  
-After [installing iGibson](), you can run [igibson_example.py](https://github.com/Healthcare-Robotics/assistive-gym/blob/v1.0/examples/igibson_example.py) or [igibson_drinking_example.py](https://github.com/Healthcare-Robotics/assistive-gym/blob/v1.0/examples/igibson_drinking_example.py) to for examples of Assistive Gym + iGibson.
+Assistive Gym can now be used with [iGibson](http://svl.stanford.edu/igibson/) to simulate human-robot interaction in a visually realistic interactive home environment.  
+An example of using iGibson with Assistive Gym is available in [this Google Colab notebook](https://colab.research.google.com/drive/1qFbjuq5lFxPijyw4PFUiZw2sFpXTR7ok?usp=sharing).
 
 ### Static human mesh models (with SMPL-X)
 SMPL-X human mesh models are now supported in Assistive Gym. See this [wiki page](https://github.com/Healthcare-Robotics/assistive-gym/wiki/8.-Human-Mesh-Models-with-SMPL-X) for details of how to use these human mesh models.
