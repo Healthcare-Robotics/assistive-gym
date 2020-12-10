@@ -80,11 +80,14 @@ class AssistiveEnv(gym.Env):
     def enable_gpu_rendering(self):
         self.gpu = True
 
+    def disconnect(self):
+        p.disconnect(self.id)
+
     def reset(self):
         p.resetSimulation(physicsClientId=self.id)
         if not self.gui:
             # Reconnect the physics engine to forcefully clear memory when running long training scripts
-            p.disconnect(self.id)
+            self.disconnect()
             self.id = p.connect(p.DIRECT)
             self.util = Util(self.id, self.np_random)
         if self.gpu:
@@ -273,7 +276,7 @@ class AssistiveEnv(gym.Env):
         if not self.gui:
             self.gui = True
             if self.id is not None:
-                p.disconnect(self.id)
+                self.disconnect()
             try:
                 self.width = get_monitors()[0].width
                 self.height = get_monitors()[0].height

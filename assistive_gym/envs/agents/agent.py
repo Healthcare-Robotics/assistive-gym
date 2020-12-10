@@ -11,6 +11,9 @@ class Agent:
         self.ik_upper_limits = None
         self.ik_joint_names = None
 
+    def init_env(self, body, env, indices=None):
+        self.init(body, env.id, env.np_random, indices)
+
     def init(self, body, id, np_random, indices=None):
         self.body = body
         self.id = id
