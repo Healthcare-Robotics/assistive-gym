@@ -24,8 +24,8 @@ Z. Erickson, V. Gangaram, A. Kapusta, C. K. Liu, and C. C. Kemp, “Assistive Gy
 
 ## Install
 ### Google Colab
-[Try out Assistive Gym in Google Colab](https://colab.research.google.com/drive/1PAY5HnLKRB-TBsPaevRr6myMfpVt_yzF?usp=sharing)
-Assistive Gym is fully supported in Google Colab (online Python Jupyter notebook). Click on the link above for an example. Everything runs online, so you won't need to install anything on your local machine!
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Healthcare-Robotics/assistive-gym/blob/v1.0/examples/notebooks/basics.ipynb)  
+[Try out Assistive Gym in Google Colab.](https://colab.research.google.com/drive/1PAY5HnLKRB-TBsPaevRr6myMfpVt_yzF?usp=sharing) Assistive Gym is fully supported in Google Colab (online Python Jupyter notebook). Click on the link above for an example. Everything runs online, so you won't need to install anything on your local machine!
 
 All of the available Google Colab examples are listed on the [Wiki-Google Colab](https://github.com/Healthcare-Robotics/assistive-gym/wiki/7.-Google-Colab)
 
@@ -39,7 +39,6 @@ We recommend using Python 3.6 (although other Python 3.x versions may still work
 
 ### Full installation (to edit/create environments) using a python virtual environment
 We encourage installing Assistive Gym and its dependencies in a python virtualenv.  
-A detailed description of each installation step can be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install).  
 Installation instructions for Windows can also be found in the [Install Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/1.-Install#installing-on-windows).
 ```bash
 python3 -m pip install --user virtualenv
@@ -81,6 +80,7 @@ end_effector_velocity = p.getLinkState(self.robot, 76 if self.robot_type=='pr2' 
 ```
 
 ### Google Colab Support
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Healthcare-Robotics/assistive-gym/blob/v1.0/examples/notebooks/basics.ipynb)  
 Assistive Gym is now supported in Google Colab! Tons of new examples are now available for developing and learning with Assistive Gym in Google Colab. See the [Wiki-Google Colab](https://github.com/Healthcare-Robotics/assistive-gym/wiki/7.-Google-Colab) for a list of all the available example notebooks.
 
 ### Support for mobile bases (mobile manipulation)
