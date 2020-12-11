@@ -111,7 +111,6 @@ SMPL-X human mesh models are now supported in Assistive Gym. See this [wiki page
 
 A Google Colab example of building a simple robot-assisted feeding environment with SMPL-X human meshes is also available: [Assistive Gym with SMPL-X in Colab](https://colab.research.google.com/drive/1gz2mQmkTf9g1Jvo6_-WgSQ60cgGHmGOt?usp=sharing)  
 &nbsp;  
-
 ![SMPL-X human meshes 1](images/v1_smplx_1.jpg "SMPL-X human meshes 1")
 ![SMPL-X human meshes 2](images/v1_smplx_2.jpg "SMPL-X human meshes 2")
 
