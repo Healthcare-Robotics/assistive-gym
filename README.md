@@ -116,7 +116,7 @@ A Google Colab example of building a simple robot-assisted feeding environment w
 
 ***
 
-## Features
+## Base Features
 ### Human and robot models 
 Customizable female and male human models (default body sizes and weights matching 50th percentile humans).  
 40 actuated human joints (head, torso, arms, waist, and legs)  
