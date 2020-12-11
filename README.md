@@ -1,5 +1,9 @@
 # Assistive Gym
 
+> **v1.0** (this branch) has been released and is the active development branch! Check out the feature list below to see what is new in v1.0.
+
+***
+
 Assistive Gym is a physics-based simulation framework for physical human-robot interaction and robotic assistance.
 
 Assistive Gym is integrated into the OpenAI Gym interface, enabling the use of existing reinforcement learning and control algorithms to teach robots how to interact with people. 
@@ -107,8 +111,9 @@ SMPL-X human mesh models are now supported in Assistive Gym. See this [wiki page
 
 A Google Colab example of building a simple robot-assisted feeding environment with SMPL-X human meshes is also available: [Assistive Gym with SMPL-X in Colab](https://colab.research.google.com/drive/1gz2mQmkTf9g1Jvo6_-WgSQ60cgGHmGOt?usp=sharing)  
 &nbsp;  
-![SMPL-X human meshes 1](images/v1_smplx_1.jpg "SMPL-X human meshes 1")  
-![SMPL-X human meshes 2](images/v1_smplx_2.jpg "SMPL-X human meshes 2")  
+
+![SMPL-X human meshes 1](images/v1_smplx_1.jpg "SMPL-X human meshes 1")
+![SMPL-X human meshes 2](images/v1_smplx_2.jpg "SMPL-X human meshes 2")
 
 ***
 
