@@ -1,4 +1,4 @@
-# Assistive Gym
+# Assistive Gym v1.0
 > **v1.0 (this branch) has been officially released and is the active development branch!  
 > Check out the feature list below to see what is new in v1.0.**
 ***
