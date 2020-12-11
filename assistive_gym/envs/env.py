@@ -264,12 +264,12 @@ class AssistiveEnv(gym.Env):
 
         return self.C_v*reward_velocity + self.C_f*reward_force_nontarget + self.C_hf*reward_high_target_forces + self.C_fd*reward_food_hit_human + self.C_fdv*reward_food_velocities + self.C_d*reward_dressing_force + self.C_p*reward_arm_manipulation_tool_pressures
 
-    def init_robot_pose(self, target_ee_pos, target_ee_orient, start_pos_orient, target_pos_orients, arm='right', tools=[], collision_objects=[], wheelchair_enabled=True, right_side=True):
+    def init_robot_pose(self, target_ee_pos, target_ee_orient, start_pos_orient, target_pos_orients, arm='right', tools=[], collision_objects=[], wheelchair_enabled=True, right_side=True, max_iterations=3):
         base_position = None
         if self.robot.skip_pose_optimization:
             return base_position
         # Continually resample initial robot pose until we find one where the robot isn't colliding with the person
-        while True:
+        for _ in range(max_iterations):
             if self.robot.mobile:
                 # Randomize robot base pose
                 pos = np.array(self.robot.toc_base_pos_offset[self.task])
