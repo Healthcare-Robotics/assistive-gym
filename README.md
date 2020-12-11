@@ -1,7 +1,6 @@
 # Assistive Gym
-
-> **v1.0** (this branch) has been released and is the active development branch! Check out the feature list below to see what is new in v1.0.
-
+> **v1.0 (this branch) has been officially released and is the active development branch!  
+> Check out the feature list below to see what is new in v1.0.**
 ***
 
 Assistive Gym is a physics-based simulation framework for physical human-robot interaction and robotic assistance.
