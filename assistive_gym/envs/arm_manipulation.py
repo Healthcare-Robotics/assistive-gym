@@ -111,7 +111,7 @@ class ArmManipulationEnv(AssistiveEnv):
         self.build_assistive_env('bed', fixed_human_base=False, human_impairment='no_tremor')
 
         # Update robot and human motor gains
-        self.robot.motor_forces = 5.0
+        self.robot.motor_forces = 10.0
         self.human.motor_forces = 2.0
 
         self.furniture.set_friction(self.furniture.base, friction=5)
@@ -150,38 +150,29 @@ class ArmManipulationEnv(AssistiveEnv):
         stomach_pos = self.human.get_pos_orient(self.human.stomach)[0]
         waist_pos = self.human.get_pos_orient(self.human.waist)[0]
 
-        target_ee_right_pos = np.array([-0.9, -0.3, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_left_pos = np.array([-0.9, 0.7, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
-        if self.robot.mobile:
-            # Randomize robot base pose
-            pos = np.array(self.robot.toc_base_pos_offset[self.task])
-            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
-            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
-            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
-            self.robot.set_base_pos_orient(pos, orient)
-            # Randomize starting joint angles
-            self.robot.randomize_init_joint_angles(self.task)
-            # Randomly set friction of the ground
-            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
-        elif self.robot.has_single_arm:
-            # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            target_ee_right_pos = np.array([-0.9, 0.4, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-            base_position, _, _ = self.robot.position_robot_toc(self.task, 'right', [(target_ee_right_pos, target_ee_orient)], [(wrist_pos, None), (waist_pos, None), (elbow_pos, None), (stomach_pos, None)], self.human, step_sim=True, check_env_collisions=False)
-        else:
-            base_position, _, _ = self.robot.position_robot_toc(self.task, ['right', 'left'], [[(target_ee_right_pos, target_ee_orient)], [(target_ee_left_pos, target_ee_orient)]], [[(wrist_pos, None), (waist_pos, None)], [(elbow_pos, None), (stomach_pos, None)]], self.human, step_sim=True, check_env_collisions=False)
-        if self.robot.wheelchair_mounted:
-            # Load a nightstand in the environment for the jaco arm
-            self.nightstand = Furniture()
-            self.nightstand.init('nightstand', self.directory, self.id, self.np_random)
-            self.nightstand.set_base_pos_orient(np.array([-0.9, 0.7, 0]) + base_position, [0, 0, 0, 1])
-        # Open gripper to hold the tools
-        self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
         self.tool_right.init(self.robot, self.task, self.directory, self.id, self.np_random, right=True, mesh_scale=[0.001]*3)
         if not self.robot.has_single_arm:
-            self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
             self.tool_left.init(self.robot, self.task, self.directory, self.id, self.np_random, right=False, mesh_scale=[0.001]*3)
+
+        target_ee_right_pos = np.array([-1, 0.4 if self.robot.has_single_arm else -0.3, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_left_pos = np.array([-1, 0.7, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
+        if self.robot.has_single_arm:
+            base_position = self.init_robot_pose(target_ee_right_pos, target_ee_orient, [(target_ee_right_pos, target_ee_orient)], [(wrist_pos, None), (waist_pos, None), (elbow_pos, None), (stomach_pos, None)], arm='right', tools=[self.tool_right], collision_objects=[self.human, self.furniture], wheelchair_enabled=False)
+        else:
+            base_position = self.init_robot_pose(target_ee_right_pos, target_ee_orient, [[(target_ee_right_pos, target_ee_orient)], [(target_ee_left_pos, target_ee_orient)]], [[(wrist_pos, None), (waist_pos, None)], [(elbow_pos, None), (stomach_pos, None)]], arm=['right', 'left'], tools=[self.tool_right, self.tool_left], collision_objects=[self.human, self.furniture], wheelchair_enabled=False)
+
+        if self.robot.wheelchair_mounted:
+            # Load a nightstand in the environment for mounted arms
+            self.nightstand = Furniture()
+            self.nightstand.init('nightstand', self.directory, self.id, self.np_random)
+            self.nightstand.set_base_pos_orient(np.array([-1.2, 0.7, 0]) + base_position, [0, 0, 0, 1])
+
+        # Open gripper to hold the tools
+        self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
+        if not self.robot.has_single_arm:
+            self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
 
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
         self.tool_right.set_gravity(0, 0, 0)

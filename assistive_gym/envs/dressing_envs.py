@@ -5,6 +5,7 @@ from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
 from .agents.stretch import Stretch
+from .agents.panda import Panda
 from .agents.human import Human
 
 robot_arm = 'left'
@@ -29,6 +30,10 @@ class DressingStretchEnv(DressingEnv):
     def __init__(self):
         super(DressingStretchEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
+class DressingPandaEnv(DressingEnv):
+    def __init__(self):
+        super(DressingPandaEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
+
 class DressingPR2HumanEnv(DressingEnv):
     def __init__(self):
         super(DressingPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
@@ -48,4 +53,8 @@ class DressingJacoHumanEnv(DressingEnv):
 class DressingStretchHumanEnv(DressingEnv):
     def __init__(self):
         super(DressingStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class DressingPandaHumanEnv(DressingEnv):
+    def __init__(self):
+        super(DressingPandaHumanEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
 

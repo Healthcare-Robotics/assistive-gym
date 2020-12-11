@@ -1,7 +1,7 @@
 from gym.envs.registration import register
 
 tasks = ['ScratchItch', 'BedBathing', 'Feeding', 'Drinking', 'Dressing', 'ArmManipulation']
-robots = ['PR2', 'Jaco', 'Baxter', 'Sawyer', 'Stretch']
+robots = ['PR2', 'Jaco', 'Baxter', 'Sawyer', 'Stretch', 'Panda']
 human_states = ['', 'Human']
 
 for task in tasks:

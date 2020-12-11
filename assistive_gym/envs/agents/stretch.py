@@ -20,22 +20,32 @@ class Stretch(Robot):
         left_gripper_collision_indices = right_gripper_collision_indices # Used to disable collision between gripper and tools
         gripper_pos = {'scratch_itch': [0.1, 0.1], # Gripper open position for holding tools
                        'feeding': [0, 0],
+                       'drinking': [0.2, 0.2],
                        'bed_bathing': [0.1, 0.1],
-                       'dressing': [0, 0]}
+                       'dressing': [0, 0],
+                       'arm_manipulation': [0.1, 0.1]}
         tool_pos_offset = {'scratch_itch': [0, 0, 0], # Position offset between tool and robot tool joint
                            'feeding': [0.1, 0, -0.02],
-                           'bed_bathing': [0, 0, 0]}
+                           'drinking': [0, 0, -0.05],
+                           'bed_bathing': [0, 0, 0],
+                           'arm_manipulation': [0.11, 0, -0.07]}
         tool_orient_offset = {'scratch_itch': [0, 0, 0], # RPY orientation offset between tool and robot tool joint
                               'feeding': [np.pi/2.0-0.1, 0, -np.pi/2.0],
-                              'bed_bathing': [0, 0, 0]}
-        toc_base_pos_offset = {'scratch_itch': [-1.0, -0.1, 0.1], # Robot base offset before TOC base pose optimization
-                               'feeding': [-1.1, -0.3, 0.09],
-                               'bed_bathing': [-1.1, -0.1, 0.1],
-                               'dressing': [0.75, -0.4, 0.09]}
+                              'drinking': [np.pi/2.0, 0, 0],
+                              'bed_bathing': [0, 0, 0],
+                              'arm_manipulation': [np.pi/2.0, 0, 0]}
+        toc_base_pos_offset = {'scratch_itch': [-1.0, -0.1, 0.09], # Robot base offset before TOC base pose optimization
+                               'feeding': [-0.9, -0.3, 0.09],
+                               'drinking': [-0.9, -0.3, 0.09],
+                               'bed_bathing': [-1.1, -0.1, 0.09],
+                               'dressing': [0.75, -0.4, 0.09],
+                               'arm_manipulation': [-1.3, 0.1, 0.09]}
         toc_ee_orient_rpy = {'scratch_itch': [0, 0, np.pi/2.0], # Initial end effector orientation
                              'feeding': [0, 0, np.pi/2.0],
+                             'drinking': [0, 0, np.pi/2.0],
                              'bed_bathing': [0, 0, np.pi/2.0],
-                             'dressing': [[0, 0, -np.pi/2.0]]}
+                             'dressing': [[0, 0, -np.pi/2.0]],
+                             'arm_manipulation': [0, 0, np.pi/2.0]}
         wheelchair_mounted = False
 
         self.gains = [0.1]*2 + [0.01] + [0.025]*5
@@ -47,11 +57,8 @@ class Stretch(Robot):
         super(Stretch, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, action_duplication=self.action_duplication, action_multiplier=self.action_multiplier, flags='stretch')
 
     def randomize_init_joint_angles(self, task, offset=0):
-        if task == 'bed_bathing':
+        if task in ['bed_bathing', 'dressing']:
             self.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
-        elif task == 'dressing':
-            self.set_joint_angles([3], [0.95+offset])
-            pass
         else:
             self.set_joint_angles([3], [0.75+self.np_random.uniform(-0.1, 0.1)])
 
@@ -59,7 +66,7 @@ class Stretch(Robot):
         # TODO: Inertia from urdf file is not correct.
         # It does not adhere to the property: ixx <= iyy+izz and iyy <= ixx+izz and izz <= ixx+iyy
         # self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated.urdf'), useFixedBase=False, basePosition=[-2, -2, 0.975], flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=id)
-        self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated.urdf'), useFixedBase=False, basePosition=[-2, -2, 0.975], physicsClientId=id)
+        self.body = p.loadURDF(os.path.join(directory, 'stretch', 'stretch_uncalibrated.urdf'), useFixedBase=False, basePosition=[-1, -1, 0.09], physicsClientId=id)
         super(Stretch, self).init(self.body, id, np_random)
 
         # Fix mass

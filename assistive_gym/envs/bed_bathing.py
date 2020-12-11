@@ -139,31 +139,21 @@ class BedBathingEnv(AssistiveEnv):
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
 
+        # Initialize the tool in the robot's gripper
+        self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=False, mesh_scale=[1]*3)
+
         target_ee_pos = np.array([-0.6, 0.2, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
-        if self.robot.mobile:
-            # Randomize robot base pose
-            pos = np.array(self.robot.toc_base_pos_offset[self.task])
-            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
-            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
-            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
-            self.robot.set_base_pos_orient(pos, orient)
-            # Randomize starting joint angles
-            self.robot.randomize_init_joint_angles(self.task)
-            # Randomly set friction of the ground
-            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
-        else:
-            # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            base_position, _, _ = self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
+        base_position = self.init_robot_pose(target_ee_pos, target_ee_orient, [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], arm='left', tools=[self.tool], collision_objects=[self.human, self.furniture], wheelchair_enabled=False)
+
         if self.robot.wheelchair_mounted:
-            # Load a nightstand in the environment for the jaco arm
+            # Load a nightstand in the environment for mounted arms
             self.nightstand = Furniture()
             self.nightstand.init('nightstand', self.directory, self.id, self.np_random)
             self.nightstand.set_base_pos_orient(np.array([-0.9, 0.7, 0]) + base_position, [0, 0, 0, 1])
+
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
-        # Initialize the tool in the robot's gripper
-        self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=False, mesh_scale=[1]*3)
 
         self.generate_targets()
 

@@ -35,10 +35,12 @@ class Robot(Agent):
         self.has_single_arm = self.right_end_effector == self.left_end_effector
         self.motor_forces = 1.0
         self.motor_gains = 0.05
+        self.skip_pose_optimization = False
         super(Robot, self).__init__()
 
     def enable_wheels(self):
         self.mobile = True
+        self.skip_pose_optimization = True
         self.controllable_joint_indices = self.wheel_joint_indices + (self.right_arm_joint_indices if 'right' in self.controllable_joints else self.left_arm_joint_indices if 'left' in self.controllable_joints else self.right_arm_joint_indices + self.left_arm_joint_indices)
 
     def init(self, body, id, np_random):
@@ -72,21 +74,21 @@ class Robot(Agent):
                     counter += 1
 
     def set_gripper_open_position(self, indices, positions, set_instantly=False, force=500):
+        p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=positions, positionGains=np.array([0.05]*len(indices)), forces=[force]*len(indices), physicsClientId=self.id)
         if set_instantly:
             self.set_joint_angles(indices, positions, use_limits=True)
-        p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=positions, positionGains=np.array([0.05]*len(indices)), forces=[force]*len(indices), physicsClientId=self.id)
 
     def randomize_init_joint_angles(self, task, offset=0):
         return
 
-    def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False):
+    def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False, randomize_limits=True):
         if target_orient is not None and len(target_orient) < 4:
             target_orient = self.get_quaternion(target_orient)
         orient_orig = target_orient
         best_ik_angles = None
         best_ik_distance = 0
         for r in range(max_ik_random_restarts):
-            target_joint_angles = self.ik(self.right_end_effector if right else self.left_end_effector, target_pos, target_orient, ik_indices=self.right_arm_ik_indices if right else self.left_arm_ik_indices, max_iterations=max_iterations, half_range=self.half_range)
+            target_joint_angles = self.ik(self.right_end_effector if right else self.left_end_effector, target_pos, target_orient, ik_indices=self.right_arm_ik_indices if right else self.left_arm_ik_indices, max_iterations=max_iterations, half_range=self.half_range, randomize_limits=randomize_limits)
             self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, target_joint_angles)
             if step_sim:
                 # TODO: Replace this with getClosestPoints, see: https://github.gatech.edu/zerickson3/assistive-gym/blob/vr3/assistive_gym/envs/feeding.py#L156
@@ -108,7 +110,7 @@ class Robot(Agent):
         self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, best_ik_angles)
         return False, np.array(best_ik_angles)
 
-    def position_robot_toc(self, task, arms, start_pos_orient, target_pos_orients, human, base_euler_orient=np.zeros(3), max_ik_iterations=200, attempts=100, jlwki_restarts=1, step_sim=False, check_env_collisions=False, right_side=True, random_rotation=30, random_position=0.5):
+    def position_robot_toc(self, task, arms, start_pos_orient, target_pos_orients, human, base_euler_orient=np.zeros(3), max_ik_iterations=200, max_ik_random_restarts=1, randomize_limits=False, attempts=100, jlwki_restarts=1, step_sim=False, check_env_collisions=False, right_side=True, random_rotation=30, random_position=0.5):
         # Continually randomize the robot base position and orientation
         # Select best base pose according to number of goals reached and manipulability
         if type(arms) == str:
@@ -151,7 +153,7 @@ class Robot(Agent):
                         # Reset state in case anything was perturbed from the last iteration
                         human.set_joint_angles(human.controllable_joint_indices, human_angles)
                         # Find IK solution
-                        success, joint_positions_q_star = self.ik_random_restarts(right, target_pos, target_orient, max_iterations=max_ik_iterations, max_ik_random_restarts=1, success_threshold=0.03, step_sim=step_sim, check_env_collisions=check_env_collisions)
+                        success, joint_positions_q_star = self.ik_random_restarts(right, target_pos, target_orient, max_iterations=max_ik_iterations, max_ik_random_restarts=max_ik_random_restarts, success_threshold=0.03, step_sim=step_sim, check_env_collisions=check_env_collisions, randomize_limits=randomize_limits)
                         if not success:
                             continue
                         _, motor_positions, _, _ = self.get_motor_joint_states()

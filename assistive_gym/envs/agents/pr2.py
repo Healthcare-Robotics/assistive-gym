@@ -49,7 +49,7 @@ class PR2(Robot):
         super(PR2, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)
 
     def init(self, directory, id, np_random, fixed_base=True):
-        self.body = p.loadURDF(os.path.join(directory, 'PR2', 'pr2_no_torso_lift_tall.urdf'), useFixedBase=fixed_base, basePosition=[-2, -2, 0], flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=id)
+        self.body = p.loadURDF(os.path.join(directory, 'PR2', 'pr2_no_torso_lift_tall.urdf'), useFixedBase=fixed_base, basePosition=[-1, -1, 0], flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=id)
         super(PR2, self).init(self.body, id, np_random)
 
         # Recolor robot

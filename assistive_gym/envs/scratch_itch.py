@@ -108,33 +108,15 @@ class ScratchItchEnv(AssistiveEnv):
         elbow_pos = self.human.get_pos_orient(self.human.right_elbow)[0]
         wrist_pos = self.human.get_pos_orient(self.human.right_wrist)[0]
 
-        target_ee_pos = np.array([-0.5, 0, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
-        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
-        if self.robot.mobile:
-            # Randomize robot base pose
-            pos = np.array(self.robot.toc_base_pos_offset[self.task])
-            pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
-            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
-            orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
-            self.robot.set_base_pos_orient(pos, orient)
-            # Randomize starting joint angles
-            self.robot.randomize_init_joint_angles(self.task)
-            # angles = self.np_random.uniform(self.robot.left_arm_lower_limits[2:], np.array(self.robot.left_arm_upper_limits[2:])/2.0)
-            # self.robot.set_joint_angles(self.robot.controllable_joint_indices[2:], angles)
-
-            # Randomly set friction of the ground
-            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
-            # self.robot.set_frictions(self.robot.wheel_joint_indices, lateral_friction=10, spinning_friction=0, rolling_friction=0)
-        elif self.robot.wheelchair_mounted:
-            # Use IK to find starting joint angles for mounted robots
-            self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
-        else:
-            # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], self.human, step_sim=True, check_env_collisions=False)
-        # Open gripper to hold the tool
-        self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
         # Initialize the tool in the robot's gripper
         self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=False, mesh_scale=[0.001]*3)
+
+        target_ee_pos = np.array([-0.6, 0, 0.8]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
+        self.init_robot_pose(target_ee_pos, target_ee_orient, [(target_ee_pos, target_ee_orient)], [(shoulder_pos, None), (elbow_pos, None), (wrist_pos, None)], arm='left', tools=[self.tool], collision_objects=[self.human, self.furniture])
+
+        # Open gripper to hold the tool
+        self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
 
         self.generate_target()
 

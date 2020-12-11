@@ -5,6 +5,7 @@ from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
 from .agents.stretch import Stretch
+from .agents.panda import Panda
 from .agents.human import Human
 
 robot_arm = 'both'
@@ -29,6 +30,10 @@ class ArmManipulationStretchEnv(ArmManipulationEnv):
     def __init__(self):
         super(ArmManipulationStretchEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
+class ArmManipulationPandaEnv(ArmManipulationEnv):
+    def __init__(self):
+        super(ArmManipulationPandaEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
+
 class ArmManipulationPR2HumanEnv(ArmManipulationEnv):
     def __init__(self):
         super(ArmManipulationPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
@@ -48,4 +53,8 @@ class ArmManipulationJacoHumanEnv(ArmManipulationEnv):
 class ArmManipulationStretchHumanEnv(ArmManipulationEnv):
     def __init__(self):
         super(ArmManipulationStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class ArmManipulationPandaHumanEnv(ArmManipulationEnv):
+    def __init__(self):
+        super(ArmManipulationPandaHumanEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
 

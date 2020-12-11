@@ -5,6 +5,7 @@ from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
 from .agents.stretch import Stretch
+from .agents.panda import Panda
 from .agents.human import Human
 
 robot_arm = 'right'
@@ -29,6 +30,10 @@ class DrinkingStretchEnv(DrinkingEnv):
     def __init__(self):
         super(DrinkingStretchEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
+class DrinkingPandaEnv(DrinkingEnv):
+    def __init__(self):
+        super(DrinkingPandaEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
+
 class DrinkingPR2HumanEnv(DrinkingEnv):
     def __init__(self):
         super(DrinkingPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
@@ -48,4 +53,8 @@ class DrinkingJacoHumanEnv(DrinkingEnv):
 class DrinkingStretchHumanEnv(DrinkingEnv):
     def __init__(self):
         super(DrinkingStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class DrinkingPandaHumanEnv(DrinkingEnv):
+    def __init__(self):
+        super(DrinkingPandaHumanEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
 

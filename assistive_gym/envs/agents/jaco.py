@@ -38,7 +38,7 @@ class Jaco(Robot):
                                'drinking': pos,
                                'bed_bathing': [-0.05, 1.05, 0.6],
                                'dressing': [0.35, -0.3, 0.3],
-                               'arm_manipulation': [-0.05, 1.15, 0.6]}
+                               'arm_manipulation': [-0.25, 1.15, 0.6]}
         toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], # Initial end effector orientation
                              'feeding': [np.pi/2.0, 0, np.pi/2.0],
                              'drinking': [0, np.pi/2.0, 0],
@@ -50,6 +50,6 @@ class Jaco(Robot):
         super(Jaco, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False)
 
     def init(self, directory, id, np_random, fixed_base=True):
-        self.body = p.loadURDF(os.path.join(directory, 'jaco', 'j2s7s300_gym.urdf'), useFixedBase=fixed_base, basePosition=[-2, -2, 0.975], flags=p.URDF_USE_SELF_COLLISION, physicsClientId=id)
+        self.body = p.loadURDF(os.path.join(directory, 'jaco', 'j2s7s300_gym.urdf'), useFixedBase=fixed_base, basePosition=[-1, -1, 0.5], flags=p.URDF_USE_SELF_COLLISION, physicsClientId=id)
         super(Jaco, self).init(self.body, id, np_random)
 

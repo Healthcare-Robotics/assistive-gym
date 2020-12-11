@@ -5,6 +5,7 @@ from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
 from .agents.jaco import Jaco
 from .agents.stretch import Stretch
+from .agents.panda import Panda
 from .agents.human import Human
 
 robot_arm = 'left'
@@ -29,6 +30,10 @@ class BedBathingStretchEnv(BedBathingEnv):
     def __init__(self):
         super(BedBathingStretchEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
+class BedBathingPandaEnv(BedBathingEnv):
+    def __init__(self):
+        super(BedBathingPandaEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
+
 class BedBathingPR2HumanEnv(BedBathingEnv):
     def __init__(self):
         super(BedBathingPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
@@ -48,4 +53,8 @@ class BedBathingJacoHumanEnv(BedBathingEnv):
 class BedBathingStretchHumanEnv(BedBathingEnv):
     def __init__(self):
         super(BedBathingStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+
+class BedBathingPandaHumanEnv(BedBathingEnv):
+    def __init__(self):
+        super(BedBathingPandaHumanEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
 

@@ -32,12 +32,12 @@ class Baxter(Robot):
                               'drinking': [0, 0, np.pi/2.0],
                               'bed_bathing': [np.pi/2.0, 0, np.pi/2.0],
                               'arm_manipulation': [0, 0, np.pi/2.0]}
-        toc_base_pos_offset = {'scratch_itch': [0, 0, 0.975], # Robot base offset before TOC base pose optimization
-                               'feeding': [0, 0.2, 0.975],
-                               'drinking': [0, 0.2, 0.975],
-                               'bed_bathing': [-0.2, 0, 0.975],
-                               'dressing': [1.7, 0.7, 0.975],
-                               'arm_manipulation': [-0.3, 0.6, 0.975]}
+        toc_base_pos_offset = {'scratch_itch': [0, 0, 0.925], # Robot base offset before TOC base pose optimization
+                               'feeding': [0, 0.2, 0.925],
+                               'drinking': [0, 0.2, 0.925],
+                               'bed_bathing': [-0.2, 0, 0.925],
+                               'dressing': [1.7, 0.7, 0.925],
+                               'arm_manipulation': [-0.3, 0.6, 0.925]}
         toc_ee_orient_rpy = {'scratch_itch': [0, np.pi/2.0, 0], # Initial end effector orientation
                              'feeding': [np.pi/2.0, 0, np.pi/2.0],
                              'drinking': [0, -np.pi/2.0, np.pi],
@@ -49,7 +49,7 @@ class Baxter(Robot):
         super(Baxter, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=True)
 
     def init(self, directory, id, np_random, fixed_base=True):
-        self.body = p.loadURDF(os.path.join(directory, 'baxter', 'baxter_custom.urdf'), useFixedBase=fixed_base, basePosition=[-2, -2, 0.975], physicsClientId=id)
+        self.body = p.loadURDF(os.path.join(directory, 'baxter', 'baxter_custom.urdf'), useFixedBase=fixed_base, basePosition=[-1, -1, 0.925], physicsClientId=id)
         super(Baxter, self).init(self.body, id, np_random)
 
         # Recolor robot

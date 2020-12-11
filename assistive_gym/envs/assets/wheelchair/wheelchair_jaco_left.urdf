@@ -40,13 +40,6 @@
       </geometry>
       <material name="white"/>
     </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="-0.35 0.3 -0.15"/>
-      <geometry>
-          <!--<box size="0.085 0.085 0.4"/>-->
-        <cylinder radius="0.0425" length="0.4"/>
-      </geometry>
-    </collision>
   </link>
   <joint name="wheelchair_joint" type="fixed">
     <parent link="root"/>
@@ -69,14 +62,6 @@
       </geometry>
       <material name="white"/>
     </visual>
-    <collision>
-        <!--<origin rpy="0 0 0" xyz="0.175 0.3 0.0075"/>-->
-      <origin rpy="0 1.57079632679 0" xyz="-0.175 0.3 0.0075"/>
-      <geometry>
-          <!--<box size="0.4 0.085 0.085"/>-->
-        <cylinder radius="0.0425" length="0.4"/>
-      </geometry>
-    </collision>
   </link>
   <joint name="wheelchair_joint2" type="fixed">
     <parent link="root"/>

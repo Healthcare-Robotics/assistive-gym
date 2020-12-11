@@ -113,7 +113,7 @@ class DressingEnv(AssistiveEnv):
         self.cloth_forces = np.zeros((1, 1))
         if self.robot.wheelchair_mounted:
             wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
-            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
+            self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, np.pi/2.0])
 
         # Update robot and human motor gains
         self.robot.motor_gains = self.human.motor_gains = 0.01
@@ -127,30 +127,16 @@ class DressingEnv(AssistiveEnv):
 
         target_ee_pos = np.array([0.45, -0.3, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task][0])
+        target_ee_orient_shoulder = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task][-1])
         offset = np.array([0, 0, 0.1])
+        self.init_robot_pose(target_ee_pos, target_ee_orient, [(target_ee_pos, target_ee_orient)], [(shoulder_pos+offset, target_ee_orient_shoulder), (elbow_pos+offset, target_ee_orient), (wrist_pos+offset, target_ee_orient)], arm='left', tools=[], collision_objects=[self.human, self.furniture], right_side=False)
         if self.robot.mobile:
-            # Randomize robot base pose
-            pos_random = self.np_random.uniform(-0.1, 0.1, size=3)
-            pos = np.array(self.robot.toc_base_pos_offset[self.task])
-            pos[:2] += pos_random[:2]
-            orient = np.array(self.robot.toc_ee_orient_rpy[self.task])[0]
-            # orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
-            self.robot.set_base_pos_orient(pos, orient)
-            # Randomize starting joint angles
-            self.robot.randomize_init_joint_angles(self.task, pos_random[2])
-            # Randomly set friction of the ground
-            self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
             # Change robot gains since we use numSubSteps=8
             self.robot.gains = list(np.array(self.robot.gains) / 8.0)
-        elif self.robot.wheelchair_mounted:
-            # Use IK to find starting joint angles for mounted robots
-            self.robot.ik_random_restarts(right=False, target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=True, check_env_collisions=False)
-        else:
-            # Use TOC with JLWKI to find an optimal base position for the robot near the person
-            target_ee_orient_shoulder = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task][1])
-            self.robot.position_robot_toc(self.task, 'left', [(target_ee_pos, target_ee_orient)], [(shoulder_pos+offset, target_ee_orient_shoulder), (elbow_pos+offset, target_ee_orient), (wrist_pos+offset, target_ee_orient)], self.human, base_euler_orient=[0, 0, np.pi], step_sim=True, check_env_collisions=False, right_side=False)
+
         # Open gripper to hold the tool
         self.robot.set_gripper_open_position(self.robot.left_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
+
         if self.human.controllable or self.human.impairment == 'tremor':
             # Ensure the human arm remains stable while loading the cloth
             self.human.control(self.human.controllable_joint_indices, self.human.get_joint_angles(self.human.controllable_joint_indices), 0.05, 1)

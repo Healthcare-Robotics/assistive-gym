@@ -111,6 +111,8 @@ class AssistiveEnv(gym.Env):
         # Load the ground plane
         plane = p.loadURDF(os.path.join(self.directory, 'plane', 'plane.urdf'), physicsClientId=self.id)
         self.plane.init(plane, self.id, self.np_random, indices=-1)
+        # Randomly set friction of the ground
+        self.plane.set_frictions(self.plane.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
         # Disable rendering during creation
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=self.id)
         # Create robot
@@ -261,6 +263,42 @@ class AssistiveEnv(gym.Env):
             reward_arm_manipulation_tool_pressures = 0.0
 
         return self.C_v*reward_velocity + self.C_f*reward_force_nontarget + self.C_hf*reward_high_target_forces + self.C_fd*reward_food_hit_human + self.C_fdv*reward_food_velocities + self.C_d*reward_dressing_force + self.C_p*reward_arm_manipulation_tool_pressures
+
+    def init_robot_pose(self, target_ee_pos, target_ee_orient, start_pos_orient, target_pos_orients, arm='right', tools=[], collision_objects=[], wheelchair_enabled=True, right_side=True):
+        base_position = None
+        if self.robot.skip_pose_optimization:
+            return base_position
+        # Continually resample initial robot pose until we find one where the robot isn't colliding with the person
+        while True:
+            if self.robot.mobile:
+                # Randomize robot base pose
+                pos = np.array(self.robot.toc_base_pos_offset[self.task])
+                pos[:2] += self.np_random.uniform(-0.1, 0.1, size=2)
+                orient = np.array(self.robot.toc_ee_orient_rpy[self.task])
+                if self.task != 'dressing':
+                    orient[2] += self.np_random.uniform(-np.deg2rad(30), np.deg2rad(30))
+                else:
+                    orient = orient[0]
+                self.robot.set_base_pos_orient(pos, orient)
+                # Randomize starting joint angles
+                self.robot.randomize_init_joint_angles(self.task)
+            elif self.robot.wheelchair_mounted and wheelchair_enabled:
+                # Use IK to find starting joint angles for mounted robots
+                self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=100, max_ik_random_restarts=1000, success_threshold=0.03, step_sim=False, check_env_collisions=False, randomize_limits=True)
+            else:
+                # Use TOC with JLWKI to find an optimal base position for the robot near the person
+                base_position, _, _ = self.robot.position_robot_toc(self.task, arm, start_pos_orient, target_pos_orients, self.human, step_sim=False, check_env_collisions=False, max_ik_iterations=100, max_ik_random_restarts=1, randomize_limits=False, right_side=right_side, base_euler_orient=[0, 0, 0 if right_side else np.pi], attempts=50)
+            # Check if the robot or tool is colliding with objects in the environment. If so, then continue sampling.
+            dists_list = []
+            for tool in tools:
+                tool.reset_pos_orient()
+                for obj in collision_objects:
+                    dists_list.append(tool.get_closest_points(obj, distance=0)[-1])
+            for obj in collision_objects:
+                dists_list.append(self.robot.get_closest_points(obj, distance=0)[-1])
+            if all(not d for d in dists_list):
+                break
+        return base_position
 
     def slow_time(self):
         # Slow down time so that the simulation matches real time

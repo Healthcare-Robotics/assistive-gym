@@ -16,7 +16,7 @@ class ScratchItchMeshEnv(ScratchItchEnv):
 
     def reset(self):
         super(ScratchItchEnv, self).reset()
-        self.build_assistive_env('wheelchair2')
+        self.build_assistive_env('wheelchair')
         self.furniture.set_on_ground()
         self.prev_target_contact_pos = np.zeros(3)
         if self.robot.wheelchair_mounted:
