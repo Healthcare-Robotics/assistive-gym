@@ -1,6 +1,8 @@
 # Assistive Gym v1.0
 > **v1.0 (this branch) has been officially released and is the active development branch!  
-> Check out the feature list below to see what is new in v1.0.**
+> Check out the feature list below to see what is new in v1.0.  
+> Assistive Gym in also now supported in Google Colab! For example: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qFbjuq5lFxPijyw4PFUiZw2sFpXTR7ok?usp=sharing)  
+> See the [Wiki](https://github.com/Healthcare-Robotics/assistive-gym/wiki/7.-Google-Colab) for all available Google Colab examples.**
 ***
 
 Assistive Gym is a physics-based simulation framework for physical human-robot interaction and robotic assistance.
@@ -86,7 +88,7 @@ Assistive Gym is now supported in Google Colab! Tons of new examples are now ava
 ### Support for mobile bases (mobile manipulation)
 For robots with mobile bases, locomotion control is now supported. Ground frictions and slip can be dynamically changed for domain randomization.
 
-Reference this [Google Colab notebook](https://colab.research.google.com/drive/1pfYvTcHK1LF8M9p4Gp31S8SziWIiN0Sq?usp=sharing) for an example of mobile base control.  
+Reference this [Google Colab notebook ![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1pfYvTcHK1LF8M9p4Gp31S8SziWIiN0Sq?usp=sharing) for an example of mobile base control.  
 &nbsp;  
 ![Mobile bases](images/v1_mobile.gif "Mobile bases")
 
@@ -95,20 +97,20 @@ Reference this [Google Colab notebook](https://colab.research.google.com/drive/1
 ![PANDA](images/v1_panda.jpg "PANDA")
 
 ### Multi-robot control support
-Assitive Gym now provides an interface for simulating and controlling multiple robots and people, all through the OpenAI Gym framework. See this example of [multi-robot control](https://colab.research.google.com/drive/1NPWZNFpB9NCgTQpbwM78jVHJAC7q_0oR?usp=sharing).  
+Assitive Gym now provides an interface for simulating and controlling multiple robots and people, all through the OpenAI Gym framework. See this example of [multi-robot control ![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1NPWZNFpB9NCgTQpbwM78jVHJAC7q_0oR?usp=sharing).  
 &nbsp;  
 ![Multi-robot](images/v1_multi_robot.gif "Multi-robot")
 
 ### Integration with iGibson
 Assistive Gym can now be used with [iGibson](http://svl.stanford.edu/igibson/) to simulate human-robot interaction in a visually realistic interactive home environment.  
-An example of using iGibson with Assistive Gym is available in [this Google Colab notebook](https://colab.research.google.com/drive/1qFbjuq5lFxPijyw4PFUiZw2sFpXTR7ok?usp=sharing).  
+An example of using iGibson with Assistive Gym is available in [this Google Colab notebook ![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qFbjuq5lFxPijyw4PFUiZw2sFpXTR7ok?usp=sharing).  
 &nbsp;  
 ![AG iGibson](images/v1_ag_igibson.gif "AG iGibson")
 
 ### Static human mesh models (with SMPL-X)
 SMPL-X human mesh models are now supported in Assistive Gym. See this [wiki page](https://github.com/Healthcare-Robotics/assistive-gym/wiki/8.-Human-Mesh-Models-with-SMPL-X) for details of how to use these human mesh models.
 
-A Google Colab example of building a simple robot-assisted feeding environment with SMPL-X human meshes is also available: [Assistive Gym with SMPL-X in Colab](https://colab.research.google.com/drive/1gz2mQmkTf9g1Jvo6_-WgSQ60cgGHmGOt?usp=sharing)  
+A Google Colab example of building a simple robot-assisted feeding environment with SMPL-X human meshes is also available: [Assistive Gym with SMPL-X in Colab ![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1gz2mQmkTf9g1Jvo6_-WgSQ60cgGHmGOt?usp=sharing)  
 &nbsp;  
 ![SMPL-X human meshes 1](images/v1_smplx_1.jpg "SMPL-X human meshes 1")
 ![SMPL-X human meshes 2](images/v1_smplx_2.jpg "SMPL-X human meshes 2")
