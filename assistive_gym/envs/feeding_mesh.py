@@ -120,6 +120,10 @@ class FeedingMeshEnv(FeedingEnv):
                 for k in range(2):
                     batch_positions.append(np.array([i*2*food_radius-0.005, j*2*food_radius, k*2*food_radius+0.01]) + spoon_pos)
         self.foods = self.create_spheres(radius=food_radius, mass=food_mass, batch_positions=batch_positions, visual=False, collision=True)
+        colors = [[60./256., 186./256., 84./256., 1], [244./256., 194./256., 13./256., 1],
+                  [219./256., 50./256., 54./256., 1], [72./256., 133./256., 237./256., 1]]
+        for i, f in enumerate(self.foods):
+            p.changeVisualShape(f.body, -1, rgbaColor=colors[i%len(colors)], physicsClientId=self.id)
         self.total_food_count = len(self.foods)
         self.foods_active = [f for f in self.foods]
 
