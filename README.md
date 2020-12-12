@@ -29,7 +29,7 @@ python3 -m pip install --user virtualenv
 python3 -m venv env
 source env/bin/activate
 pip3 install git+https://github.com/Zackory/bullet3.git
-git clone https://github.com/Healthcare-Robotics/assistive-gym.git
+git clone -b v0.1 https://github.com/Healthcare-Robotics/assistive-gym.git
 cd assistive-gym
 pip3 install .
 # Leave virtual env with: deactivate
