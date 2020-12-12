@@ -41,7 +41,7 @@ class AssistiveEnv(gym.Env):
         self.action_space = spaces.Box(low=np.array([-1.0]*(self.action_robot_len+self.action_human_len), dtype=np.float32), high=np.array([1.0]*(self.action_robot_len+self.action_human_len), dtype=np.float32), dtype=np.float32)
         self.obs_robot_len = obs_robot_len
         self.obs_human_len = obs_human_len if human is not None and human.controllable else 0
-        self.observation_space = spaces.Box(low=np.array([-1.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), high=np.array([1.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), dtype=np.float32)
+        self.observation_space = spaces.Box(low=np.array([-1000000000.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), high=np.array([1000000000.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), dtype=np.float32)
 
         self.agents = []
         self.plane = Agent()
@@ -131,7 +131,7 @@ class AssistiveEnv(gym.Env):
     def init_env_variables(self, reset=False):
         if len(self.action_space.low) == 1 or reset:
             obs_len = len(self._get_obs())
-            self.observation_space.__init__(low=-np.ones(obs_len, dtype=np.float32), high=np.ones(obs_len, dtype=np.float32), dtype=np.float32)
+            self.observation_space.__init__(low=-np.ones(obs_len, dtype=np.float32)*1000000000, high=np.ones(obs_len, dtype=np.float32)*1000000000, dtype=np.float32)
             self.update_action_space()
             # Define action/obs lengths
             self.action_robot_len = len(self.robot.controllable_joint_indices)
