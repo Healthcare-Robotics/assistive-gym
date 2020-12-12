@@ -14,8 +14,8 @@ ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 RUN pyenv install 3.6.5 && pyenv global 3.6.5 && pip3 install pip --upgrade
 RUN pip3 install screeninfo
-RUN pip3 install git+https://github.com/Zackory/bullet3.git
-RUN git clone -b v1.0 https://github.com/Healthcare-Robotics/assistive-gym.git && cd assistive-gym && pip3 install -e .
+# RUN pip3 install git+https://github.com/Zackory/bullet3.git
+RUN git clone https://github.com/Healthcare-Robotics/assistive-gym.git && cd assistive-gym && pip3 install -e .
 RUN pip3 install git+https://github.com/Zackory/pytorch-a2c-ppo-acktr --no-cache-dir
 RUN pip3 install git+https://github.com/openai/baselines.git
 
