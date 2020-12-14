@@ -42,6 +42,10 @@ class AssistiveEnv(gym.Env):
         self.obs_robot_len = obs_robot_len
         self.obs_human_len = obs_human_len if human is not None and human.controllable else 0
         self.observation_space = spaces.Box(low=np.array([-1000000000.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), high=np.array([1000000000.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), dtype=np.float32)
+        self.action_space_robot = spaces.Box(low=np.array([-1.0]*self.action_robot_len, dtype=np.float32), high=np.array([1.0]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
+        self.action_space_human = spaces.Box(low=np.array([-1.0]*self.action_human_len, dtype=np.float32), high=np.array([1.0]*self.action_human_len, dtype=np.float32), dtype=np.float32)
+        self.observation_space_robot = spaces.Box(low=np.array([-1000000000.0]*self.obs_robot_len, dtype=np.float32), high=np.array([1000000000.0]*self.obs_robot_len, dtype=np.float32), dtype=np.float32)
+        self.observation_space_human = spaces.Box(low=np.array([-1000000000.0]*self.obs_human_len, dtype=np.float32), high=np.array([1000000000.0]*self.obs_human_len, dtype=np.float32), dtype=np.float32)
 
         self.agents = []
         self.plane = Agent()
@@ -129,7 +133,7 @@ class AssistiveEnv(gym.Env):
             self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted if self.robot is not None else False)
 
     def init_env_variables(self, reset=False):
-        if len(self.action_space.low) == 1 or reset:
+        if len(self.action_space.low) <= 1 or reset:
             obs_len = len(self._get_obs())
             self.observation_space.__init__(low=-np.ones(obs_len, dtype=np.float32)*1000000000, high=np.ones(obs_len, dtype=np.float32)*1000000000, dtype=np.float32)
             self.update_action_space()
@@ -138,6 +142,10 @@ class AssistiveEnv(gym.Env):
             self.action_human_len = len(self.human.controllable_joint_indices) if self.human.controllable else 0
             self.obs_robot_len = len(self._get_obs('robot'))
             self.obs_human_len = len(self._get_obs('human'))
+            self.action_space_robot = spaces.Box(low=np.array([-1.0]*self.action_robot_len, dtype=np.float32), high=np.array([1.0]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
+            self.action_space_human = spaces.Box(low=np.array([-1.0]*self.action_human_len, dtype=np.float32), high=np.array([1.0]*self.action_human_len, dtype=np.float32), dtype=np.float32)
+            self.observation_space_robot = spaces.Box(low=np.array([-1000000000.0]*self.obs_robot_len, dtype=np.float32), high=np.array([1000000000.0]*self.obs_robot_len, dtype=np.float32), dtype=np.float32)
+            self.observation_space_human = spaces.Box(low=np.array([-1000000000.0]*self.obs_human_len, dtype=np.float32), high=np.array([1000000000.0]*self.obs_human_len, dtype=np.float32), dtype=np.float32)
 
     def update_action_space(self):
         action_len = np.sum([len(a.controllable_joint_indices) for a in self.agents if not isinstance(a, Human) or a.controllable])
@@ -285,6 +293,7 @@ class AssistiveEnv(gym.Env):
             elif self.robot.wheelchair_mounted and wheelchair_enabled:
                 # Use IK to find starting joint angles for mounted robots
                 self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=100, max_ik_random_restarts=1000, success_threshold=0.03, step_sim=False, check_env_collisions=False, randomize_limits=True)
+                # self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.01, step_sim=True, check_env_collisions=True, randomize_limits=False)
             else:
                 # Use TOC with JLWKI to find an optimal base position for the robot near the person
                 base_position, _, _ = self.robot.position_robot_toc(self.task, arm, start_pos_orient, target_pos_orients, self.human, step_sim=False, check_env_collisions=False, max_ik_iterations=100, max_ik_random_restarts=1, randomize_limits=False, right_side=right_side, base_euler_orient=[0, 0, 0 if right_side else np.pi], attempts=50)

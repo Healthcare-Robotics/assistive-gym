@@ -1,5 +1,3 @@
-import os
-from gym import spaces
 import numpy as np
 import pybullet as p
 
@@ -12,6 +10,8 @@ class FeedingEnv(AssistiveEnv):
         super(FeedingEnv, self).__init__(robot=robot, human=human, task='feeding', obs_robot_len=(18 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(19 + len(human.controllable_joint_indices)))
 
     def step(self, action):
+        if self.human.controllable:
+            action = np.concatenate([action['robot'], action['human']])
         self.take_step(action)
 
         obs = self._get_obs()
@@ -34,9 +34,13 @@ class FeedingEnv(AssistiveEnv):
             print('Task success:', self.task_success, 'Food reward:', reward_food)
 
         info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.total_food_count*self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
-        done = False
+        done = self.iteration >= 200
 
-        return obs, reward, done, info
+        if not self.human.controllable:
+            return obs, reward, done, info
+        else:
+            # Co-optimization with both human and robot controllable
+            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
 
     def get_total_force(self):
         robot_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
@@ -92,23 +96,20 @@ class FeedingEnv(AssistiveEnv):
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
         self.robot_force_on_human, self.spoon_force_on_human = self.get_total_force()
         self.total_force_on_human = self.robot_force_on_human + self.spoon_force_on_human
+        robot_obs = np.concatenate([spoon_pos_real, spoon_orient_real, spoon_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, [self.spoon_force_on_human]]).ravel()
+        if agent == 'robot':
+            return robot_obs
         if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             spoon_pos_human, spoon_orient_human = self.human.convert_to_realworld(spoon_pos, spoon_orient)
             head_pos_human, head_orient_human = self.human.convert_to_realworld(head_pos, head_orient)
             target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
-
-        robot_obs = np.concatenate([spoon_pos_real, spoon_orient_real, spoon_pos_real - target_pos_real, robot_joint_angles, head_pos_real, head_orient_real, [self.spoon_force_on_human]]).ravel()
-        if self.human.controllable:
             human_obs = np.concatenate([spoon_pos_human, spoon_orient_human, spoon_pos_human - target_pos_human, human_joint_angles, head_pos_human, head_orient_human, [self.robot_force_on_human, self.spoon_force_on_human]]).ravel()
-        else:
-            human_obs = []
-
-        if agent == 'robot':
-            return robot_obs
-        elif agent == 'human':
-            return human_obs
-        return np.concatenate([robot_obs, human_obs]).ravel()
+            if agent == 'human':
+                return human_obs
+            # Co-optimization with both human and robot controllable
+            return {'robot': robot_obs, 'human': human_obs}
+        return robot_obs
 
     def reset(self):
         super(FeedingEnv, self).reset()

@@ -1,5 +1,4 @@
 import os, time
-from gym import spaces
 import numpy as np
 import pybullet as p
 
@@ -14,6 +13,8 @@ class DressingEnv(AssistiveEnv):
         # if self.tt is not None:
         #     print('Time per iteration:', time.time() - self.tt)
         # self.tt = time.time()
+        if self.human.controllable:
+            action = np.concatenate([action['robot'], action['human']])
         self.take_step(action)
 
         shoulder_pos = self.human.get_pos_orient(self.human.left_shoulder)[0]
@@ -66,9 +67,13 @@ class DressingEnv(AssistiveEnv):
             print('Task success:', self.task_success, 'Average forces on arm:', self.cloth_force_sum)
 
         info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
-        done = False
+        done = self.iteration >= 200
 
-        return obs, reward, done, info
+        if not self.human.controllable:
+            return obs, reward, done, info
+        else:
+            # Co-optimization with both human and robot controllable
+            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
 
     def _get_obs(self, agent=None):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
@@ -88,24 +93,21 @@ class DressingEnv(AssistiveEnv):
         self.cloth_force_sum = np.sum(np.linalg.norm(self.cloth_forces, axis=-1))
         self.robot_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
         self.total_force_on_human = self.robot_force_on_human + self.cloth_force_sum
+        robot_obs = np.concatenate([end_effector_pos_real, end_effector_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.cloth_force_sum]]).ravel()
+        if agent == 'robot':
+            return robot_obs
         if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             end_effector_pos_human, end_effector_orient_human = self.human.convert_to_realworld(end_effector_pos, end_effector_orient)
             shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)
             elbow_pos_human, _ = self.human.convert_to_realworld(elbow_pos)
             wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
-
-        robot_obs = np.concatenate([end_effector_pos_real, end_effector_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.cloth_force_sum]]).ravel()
-        if self.human.controllable:
             human_obs = np.concatenate([end_effector_pos_human, end_effector_orient_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, [self.cloth_force_sum, self.robot_force_on_human]]).ravel()
-        else:
-            human_obs = []
-
-        if agent == 'robot':
-            return robot_obs
-        elif agent == 'human':
-            return human_obs
-        return np.concatenate([robot_obs, human_obs]).ravel()
+            if agent == 'human':
+                return human_obs
+            # Co-optimization with both human and robot controllable
+            return {'robot': robot_obs, 'human': human_obs}
+        return robot_obs
 
     def reset(self):
         super(DressingEnv, self).reset()

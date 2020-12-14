@@ -1,5 +1,3 @@
-import os
-from gym import spaces
 import numpy as np
 import pybullet as p
 
@@ -12,6 +10,8 @@ class BedBathingEnv(AssistiveEnv):
         super(BedBathingEnv, self).__init__(robot=robot, human=human, task='bed_bathing', obs_robot_len=(17 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(18 + len(human.controllable_joint_indices)))
 
     def step(self, action):
+        if self.human.controllable:
+            action = np.concatenate([action['robot'], action['human']])
         self.take_step(action)
 
         obs = self._get_obs()
@@ -30,9 +30,13 @@ class BedBathingEnv(AssistiveEnv):
             print('Task success:', self.task_success, 'Force at tool on human:', self.tool_force_on_human, reward_new_contact_points)
 
         info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= (self.total_target_count*self.config('task_success_threshold'))), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
-        done = False
+        done = self.iteration >= 200
 
-        return obs, reward, done, info
+        if not self.human.controllable:
+            return obs, reward, done, info
+        else:
+            # Co-optimization with both human and robot controllable
+            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
 
     def get_total_force(self):
         total_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
@@ -89,24 +93,21 @@ class BedBathingEnv(AssistiveEnv):
         elbow_pos_real, _ = self.robot.convert_to_realworld(elbow_pos)
         wrist_pos_real, _ = self.robot.convert_to_realworld(wrist_pos)
         self.tool_force, self.tool_force_on_human, self.total_force_on_human, self.new_contact_points = self.get_total_force()
+        robot_obs = np.concatenate([tool_pos_real, tool_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.tool_force]]).ravel()
+        if agent == 'robot':
+            return robot_obs
         if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             tool_pos_human, tool_orient_human = self.human.convert_to_realworld(tool_pos, tool_orient)
             shoulder_pos_human, _ = self.human.convert_to_realworld(shoulder_pos)
             elbow_pos_human, _ = self.human.convert_to_realworld(elbow_pos)
             wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
-
-        robot_obs = np.concatenate([tool_pos_real, tool_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, [self.tool_force]]).ravel()
-        if self.human.controllable:
             human_obs = np.concatenate([tool_pos_human, tool_orient_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, [self.total_force_on_human, self.tool_force_on_human]]).ravel()
-        else:
-            human_obs = []
-
-        if agent == 'robot':
-            return robot_obs
-        elif agent == 'human':
-            return human_obs
-        return np.concatenate([robot_obs, human_obs]).ravel()
+            if agent == 'human':
+                return human_obs
+            # Co-optimization with both human and robot controllable
+            return {'robot': robot_obs, 'human': human_obs}
+        return robot_obs
 
     def reset(self):
         super(BedBathingEnv, self).reset()

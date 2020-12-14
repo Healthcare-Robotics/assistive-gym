@@ -1,6 +1,6 @@
 from .feeding import FeedingEnv
 from .feeding_mesh import FeedingMeshEnv
-from .agents import pr2, baxter, sawyer, jaco, human, human_mesh
+from .agents import pr2, baxter, sawyer, jaco, stretch, panda, human, human_mesh
 from .agents.pr2 import PR2
 from .agents.baxter import Baxter
 from .agents.sawyer import Sawyer
@@ -9,6 +9,8 @@ from .agents.stretch import Stretch
 from .agents.panda import Panda
 from .agents.human import Human
 from .agents.human_mesh import HumanMesh
+from ray.rllib.env.multi_agent_env import MultiAgentEnv
+from ray.tune.registry import register_env
 
 robot_arm = 'right'
 human_controllable_joint_indices = human.head_joints
@@ -36,29 +38,35 @@ class FeedingPandaEnv(FeedingEnv):
     def __init__(self):
         super(FeedingPandaEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=False))
 
-class FeedingPR2HumanEnv(FeedingEnv):
+class FeedingPR2HumanEnv(FeedingEnv, MultiAgentEnv):
     def __init__(self):
         super(FeedingPR2HumanEnv, self).__init__(robot=PR2(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+register_env('assistive_gym:FeedingPR2Human-v1', lambda config: FeedingPR2HumanEnv())
 
-class FeedingBaxterHumanEnv(FeedingEnv):
+class FeedingBaxterHumanEnv(FeedingEnv, MultiAgentEnv):
     def __init__(self):
         super(FeedingBaxterHumanEnv, self).__init__(robot=Baxter(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+register_env('assistive_gym:FeedingBaxterHuman-v1', lambda config: FeedingBaxterHumanEnv())
 
-class FeedingSawyerHumanEnv(FeedingEnv):
+class FeedingSawyerHumanEnv(FeedingEnv, MultiAgentEnv):
     def __init__(self):
         super(FeedingSawyerHumanEnv, self).__init__(robot=Sawyer(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+register_env('assistive_gym:FeedingSawyerHuman-v1', lambda config: FeedingSawyerHumanEnv())
 
-class FeedingJacoHumanEnv(FeedingEnv):
+class FeedingJacoHumanEnv(FeedingEnv, MultiAgentEnv):
     def __init__(self):
         super(FeedingJacoHumanEnv, self).__init__(robot=Jaco(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+register_env('assistive_gym:FeedingJacoHuman-v1', lambda config: FeedingJacoHumanEnv())
 
-class FeedingStretchHumanEnv(FeedingEnv):
+class FeedingStretchHumanEnv(FeedingEnv, MultiAgentEnv):
     def __init__(self):
         super(FeedingStretchHumanEnv, self).__init__(robot=Stretch('wheel_'+robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+register_env('assistive_gym:FeedingStretchHuman-v1', lambda config: FeedingStretchHumanEnv())
 
-class FeedingPandaHumanEnv(FeedingEnv):
+class FeedingPandaHumanEnv(FeedingEnv, MultiAgentEnv):
     def __init__(self):
         super(FeedingPandaHumanEnv, self).__init__(robot=Panda(robot_arm), human=Human(human_controllable_joint_indices, controllable=True))
+register_env('assistive_gym:FeedingPandaHuman-v1', lambda config: FeedingPandaHumanEnv())
 
 class FeedingPR2MeshEnv(FeedingMeshEnv):
     def __init__(self):

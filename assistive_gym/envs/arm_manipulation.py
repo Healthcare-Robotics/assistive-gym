@@ -1,5 +1,3 @@
-import os
-from gym import spaces
 import numpy as np
 import pybullet as p
 
@@ -18,6 +16,8 @@ class ArmManipulationEnv(AssistiveEnv):
             self.tool_left = Tool()
 
     def step(self, action):
+        if self.human.controllable:
+            action = np.concatenate([action['robot'], action['human']])
         self.take_step(action)
 
         obs = self._get_obs()
@@ -50,9 +50,13 @@ class ArmManipulationEnv(AssistiveEnv):
             print('Task success:', self.task_success, 'Total force on human:', self.total_force_on_human, 'Tool force on human:', self.tool_left_force_on_human, self.tool_right_force_on_human)
 
         info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
-        done = False
+        done = self.iteration >= 200
 
-        return obs, reward, done, info
+        if not self.human.controllable:
+            return obs, reward, done, info
+        else:
+            # Co-optimization with both human and robot controllable
+            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
 
     def get_total_force(self):
         tool_right_force = np.sum(self.tool_right.get_contact_points()[-1])
@@ -84,6 +88,9 @@ class ArmManipulationEnv(AssistiveEnv):
         stomach_pos_real, _ = self.robot.convert_to_realworld(stomach_pos)
         waist_pos_real, _ = self.robot.convert_to_realworld(waist_pos)
         self.tool_right_force, self.tool_left_force, self.tool_right_force_on_human, self.tool_left_force_on_human, self.total_force_on_human = self.get_total_force()
+        robot_obs = np.concatenate([tool_right_pos_real, tool_right_orient_real, tool_left_pos_real, tool_left_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, stomach_pos_real, waist_pos_real, [self.tool_left_force, self.tool_right_force]]).ravel()
+        if agent == 'robot':
+            return robot_obs
         if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             tool_right_pos_human, tool_right_orient_human = self.human.convert_to_realworld(tool_right_pos, tool_right_orient)
@@ -93,18 +100,12 @@ class ArmManipulationEnv(AssistiveEnv):
             wrist_pos_human, _ = self.human.convert_to_realworld(wrist_pos)
             stomach_pos_human, _ = self.human.convert_to_realworld(stomach_pos)
             waist_pos_human, _ = self.human.convert_to_realworld(waist_pos)
-
-        robot_obs = np.concatenate([tool_right_pos_real, tool_right_orient_real, tool_left_pos_real, tool_left_orient_real, robot_joint_angles, shoulder_pos_real, elbow_pos_real, wrist_pos_real, stomach_pos_real, waist_pos_real, [self.tool_left_force, self.tool_right_force]]).ravel()
-        if self.human.controllable:
             human_obs = np.concatenate([tool_right_pos_human, tool_right_orient_human, tool_left_pos_human, tool_left_orient_human, human_joint_angles, shoulder_pos_human, elbow_pos_human, wrist_pos_human, stomach_pos_human, waist_pos_human, [self.total_force_on_human, self.tool_left_force_on_human, self.tool_right_force_on_human]]).ravel()
-        else:
-            human_obs = []
-
-        if agent == 'robot':
-            return robot_obs
-        elif agent == 'human':
-            return human_obs
-        return np.concatenate([robot_obs, human_obs]).ravel()
+            if agent == 'human':
+                return human_obs
+            # Co-optimization with both human and robot controllable
+            return {'robot': robot_obs, 'human': human_obs}
+        return robot_obs
 
     def reset(self):
         super(ArmManipulationEnv, self).reset()
