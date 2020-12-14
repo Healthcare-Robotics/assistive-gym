@@ -72,6 +72,7 @@ def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/',
             result['episode_reward_min'] /= 2
             result['episode_reward_max'] /= 2
         print(f"Iteration: {result['training_iteration']}, total timesteps: {result['timesteps_total']}, total time: {result['time_total_s']:.1f}, FPS: {result['timesteps_total']/result['time_total_s']:.1f}, mean reward: {result['episode_reward_mean']:.1f}, min/max reward: {result['episode_reward_min']:.1f}/{result['episode_reward_max']:.1f}")
+        sys.stdout.flush()
 
         # Delete the old saved policy
         if checkpoint_path is not None:
