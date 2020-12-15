@@ -94,9 +94,9 @@ class Robot(Agent):
                 # TODO: Replace this with getClosestPoints, see: https://github.gatech.edu/zerickson3/assistive-gym/blob/vr3/assistive_gym/envs/feeding.py#L156
                 for _ in range(5):
                     p.stepSimulation(physicsClientId=self.id)
-                if len(p.getContactPoints(bodyA=self.body, bodyB=self.body, physicsClientId=self.id)) > 0 and orient_orig is not None:
-                    # The robot's arm is in contact with itself. Continually randomize end effector orientation until a solution is found
-                    target_orient = self.get_quaternion(self.get_euler(orient_orig) + np.deg2rad(self.np_random.uniform(-45, 45, size=3)))
+                # if len(p.getContactPoints(bodyA=self.body, bodyB=self.body, physicsClientId=self.id)) > 0 and orient_orig is not None:
+                #     # The robot's arm is in contact with itself. Continually randomize end effector orientation until a solution is found
+                #     target_orient = self.get_quaternion(self.get_euler(orient_orig) + np.deg2rad(self.np_random.uniform(-45, 45, size=3)))
             if check_env_collisions:
                 for _ in range(25):
                     p.stepSimulation(physicsClientId=self.id)
