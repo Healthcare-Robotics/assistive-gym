@@ -45,7 +45,8 @@ def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra
             checkpoint_num = max([int(f.split('_')[-1]) for f in glob.glob(os.path.join(directory, 'checkpoint_*'))])
             checkpoint_path = os.path.join(directory, 'checkpoint_%d' % checkpoint_num, 'checkpoint-%d' % checkpoint_num)
             agent.restore(checkpoint_path)
-            return agent, checkpoint_path
+            # return agent, checkpoint_path
+            return agent, None
     return agent, None
 
 def make_env(env_name, coop=False):
@@ -185,7 +186,7 @@ if __name__ == '__main__':
                         help='Number of simulation timesteps to train a policy (default: 1000000)')
     parser.add_argument('--save-dir', default='./trained_models/',
                         help='Directory to save trained policy in (default ./trained_models/)')
-    parser.add_argument('--load-policy-path', default='',
+    parser.add_argument('--load-policy-path', default='./trained_models/',
                         help='Path name to saved policy checkpoint (NOTE: Use this to continue training an existing policy, or to evaluate a trained policy)')
     parser.add_argument('--eval-episodes', type=int, default=100,
                         help='Number of evaluation episodes (default: 100)')
