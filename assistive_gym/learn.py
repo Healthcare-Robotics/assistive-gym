@@ -10,16 +10,16 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
     num_processes = multiprocessing.cpu_count()
     if algo == 'ppo':
         config = ppo.DEFAULT_CONFIG.copy()
+        config['train_batch_size'] = 19200
+        config['num_sgd_iter'] = 50
+        config['sgd_minibatch_size'] = 128
+        config['lambda'] = 0.95
+        config['model']['fcnet_hiddens'] = [100, 100]
     elif algo == 'sac':
         config = sac.DEFAULT_CONFIG.copy()
     config['num_workers'] = num_processes
     config['num_cpus_per_worker'] = 0
     config['seed'] = seed
-    # config['train_batch_size'] = 200*num_processes
-    # config['sgd_minibatch_size'] = 256
-    # config['num_sgd_iter'] = 100
-    # config['framework'] = 'torch'
-    # config['model']['fcnet_hiddens'] = [100, 100]
     config['log_level'] = 'ERROR'
     if algo == 'sac':
         config['timesteps_per_iteration'] = 400
