@@ -16,7 +16,6 @@ def viewer(env_name):
         action = env.action_space.sample()
         print('Observation size:', np.shape(observation), 'Action size:', np.shape(action))
         while not done:
-            env.render()
             observation, reward, done, info = env.step(env.action_space.sample())
 
 if __name__ == "__main__":
