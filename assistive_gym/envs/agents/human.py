@@ -13,6 +13,11 @@ class Human(Agent):
         super(Human, self).__init__()
         self.controllable_joint_indices = controllable_joint_indices
         self.controllable = controllable
+        self.right_arm_joints = right_arm_joints
+        self.left_arm_joints = left_arm_joints
+        self.right_leg_joints = right_leg_joints
+        self.left_leg_joints = left_leg_joints
+        self.head_joints = head_joints
         self.right_pecs = 2
         self.right_shoulder = 5
         self.right_elbow = 7
