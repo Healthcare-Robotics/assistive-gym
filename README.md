@@ -67,6 +67,8 @@ See [Training New Policies](https://github.com/Healthcare-Robotics/assistive-gym
 
 Finally, [Creating a New Assistive Environment](https://github.com/Healthcare-Robotics/assistive-gym/wiki/6.-Creating-a-New-Assistive-Environment) discusses the process of creating an Assistive Gym environment for your own human-robot interaction tasks.
 
+#### See a list of [common commands available in Assistive Gym ![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/17Rybu4d2UHIC9D0UA1Au8WSDExX2mMgb?usp=sharing)
+
 ## New Features in v1.0
 ### Clean code syntax
 #### v1.0 example (getting robot left end effector velocity)
