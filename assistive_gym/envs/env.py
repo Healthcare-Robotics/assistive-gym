@@ -9,10 +9,11 @@ from keras.models import load_model
 
 from .util import Util
 from .human_creation import HumanCreation
-from .agents import agent, human, robot, tool, furniture
+from .agents import agent, human, robot, panda, tool, furniture
 from .agents.agent import Agent
 from .agents.human import Human
 from .agents.robot import Robot
+from .agents.panda import Panda
 from .agents.tool import Tool
 from .agents.furniture import Furniture
 
@@ -292,8 +293,10 @@ class AssistiveEnv(gym.Env):
                 self.robot.randomize_init_joint_angles(self.task)
             elif self.robot.wheelchair_mounted and wheelchair_enabled:
                 # Use IK to find starting joint angles for mounted robots
-                # self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=200, max_ik_random_restarts=1000, success_threshold=0.01, step_sim=False, check_env_collisions=False, randomize_limits=True)
-                self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.01, step_sim=True, check_env_collisions=False, randomize_limits=False)
+                if isinstance(self.robot, Panda):
+                    self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=200, max_ik_random_restarts=1000, success_threshold=0.01, step_sim=False, check_env_collisions=False, randomize_limits=True)
+                else:
+                    self.robot.ik_random_restarts(right=(arm == 'right'), target_pos=target_ee_pos, target_orient=target_ee_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.01, step_sim=True, check_env_collisions=False, randomize_limits=False)
             else:
                 # Use TOC with JLWKI to find an optimal base position for the robot near the person
                 base_position, _, _ = self.robot.position_robot_toc(self.task, arm, start_pos_orient, target_pos_orients, self.human, step_sim=False, check_env_collisions=False, max_ik_iterations=100, max_ik_random_restarts=1, randomize_limits=False, right_side=right_side, base_euler_orient=[0, 0, 0 if right_side else np.pi], attempts=50)
@@ -378,4 +381,12 @@ class AssistiveEnv(gym.Env):
             sphere.init(body, self.id, self.np_random, indices=-1)
             spheres.append(sphere)
         return spheres
+
+    def create_agent_from_obj(self, visual_filename, collision_filename, scale=1.0, mass=1.0, pos=[0, 0, 0], orient=[0, 0, 0, 1], rgba=[1, 1, 1, 1], maximal=False):
+        visual_shape = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=visual_filename, meshScale=scale, rgbaColor=rgba, physicsClientId=self.id)
+        collision_shape = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=collision_filename, meshScale=scale, physicsClientId=self.id)
+        body = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=collision_shape, baseVisualShapeIndex=visual_shape, basePosition=pos, baseOrientation=orient, useMaximalCoordinates=maximal, physicsClientId=self.id)
+        agent = Agent()
+        agent.init(body, self.id, self.np_random, indices=-1)
+        return agent
 

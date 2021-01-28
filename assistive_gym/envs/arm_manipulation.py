@@ -112,7 +112,7 @@ class ArmManipulationEnv(AssistiveEnv):
         self.build_assistive_env('bed', fixed_human_base=False, human_impairment='no_tremor')
 
         # Update robot and human motor gains
-        self.robot.motor_forces = 10.0
+        self.robot.motor_forces = 20.0
         self.human.motor_forces = 2.0
 
         self.furniture.set_friction(self.furniture.base, friction=5)
