@@ -51,13 +51,15 @@ def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra
             return agent, None
     return agent, None
 
-def make_env(env_name, coop=False):
+def make_env(env_name, coop=False, seed=1001):
     if not coop:
-        return gym.make('assistive_gym:'+env_name)
+        env = gym.make('assistive_gym:'+env_name)
     else:
         module = importlib.import_module('assistive_gym.envs')
         env_class = getattr(module, env_name.split('-')[0] + 'Env')
-        return env_class()
+        env = env_class()
+    env.seed(seed)
+    return env
 
 def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/', load_policy_path='', coop=False, seed=0, extra_configs={}):
     ray.init(num_cpus=multiprocessing.cpu_count(), ignore_reinit_error=True, log_to_driver=False)
@@ -84,32 +86,37 @@ def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/',
         checkpoint_path = agent.save(os.path.join(save_dir, algo, env_name))
     return checkpoint_path
 
-def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, seed=0, extra_configs={}):
+def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, seed=0, n_episodes=1, extra_configs={}):
     ray.init(num_cpus=multiprocessing.cpu_count(), ignore_reinit_error=True, log_to_driver=False)
+    if env is None:
+        env = make_env(env_name, coop, seed=seed)
     test_agent, _ = load_policy(env, algo, env_name, policy_path, coop, seed, extra_configs)
 
-    if not colab:
+    if colab:
+        env.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
+    else:
         env.render()
-    obs = env.reset()
     frames = []
-    done = False
-    while not done:
-        if coop:
-            # Compute the next action for the robot/human using the trained policies
-            action_robot = test_agent.compute_action(obs['robot'], policy_id='robot')
-            action_human = test_agent.compute_action(obs['human'], policy_id='human')
-            # Step the simulation forward using the actions from our trained policies
-            obs, reward, done, info = env.step({'robot': action_robot, 'human': action_human})
-            done = done['__all__']
-        else:
-            # Compute the next action using the trained policy
-            action = test_agent.compute_action(obs)
-            # Step the simulation forward using the action from our trained policy
-            obs, reward, done, info = env.step(action)
-        if colab:
-            # Capture (render) an image from the camera
-            img, depth = env.get_camera_image_depth()
-            frames.append(img)
+    for episode in range(n_episodes):
+        obs = env.reset()
+        done = False
+        while not done:
+            if coop:
+                # Compute the next action for the robot/human using the trained policies
+                action_robot = test_agent.compute_action(obs['robot'], policy_id='robot')
+                action_human = test_agent.compute_action(obs['human'], policy_id='human')
+                # Step the simulation forward using the actions from our trained policies
+                obs, reward, done, info = env.step({'robot': action_robot, 'human': action_human})
+                done = done['__all__']
+            else:
+                # Compute the next action using the trained policy
+                action = test_agent.compute_action(obs)
+                # Step the simulation forward using the action from our trained policy
+                obs, reward, done, info = env.step(action)
+            if colab:
+                # Capture (render) an image from the camera
+                img, depth = env.get_camera_image_depth()
+                frames.append(img)
     env.disconnect()
     if colab:
         filename = 'output_%s.png' % env_name
@@ -118,7 +125,7 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
 
 def evaluate_policy(env_name, algo, policy_path, n_episodes=100, coop=False, seed=0, verbose=False, extra_configs={}):
     ray.init(num_cpus=multiprocessing.cpu_count(), ignore_reinit_error=True, log_to_driver=False)
-    env = make_env(env_name, coop)
+    env = make_env(env_name, coop, seed=seed)
     test_agent, _ = load_policy(env, algo, env_name, policy_path, coop, seed, extra_configs)
 
     rewards = []
@@ -190,6 +197,8 @@ if __name__ == '__main__':
                         help='Directory to save trained policy in (default ./trained_models/)')
     parser.add_argument('--load-policy-path', default='./trained_models/',
                         help='Path name to saved policy checkpoint (NOTE: Use this to continue training an existing policy, or to evaluate a trained policy)')
+    parser.add_argument('--render-episodes', type=int, default=1,
+                        help='Number of rendering episodes (default: 1)')
     parser.add_argument('--eval-episodes', type=int, default=100,
                         help='Number of evaluation episodes (default: 100)')
     parser.add_argument('--colab', action='store_true', default=False,
@@ -204,10 +213,7 @@ if __name__ == '__main__':
     if args.train:
         checkpoint_path = train(args.env, args.algo, timesteps_total=args.train_timesteps, save_dir=args.save_dir, load_policy_path=args.load_policy_path, coop=coop, seed=args.seed)
     if args.render:
-        env = make_env(args.env, coop)
-        if args.colab:
-            env.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
-        render_policy(env, args.env, args.algo, checkpoint_path if checkpoint_path is not None else args.load_policy_path, coop=coop, colab=args.colab, seed=args.seed)
+        render_policy(None, args.env, args.algo, checkpoint_path if checkpoint_path is not None else args.load_policy_path, coop=coop, colab=args.colab, seed=args.seed, n_episodes=args.render_episodes)
     if args.evaluate:
         evaluate_policy(args.env, args.algo, checkpoint_path if checkpoint_path is not None else args.load_policy_path, n_episodes=args.eval_episodes, coop=coop, seed=args.seed, verbose=args.verbose)
 
