@@ -90,11 +90,11 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
     ray.init(num_cpus=multiprocessing.cpu_count(), ignore_reinit_error=True, log_to_driver=False)
     if env is None:
         env = make_env(env_name, coop, seed=seed)
+        if colab:
+            env.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
     test_agent, _ = load_policy(env, algo, env_name, policy_path, coop, seed, extra_configs)
 
-    if colab:
-        env.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
-    else:
+    if not colab:
         env.render()
     frames = []
     for episode in range(n_episodes):
