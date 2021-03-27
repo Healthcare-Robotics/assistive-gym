@@ -22,7 +22,7 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
         config['learning_starts'] = 1000
         config['Q_model']['fcnet_hiddens'] = [100, 100]
         config['policy_model']['fcnet_hiddens'] = [100, 100]
-        config['normalize_actions'] = False
+        # config['normalize_actions'] = False
     config['num_workers'] = num_processes
     config['num_cpus_per_worker'] = 0
     config['seed'] = seed
