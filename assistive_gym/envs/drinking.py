@@ -142,7 +142,7 @@ class DrinkingEnv(AssistiveEnv):
         self.cup_top_center_offset = np.array([0, 0, -0.055])
         self.cup_bottom_center_offset = np.array([0, 0, 0.07])
 
-        target_ee_pos = np.array([-0.2, -0.5, 1]) + self.np_random.uniform(-0.05, 0.05, size=3)
+        target_ee_pos = np.array([-0.2, -0.5, 1.1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
         self.init_robot_pose(target_ee_pos, target_ee_orient, [(target_ee_pos, target_ee_orient), (self.target_pos, None)], [(self.target_pos, target_ee_orient)], arm='right', tools=[self.tool], collision_objects=[self.human, self.furniture])
 

@@ -15,6 +15,11 @@
                 <mesh filename="meshes/collision/link0.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="2.92"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <link name="panda_link1">
         <visual>
@@ -27,6 +32,11 @@
                 <mesh filename="meshes/collision/link1.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="2.74"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint1" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
@@ -47,6 +57,11 @@
                 <mesh filename="meshes/collision/link2.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="2.74"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint2" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-1.7628" soft_upper_limit="1.7628" />
@@ -67,6 +82,11 @@
                 <mesh filename="meshes/collision/link3.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="2.38"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint3" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
@@ -87,6 +107,11 @@
                 <mesh filename="meshes/collision/link4.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="2.38"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint4" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-3.0718" soft_upper_limit="0.0175" />
@@ -107,6 +132,11 @@
                 <mesh filename="meshes/collision/link5.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="2.74"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint5" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
@@ -127,6 +157,11 @@
                 <mesh filename="meshes/collision/link6.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="1.55"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint6" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-0.0175" soft_upper_limit="3.7525" />
@@ -147,6 +182,11 @@
                 <mesh filename="meshes/collision/link7.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.54"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_joint7" type="revolute">
         <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
@@ -156,7 +196,13 @@
         <axis xyz="0 0 1" />
         <limit effort="12" lower="-2.9671" upper="2.9671" velocity="2.8710" />
     </joint>
-    <link name="panda_link8" />
+    <link name="panda_link8">
+        <inertial>
+            <mass value="0"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
+    </link>
     <joint name="panda_joint8" type="fixed">
         <origin rpy="0 0 0" xyz="0 0 0.107" />
         <parent link="panda_link7" />
@@ -179,6 +225,11 @@
                 <mesh filename="meshes/collision/hand.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.73"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <link name="panda_leftfinger">
         <visual>
@@ -191,6 +242,11 @@
                 <mesh filename="meshes/collision/finger.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.1"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <link name="panda_rightfinger">
         <visual>
@@ -205,6 +261,11 @@
                 <mesh filename="meshes/collision/finger.stl" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.1"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_finger_joint1" type="prismatic">
         <parent link="panda_hand" />
@@ -222,6 +283,11 @@
         <mimic joint="panda_finger_joint1" />
     </joint>
     <link name="panda_fingercenter">
+        <inertial>
+            <mass value="0"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1"/>
+        </inertial>
     </link>
     <joint name="panda_fingercenter_joint" type="fixed">
         <parent link="panda_hand" />

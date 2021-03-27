@@ -81,29 +81,39 @@ class Robot(Agent):
     def randomize_init_joint_angles(self, task, offset=0):
         return
 
-    def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False, randomize_limits=True):
+    def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False, randomize_limits=True, collision_objects=[]):
         if target_orient is not None and len(target_orient) < 4:
             target_orient = self.get_quaternion(target_orient)
         orient_orig = target_orient
         best_ik_angles = None
         best_ik_distance = 0
         for r in range(max_ik_random_restarts):
-            target_joint_angles = self.ik(self.right_end_effector if right else self.left_end_effector, target_pos, target_orient, ik_indices=self.right_arm_ik_indices if right else self.left_arm_ik_indices, max_iterations=max_iterations, half_range=self.half_range, randomize_limits=randomize_limits)
+            target_joint_angles = self.ik(self.right_end_effector if right else self.left_end_effector, target_pos, target_orient, ik_indices=self.right_arm_ik_indices if right else self.left_arm_ik_indices, max_iterations=max_iterations, half_range=self.half_range, randomize_limits=(randomize_limits and r >= 10))
             self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, target_joint_angles)
-            if step_sim:
-                # TODO: Replace this with getClosestPoints, see: https://github.gatech.edu/zerickson3/assistive-gym/blob/vr3/assistive_gym/envs/feeding.py#L156
-                for _ in range(5):
-                    p.stepSimulation(physicsClientId=self.id)
-                # if len(p.getContactPoints(bodyA=self.body, bodyB=self.body, physicsClientId=self.id)) > 0 and orient_orig is not None:
-                #     # The robot's arm is in contact with itself. Continually randomize end effector orientation until a solution is found
-                #     target_orient = self.get_quaternion(self.get_euler(orient_orig) + np.deg2rad(self.np_random.uniform(-45, 45, size=3)))
-            if check_env_collisions:
-                for _ in range(25):
-                    p.stepSimulation(physicsClientId=self.id)
             gripper_pos, gripper_orient = self.get_pos_orient(self.right_end_effector if right else self.left_end_effector)
             if np.linalg.norm(target_pos - np.array(gripper_pos)) < success_threshold and (target_orient is None or np.linalg.norm(target_orient - np.array(gripper_orient)) < success_threshold or np.isclose(np.linalg.norm(target_orient - np.array(gripper_orient)), 2, atol=success_threshold)):
-                self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, target_joint_angles)
-                return True, np.array(target_joint_angles)
+                # if step_sim:
+                #     # TODO: Replace this with getClosestPoints, see: https://github.gatech.edu/zerickson3/assistive-gym/blob/vr3/assistive_gym/envs/feeding.py#L156
+                #     for _ in range(5):
+                #         p.stepSimulation(physicsClientId=self.id)
+                #     # if len(p.getContactPoints(bodyA=self.body, bodyB=self.body, physicsClientId=self.id)) > 0 and orient_orig is not None:
+                #     #     # The robot's arm is in contact with itself. Continually randomize end effector orientation until a solution is found
+                #     #     target_orient = self.get_quaternion(self.get_euler(orient_orig) + np.deg2rad(self.np_random.uniform(-45, 45, size=3)))
+                # if check_env_collisions:
+                #     for _ in range(25):
+                #         p.stepSimulation(physicsClientId=self.id)
+
+                # Check if the robot is colliding with objects in the environment. If so, then continue sampling.
+                if len(collision_objects) > 0:
+                    dists_list = []
+                    for obj in collision_objects:
+                        dists_list.append(self.get_closest_points(obj, distance=0)[-1])
+                    if not all(not d for d in dists_list):
+                        continue
+                gripper_pos, gripper_orient = self.get_pos_orient(self.right_end_effector if right else self.left_end_effector)
+                if np.linalg.norm(target_pos - np.array(gripper_pos)) < success_threshold and (target_orient is None or np.linalg.norm(target_orient - np.array(gripper_orient)) < success_threshold or np.isclose(np.linalg.norm(target_orient - np.array(gripper_orient)), 2, atol=success_threshold)):
+                    self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, target_joint_angles)
+                    return True, np.array(target_joint_angles)
             if best_ik_angles is None or np.linalg.norm(target_pos - np.array(gripper_pos)) < best_ik_distance:
                 best_ik_angles = target_joint_angles
                 best_ik_distance = np.linalg.norm(target_pos - np.array(gripper_pos))

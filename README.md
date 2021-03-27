@@ -36,7 +36,7 @@ pip3 install --upgrade pip
 pip3 install git+https://github.com/Healthcare-Robotics/assistive-gym.git
 ```
 
-We recommend using Python 3.6 (although other Python 3.x versions may still work). You can either download [Python 3.6 here](https://www.python.org/downloads/), or use [pyenv](https://github.com/pyenv/pyenv) to install Python 3.6 in a local directory, e.g. `pyenv install 3.6.5; pyenv local 3.6.5`
+We recommend using Python 3.6 or 3.7 (although other Python 3.x versions may still work). You can either download [Python 3.6 here](https://www.python.org/downloads/), or use [pyenv](https://github.com/pyenv/pyenv) to install Python 3.6 in a local directory, e.g. `pyenv install 3.6.5; pyenv local 3.6.5`. Both Python 3.6.5 and 3.7.10 have been tested working.
 
 ### Full installation (to edit/create environments) using a python virtual environment
 We encourage installing Assistive Gym and its dependencies in a python virtualenv.  
