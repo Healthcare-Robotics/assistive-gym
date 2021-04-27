@@ -47,10 +47,12 @@ def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra
         else:
             # Find the most recent policy in the directory
             directory = os.path.join(policy_path, algo, env_name)
-            files = [int(f.split('_')[-1]) for f in glob.glob(os.path.join(directory, 'checkpoint_*'))]
+            files = [f.split('_')[-1] for f in glob.glob(os.path.join(directory, 'checkpoint_*'))]
+            files_ints = [int(f) for f in files]
             if files:
-                checkpoint_num = max(files)
-                checkpoint_path = os.path.join(directory, 'checkpoint_%d' % checkpoint_num, 'checkpoint-%d' % checkpoint_num)
+                checkpoint_max = max(files_ints)
+                checkpoint_num = files_ints.index(checkpoint_max)
+                checkpoint_path = os.path.join(directory, 'checkpoint_%s' % files[checkpoint_num], 'checkpoint-%d' % checkpoint_max)
                 agent.restore(checkpoint_path)
                 # return agent, checkpoint_path
             return agent, None
