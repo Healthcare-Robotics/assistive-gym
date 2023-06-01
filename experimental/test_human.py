@@ -17,7 +17,6 @@ from assistive_gym.envs.utils.human_utils import set_joint_angles, set_self_coll
     check_collision
 from assistive_gym.envs.utils.smpl_dict import SMPLDict
 
-from assistive_gym.envs.smpl.serialization import load_model
 from assistive_gym.envs.utils.smpl_geom import generate_geom
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf
 

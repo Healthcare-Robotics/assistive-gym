@@ -276,8 +276,14 @@ class HumanUrdf(Agent):
 
         return avg_manipubility
 
+
     def check_self_collision(self):
+        """
+        Check self collision
+        :return: set of collision pairs
+        """
         return check_collision( self.body, self.body) # TODO: Check with initial collision
+
 
     def print_joint_indices(self):
         """

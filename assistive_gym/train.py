@@ -83,6 +83,7 @@ def eulidean_distance(cur, target):
     cur = np.array(cur)
     return np.sqrt(np.sum(np.square(cur - target)))
 
+
 # for debugging
 def get_single_target(ee_pos):
     point = np.array(list(ee_pos))
@@ -108,8 +109,8 @@ def get_initial_guess(env, target=None):
     else:
         # x0 = env.human.ik_chain(target)
         x0 = solve_ik(env, target, end_effector="right_hand")
-        # print("x0: ", x0)
-    return x0
+        print("x0: ", x0)
+        return x0
 
 
 def debug_solution():
@@ -139,13 +140,13 @@ def plot(vals, title, xlabel, ylabel):
 
 def plot_CMAES_metrics(mean_cost, mean_dist, mean_m):
     # Plot the fitness values
-    plot(mean_cost, "Fitness Values", "Iteration", "Fitness Value")
+    plot(mean_cost, "Cost Function", "Iteration", "Cost")
 
     # Plot the distance values
-    plot(mean_dist, "Distance Values", "Iteration", "Distance Value")
+    plot(mean_dist, "Distance Values", "Iteration", "Distance")
 
     # Plot the manipubility values
-    plot(mean_m, "Manipubility Values", "Iteration", "Manipubility Value")
+    plot(mean_m, "Manipubility Values", "Iteration", "Manipubility")
 
 
 def plot_mean_evolution(mean_evolution):
@@ -171,6 +172,13 @@ def step_forward(env, x0):
     #     p.stepSimulation(physicsClientId=env.human.id)
     p.setRealTimeSimulation(1)
 
+def perform_collision_check(human):
+    pairs = set()
+    for j in human.controllable_joint_indices:
+        closestPoints = p.getClosestPoints(human.body, human.body,distance = 0.0,linkIndexA=j, physicsClientId=human.id)
+        for point in closestPoints:
+            pairs.add((point[3], point[4]))
+    return pairs
 
 def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load_policy_path='', coop=False, seed=0,
           extra_configs={}):
@@ -203,15 +211,27 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
         mean_dist = []
         mean_m = []
 
+        # print("collision1: ", human.check_self_collision())
+        print ("collision1: ", perform_collision_check(human))
+        x1 = np.random.uniform(-1, 1, len(human.controllable_joint_indices))
+        human.set_joint_angles(human.controllable_joint_indices, x1)
+        # for i in range (100):
+        #     p.stepSimulation(physicsClientId=human.id)
+        #     print("collision2: ", human.check_self_collision())
+        # p.performCollisionDetection(physicsClientId=human.id)
+        print("collision2: ", perform_collision_check(human))
+        time.sleep(100)
         while not optimizer.stop():
             timestep += 1
             solutions = optimizer.ask()
             # print("solutions: ", solutions)
+
             fitness_values = []
             for s in solutions:
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
 
                 cost, m, dist = cost_fn(env, s, target)
+                # p.stepSimulation(physicsClientId=human.id)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
 
