@@ -1,0 +1,1840 @@
+<robot name="human">
+	<link name = "base">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "0.0001" />
+			<inertia ixx = "0.0001" ixy = "0" ixz = "0" iyy = "0.0001" iyz = "0" izz = "0.0001" />
+		</inertial>
+	</link>
+	<link name = "root">
+		<inertial>
+			<origin rpy = "0 1.57 0"  xyz = "0 0 0" />
+			<mass value =  "15" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 1.57 0"  xyz = "0 0 0" />
+			<geometry>
+				<mesh filename="meshes/Pelvis.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="root" type="floating">
+		<parent link = "base" />
+		<child link = "root" />
+		<origin rpy = "0 0 0  " xyz ="0 0 0"  />
+	</joint>
+	<link name = "root_dammy_ori">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "0.00001" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="0.00000001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="root_dammy_ori" type="fixed">
+		<parent link = "root" />
+		<child link = "root_dammy_ori" />
+		<origin rpy = "-1.57 -1.57 0 " xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_hip_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "0" />
+			<inertia ixx = "0.0" ixy = "0" ixz = "0" iyy = "0.0" iyz = "0" izz = "0.0" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hip_rx" type="revolute">
+		<parent link = "root_dammy_ori" />
+		<child link = "left_hip_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "1.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0186897 0.0574607 -0.0816852"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_hip_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.00764 0.06 0.0670" />
+			<mass value =  "0" />
+			<inertia ixx = "0.0" ixy = "0" ixz = "0" iyy = "0.0" iyz = "0" izz = "0.0" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0 "  xyz = "0.00764 0.06 0.0670" />
+			<geometry>
+				<sphere radius="0.000000" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hip_ry" type="revolute">
+		<parent link = "left_hip_rx" />
+		<child link = "left_hip_ry" />
+		<limit effort="1000.0" lower= "-0.6" upper= "0.6" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_hip_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "0" />
+			<inertia ixx = "0.0" ixy = "0" ixz = "0" iyy = "0.0" iyz = "0" izz = "0.0" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<mesh filename="meshes/L_Hip.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hip_rz" type="revolute">
+		<parent link = "left_hip_ry" />
+		<child link = "left_hip_rz" />
+		<limit effort="1000.0" lower= "-0.8" upper= "1.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_hip_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hip_rx" type="revolute">
+		<parent link = "root_dammy_ori" />
+		<child link = "right_hip_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "1.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.01469999999999 -0.060595 -0.0900000000005"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_hip_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.002809   -0.068214   0.066" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.002809   -0.068214   0.066" />
+			<geometry>
+				<sphere radius="0.000001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hip_ry" type="revolute">
+		<parent link = "right_hip_rx" />
+		<child link = "right_hip_ry" />
+		<limit effort="1000.0" lower= "-0.6" upper= "0.6" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_hip_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<mesh filename="meshes/R_Hip.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hip_rz" type="revolute">
+		<parent link = "right_hip_ry" />
+		<child link = "right_hip_rz" />
+		<limit effort="1000.0" lower= "-1.4" upper= "0.8" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "spine_2_limb">
+		<inertial>
+			<origin rpy = "1.57 0 0"  xyz = "-0.018163575 0.002204645 0.0607225" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.57 0 0"  xyz = "-0.018163575 0.002204645 0.0607225" />
+			<geometry>
+				<mesh filename="meshes/Spine1.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="rootdammy" type="fixed">
+		<parent link = "root_dammy_ori" />
+		<child link = "spine_2_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "spine_2_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_2_rx" type="revolute">
+		<parent link = "spine_2_limb" />
+		<child link = "spine_2_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.03632715 0.00440929 0.12445"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "spine_2_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_2_ry" type="revolute">
+		<parent link = "spine_2_rx" />
+		<child link = "spine_2_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "spine_2_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_2_rz" type="revolute">
+		<parent link = "spine_2_ry" />
+		<child link = "spine_2_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_knee_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.00429500000000003 0.022133375 -0.19404" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.00429500000000003 0.022133375 -0.19404" />
+			<geometry>
+				<mesh filename="meshes/L_Knee.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hip_rzdammy" type="fixed">
+		<parent link = "left_hip_rz" />
+		<child link = "left_knee_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_knee_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_knee_rx" type="revolute">
+		<parent link = "left_knee_limb" />
+		<child link = "left_knee_rx" />
+		<limit effort="1000.0" lower= "-0.1" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0.00870779000000000005 0.04426675 -0.38808"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_knee_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_knee_ry" type="revolute">
+		<parent link = "left_knee_rx" />
+		<child link = "left_knee_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_knee_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_knee_rz" type="revolute">
+		<parent link = "left_knee_ry" />
+		<child link = "left_knee_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_knee_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.00208367 -0.02202295 -0.1928575" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.00208367 -0.02202295 -0.1928575" />
+			<geometry>
+				<mesh filename="meshes/R_Knee.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hip_rzdammy" type="fixed">
+		<parent link = "right_hip_rz" />
+		<child link = "right_knee_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_knee_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_knee_rx" type="revolute">
+		<parent link = "right_knee_limb" />
+		<child link = "right_knee_rx" />
+		<limit effort="1000.0" lower= "-0.1" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.004206734 -0.0440459 -0.3829715"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_knee_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_knee_ry" type="revolute">
+		<parent link = "right_knee_rx" />
+		<child link = "right_knee_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_knee_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_knee_rz" type="revolute">
+		<parent link = "right_knee_ry" />
+		<child link = "right_knee_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "spine_3_limb">
+		<inertial>
+			<origin rpy = "1.57 0 0"  xyz = "0.01246275 0.002206725 0.068345999999999995" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.57 0 0"  xyz = "0.01246275 0.002206725 0.068345999999999995" />
+			<geometry>
+				<mesh filename="meshes/Spine2.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_2_rzdammy" type="fixed">
+		<parent link = "spine_2_rz" />
+		<child link = "spine_3_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "spine_3_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_3_rx" type="revolute">
+		<parent link = "spine_3_limb" />
+		<child link = "spine_3_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0.02689255 0.00441345 0.1360"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "spine_3_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_3_ry" type="revolute">
+		<parent link = "spine_3_rx" />
+		<child link = "spine_3_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "spine_3_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_3_rz" type="revolute">
+		<parent link = "spine_3_ry" />
+		<child link = "spine_3_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_ankle_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.01816405 -0.00720968000000000003 -0.2070435" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.01816405 -0.00720968000000000003 -0.2070435" />
+			<geometry>
+				<mesh filename="meshes/L_Ankle.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_knee_rzdammy" type="fixed">
+		<parent link = "left_knee_rz" />
+		<child link = "left_ankle_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_ankle_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_ankle_rx" type="revolute">
+		<parent link = "left_ankle_limb" />
+		<child link = "left_ankle_rx" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.7" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0363281 -0.0141936000000000005 -0.424087"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_ankle_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_ankle_ry" type="revolute">
+		<parent link = "left_ankle_rx" />
+		<child link = "left_ankle_ry" />
+		<limit effort="1000.0" lower= "-0.5" upper= "0.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_ankle_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_ankle_rz" type="revolute">
+		<parent link = "left_ankle_ry" />
+		<child link = "left_ankle_rz" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_ankle_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0164811 0.0094194 -0.205287" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.0164811 0.0094194 -0.205287" />
+			<geometry>
+				<mesh filename="meshes/R_Ankle.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_knee_rzdammy" type="fixed">
+		<parent link = "right_knee_rz" />
+		<child link = "right_ankle_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_ankle_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_ankle_rx" type="revolute">
+		<parent link = "right_ankle_limb" />
+		<child link = "right_ankle_rx" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.7" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0320622 0.0188388 -0.420574"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_ankle_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_ankle_ry" type="revolute">
+		<parent link = "right_ankle_rx" />
+		<child link = "right_ankle_ry" />
+		<limit effort="1000.0" lower= "-0.5" upper= "0.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_ankle_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_ankle_rz" type="revolute">
+		<parent link = "right_ankle_ry" />
+		<child link = "right_ankle_rz" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "spine_4_limb">
+		<inertial>
+			<origin rpy = "1.57 0 0"  xyz = "0.001202165 -0.001064685 0.027093855" />
+			<mass value =  "2" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.57 0 0"  xyz = "0.001202165 -0.001064685 0.027093855" />
+			<geometry>
+				<capsule radius="0.084" length="0.0373"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_3_rzdammy" type="fixed">
+		<parent link = "spine_3_rz" />
+		<child link = "spine_4_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "spine_4_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<mesh filename="meshes/Spine3.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_4_rx" type="revolute">
+		<parent link = "spine_4_limb" />
+		<child link = "spine_4_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0.00240433 -0.00206937 0.05408771"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "spine_4_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_4_ry" type="revolute">
+		<parent link = "spine_4_rx" />
+		<child link = "spine_4_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "spine_4_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_4_rz" type="revolute">
+		<parent link = "spine_4_ry" />
+		<child link = "spine_4_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_foot_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.06003665 0.0 -0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.06003665 0.0 -0.0" />
+			<geometry>
+				<mesh filename="meshes/L_Foot.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_ankle_rzdammy" type="fixed">
+		<parent link = "left_ankle_rz" />
+		<child link = "left_foot_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_foot_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_foot_rx" type="revolute">
+		<parent link = "left_foot_limb" />
+		<child link = "left_foot_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0.120808 0.002191150000000002 -0.0"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_foot_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_foot_ry" type="revolute">
+		<parent link = "left_foot_rx" />
+		<child link = "left_foot_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_foot_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_foot_rz" type="revolute">
+		<parent link = "left_foot_ry" />
+		<child link = "left_foot_rz" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<limit effort="0.0" lower= "0" upper= "0" velocity="0.0" />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_toe">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<capsule length="0.048 " radius="0.005"  />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_toe" type="fixed">
+		<parent link = "left_foot_rz" />
+		<child link = "left_toe" />
+		<origin rpy = "1.5708 0 0" xyz =" 0.011 0.0  -0.01"  />
+	</joint>
+	<link name = "left_heel">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<capsule length="0.048 " radius="0.005"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_heel" type="fixed">
+		<parent link = "left_toe" />
+		<child link = "left_heel" />
+		<origin rpy = "0 0 0" xyz ="-0.13  0.0051 -0.0"  /> 
+	</joint>
+	<link name = "right_foot_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.0649425 -0.0 -0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.0649425 -0.0 -0.0" />
+			<geometry>
+				<mesh filename="meshes/R_Foot.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_ankle_rzdammy" type="fixed">
+		<parent link = "right_ankle_rz" />
+		<child link = "right_foot_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_foot_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_foot_rx" type="revolute">
+		<parent link = "right_foot_limb" />
+		<child link = "right_foot_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0.1206350000000001 -0.002191150000000002 -0.0"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_foot_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_foot_ry" type="revolute">
+		<parent link = "right_foot_rx" />
+		<child link = "right_foot_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_foot_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_foot_rz" type="revolute">
+		<parent link = "right_foot_ry" />
+		<child link = "right_foot_rz" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<limit effort="1000.0" lower= "0" upper= "0" velocity="0.5" />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_toe">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<capsule length="0.048 " radius="0.005"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_toe" type="fixed">
+		<parent link = "right_foot_rz" />
+		<child link = "right_toe" />
+		<origin rpy = "1.5708 0 0" xyz =" 0.011 0.0  -0.01"  />
+	</joint>
+	<link name = "right_heel">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<capsule length="0.048 " radius="0.005" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_heel" type="fixed">
+		<parent link = "right_toe" />
+		<child link = "right_heel" />
+		<origin rpy = "0 0 0" xyz ="-0.13  -0.0051 0.0"  />
+	</joint>
+	<link name = "neck_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0158011999999999995 -0.0066519500000000002 0.104503749999999995" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.0158011999999999995 -0.0066519500000000002 0.1045037499999999995" />
+			<geometry>
+				<mesh filename="meshes/Neck.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="spine_4_rzdammy" type="fixed">
+		<parent link = "spine_4_rz" />
+		<child link = "neck_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "neck_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.0160  0.0022 -0.048" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.0080  0.001145 -0.0247" />
+			<geometry>
+				<sphere radius="0.00001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="neck_rx" type="revolute">
+		<parent link = "neck_limb" />
+		<child link = "neck_rx" />
+		<limit effort="1000.0" lower= "-0.6" upper= "0.6" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0302399999999999 -0.013039000000000005 0.2100749999999999"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "neck_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="neck_ry" type="revolute">
+		<parent link = "neck_rx" />
+		<child link = "neck_ry" />
+		<limit effort="1000.0" lower= "-0.6" upper= "0.6" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "neck_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0 " />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0 " />
+			<geometry>
+				<sphere radius="0.0000001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="neck_rz" type="revolute">
+		<parent link = "neck_ry" />
+		<child link = "neck_rz" />
+		<limit effort="1000.0" lower= "-0.3" upper= "0.3" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_clavicle_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_clavicle_rx" type="revolute">
+		<parent link = "spine_4_rz" />
+		<child link = "left_clavicle_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.018167400000000001 0.073969 0.12493"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_clavicle_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_clavicle_ry" type="revolute">
+		<parent link = "left_clavicle_rx" />
+		<child link = "left_clavicle_ry" />
+		<limit effort="1000.0" lower= "-0.6" upper= "0.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_clavicle_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_clavicle_rz" type="revolute">
+		<parent link = "left_clavicle_ry" />
+		<child link = "left_clavicle_rz" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_clavicle_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_clavicle_rx" type="revolute">
+		<parent link = "spine_4_rz" />
+		<child link = "right_clavicle_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.02371300000000001 -0.08099875 0.1105722"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_clavicle_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_clavicle_ry" type="revolute">
+		<parent link = "right_clavicle_rx" />
+		<child link = "right_clavicle_ry" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.6" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_clavicle_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_clavicle_rz" type="revolute">
+		<parent link = "right_clavicle_ry" />
+		<child link = "right_clavicle_rz" />
+		<limit effort="1000.0" lower= "-0.4" upper= "0.4" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "head_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.02402485 0.00502685 0.0440528375" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.02402485 0.00502685 0.0440528375" />
+			<geometry>
+				<mesh filename="meshes/Head.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="neck_rzdammy" type="fixed">
+		<parent link = "neck_rz" />
+		<child link = "head_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "head_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="head_rx" type="revolute">
+		<parent link = "head_limb" />
+		<child link = "head_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0.050497 0.0100537 0.09005675"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "head_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.016081 0.0000 0.005642" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.016081 0.0000 0.005642" />
+			<geometry>
+				<sphere radius="0.000001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="head_ry" type="revolute">
+		<parent link = "head_rx" />
+		<child link = "head_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "head_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="head_rz" type="revolute">
+		<parent link = "head_ry" />
+		<child link = "head_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_shoulder_limb">
+		<inertial>
+			<origin rpy = "1.57 0 0"  xyz = "-0.009016 0.060354250000000003 0.022670799999999999" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.57 0 0"  xyz = "-0.0 0.0480003 0.0" />
+			<geometry>
+				<mesh filename="meshes/L_Shoulder.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_clavicle_rzdammy" type="fixed">
+		<parent link = "left_clavicle_rz" />
+		<child link = "left_shoulder_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_shoulder_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_shoulder_rx" type="revolute">
+		<parent link = "left_shoulder_limb" />
+		<child link = "left_shoulder_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0 0.0608500000000006 0.0"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_shoulder_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0034 -0.035 0.01825" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.0034 -0.035 0.01825" />
+			<geometry>
+				<sphere radius="0.000001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_shoulder_ry" type="revolute">
+		<parent link = "left_shoulder_rx" />
+		<child link = "left_shoulder_ry" />
+		<limit effort="1000.0" lower= "-2.0" upper= "0.6" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_shoulder_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_shoulder_rz" type="revolute">
+		<parent link = "left_shoulder_ry" />
+		<child link = "left_shoulder_rz" />
+		<limit effort="1000.0" lower= "-1.0" upper= "1.0" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_shoulder_limb">
+		<inertial>
+			<origin rpy = "1.57 0 0"  xyz = "-0.0 -0.048354250000000003 0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.57 0 0"  xyz = "-0.0 -0.048354250000000003 0.0" />
+			<geometry>
+				<mesh filename="meshes/R_Shoulder.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_clavicle_rzdammy" type="fixed">
+		<parent link = "right_clavicle_rz" />
+		<child link = "right_shoulder_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_shoulder_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_shoulder_rx" type="revolute">
+		<parent link = "right_shoulder_limb" />
+		<child link = "right_shoulder_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0 -0.06108500000000006 0.0"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_shoulder_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0034 0.035 0.01825" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.0034 0.035 0.01825" />
+			<geometry>
+				<sphere radius="0.000001" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_shoulder_ry" type="revolute">
+		<parent link = "right_shoulder_rx" />
+		<child link = "right_shoulder_ry" />
+		<limit effort="1000.0" lower= "-0.6" upper= "2.0" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_shoulder_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_shoulder_rz" type="revolute">
+		<parent link = "right_shoulder_ry" />
+		<child link = "right_shoulder_rz" />
+		<limit effort="1000.0" lower= "-1.0" upper= "1.0" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_elbow_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0 0.088 -0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.57 0 0"  xyz = "-0.0 0.088 -0.0" />
+			<geometry>
+				<mesh filename="meshes/L_Elbow.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_shoulder_rzdammy" type="fixed">
+		<parent link = "left_shoulder_rz" />
+		<child link = "left_elbow_limb" />
+		<origin rpy = "0 0 0" xyz ="0.0 0 0"  />
+	</joint>
+	<link name = "left_elbow_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.00 -0.02 0.00" />
+			<geometry>
+				<sphere radius="0.03" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_elbow_rx" type="revolute">
+		<parent link = "left_elbow_limb" />
+		<child link = "left_elbow_rx" />
+		<limit effort="1000.0" lower= "-1.4" upper= "0.9" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0 0.2580124 -0.0"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_elbow_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_elbow_ry" type="revolute">
+		<parent link = "left_elbow_rx" />
+		<child link = "left_elbow_ry" />
+		<limit effort="1000.0" lower= "-2.7" upper= "0.0" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_elbow_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_elbow_rz" type="revolute">
+		<parent link = "left_elbow_ry" />
+		<child link = "left_elbow_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_elbow_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0 -0.088062 -0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+
+		<collision>
+			<origin rpy = "1.59 0 0"  xyz = "-0.0 -0.088062 -0.0" />
+			<geometry>
+				<mesh filename="meshes/R_Elbow.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_shoulder_rzdammy" type="fixed">
+		<parent link = "right_shoulder_rz" />
+		<child link = "right_elbow_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_elbow_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0.00 0.02 0.00" />
+			<geometry>
+				<sphere radius="0.03" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_elbow_rx" type="revolute">
+		<parent link = "right_elbow_limb" />
+		<child link = "right_elbow_rx" />
+		<limit effort="1000.0" lower= "-1.4" upper= "0.9" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0 -0.26000000002 -0.0"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_elbow_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_elbow_ry" type="revolute">
+		<parent link = "right_elbow_rx" />
+		<child link = "right_elbow_ry" />
+		<limit effort="1000.0" lower= "0.0" upper= "2.7" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_elbow_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_elbow_rz" type="revolute">
+		<parent link = "right_elbow_ry" />
+		<child link = "right_elbow_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_lowarm_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.0 0.12045875 0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.59 0 0"  xyz = "0.0 0.12045875 0.0" />
+			<geometry>
+				<mesh filename="meshes/L_Wrist.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_elbow_rzdammy" type="fixed">
+		<parent link = "left_elbow_rz" />
+		<child link = "left_lowarm_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_lowarm_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_lowarm_rx" type="revolute">
+		<parent link = "left_lowarm_limb" />
+		<child link = "left_lowarm_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.00763208 0.2649175 0.012280750000000001"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_lowarm_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_lowarm_ry" type="revolute">
+		<parent link = "left_lowarm_rx" />
+		<child link = "left_lowarm_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_lowarm_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_lowarm_rz" type="revolute">
+		<parent link = "left_lowarm_ry" />
+		<child link = "left_lowarm_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_lowarm_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0.0 -0.13045875 0.0" />
+			<mass value =  "1" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "1.59 0 0"  xyz = " 0.0 -0.13045875 0.0" />
+			<geometry>
+				<mesh filename="meshes/R_Elbow.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_elbow_rzdammy" type="fixed">
+		<parent link = "right_elbow_rz" />
+		<child link = "right_lowarm_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_lowarm_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_lowarm_rx" type="revolute">
+		<parent link = "right_lowarm_limb" />
+		<child link = "right_lowarm_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.00601466 -0.26482149999999998 0.007093525"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_lowarm_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_lowarm_ry" type="revolute">
+		<parent link = "right_lowarm_rx" />
+		<child link = "right_lowarm_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_lowarm_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_lowarm_rz" type="revolute">
+		<parent link = "right_lowarm_ry" />
+		<child link = "right_lowarm_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "left_hand_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0078015499999999997 0.04161905 -0.005251175" />
+			<mass value =  "0.5" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = " 0.0 0.0  0.0" />
+			<geometry>
+				<mesh filename="meshes/L_Hand.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_lowarm_rzdammy" type="fixed">
+		<parent link = "left_lowarm_rz" />
+		<child link = "left_hand_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "left_hand_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hand_rx" type="revolute">
+		<parent link = "left_hand_limb" />
+		<child link = "left_hand_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.01568030999999999994 0.0862381 -0.01030235"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "left_hand_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hand_ry" type="revolute">
+		<parent link = "left_hand_rx" />
+		<child link = "left_hand_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "left_hand_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_hand_rz" type="revolute">
+		<parent link = "left_hand_ry" />
+		<child link = "left_hand_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+	<link name = "right_hand_limb">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "-0.0050347 -0.044091575 -0.0042468950000000002" />
+			<mass value =  "0.5" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "-0.0 -0.0 -0.00" />
+		<geometry>
+				<mesh filename="meshes/R_Hand.obj" scale="1 1 1" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_lowarm_rzdammy" type="fixed">
+		<parent link = "right_lowarm_rz" />
+		<child link = "right_hand_limb" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+	</joint>
+	<link name = "right_hand_rx">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hand_rx" type="revolute">
+		<parent link = "right_hand_limb" />
+		<child link = "right_hand_rx" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="-0.0100694 -0.08818315 -0.008437900000000005"  />
+		<axis xyz = "0.0 1.0 0.0" />
+	</joint>
+	<link name = "right_hand_ry">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-06" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hand_ry" type="revolute">
+		<parent link = "right_hand_rx" />
+		<child link = "right_hand_ry" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "0.0 0.0 1.0" />
+	</joint>
+	<link name = "right_hand_rz">
+		<inertial>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<mass value =  "1e-05" />
+			<inertia ixx = "0.1" ixy = "0" ixz = "0" iyy = "0.1" iyz = "0" izz = "0.1" />
+		</inertial>
+		<collision>
+			<origin rpy = "0 0 0"  xyz = "0 0 0" />
+			<geometry>
+				<sphere radius="1e-05" />
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_hand_rz" type="revolute">
+		<parent link = "right_hand_ry" />
+		<child link = "right_hand_rz" />
+		<limit effort="1000.0" lower= "-2.5" upper= "2.5" velocity="0.5" />
+		<origin rpy = "0 0 0" xyz ="0 0 0"  />
+		<axis xyz = "1.0 0.0 0.0" />
+	</joint>
+</robot>

@@ -126,7 +126,7 @@ class Human(Agent):
             forces = [reactive_force * self.strength] * len(self.target_joint_angles)
             self.control(self.controllable_joint_indices, self.target_joint_angles, reactive_gain, forces)
 
-    def get_body_params():
+    def get_body_params(self):
         body_shape = np.zeros(10)
         joint_ranges = np.zeros(21, 2).flatten()
         return np.concatenate([body_shape, joint_ranges])

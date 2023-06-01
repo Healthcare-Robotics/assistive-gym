@@ -7,8 +7,8 @@ from screeninfo import get_monitors
 import pybullet as p
 from keras.models import load_model
 
-from .util import Util
 from .human_creation import HumanCreation
+from .util import Util
 from .agents import agent, human, robot, panda, tool, furniture
 from .agents.agent import Agent
 from .agents.human import Human
@@ -125,10 +125,16 @@ class AssistiveEnv(gym.Env):
             self.robot.init(self.directory, self.id, self.np_random, fixed_base=not self.robot.mobile)
             self.agents.append(self.robot)
         # Create human
-        if self.human is not None and isinstance(self.human, Human):
-            self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
-            if self.human.controllable or self.human.impairment == 'tremor':
+        if self.human is not None:
+            if  isinstance(self.human, Human):
+                self.human.init(self.human_creation, self.human_limits_model, fixed_human_base, human_impairment, gender, self.config, self.id, self.np_random)
+                if self.human.controllable or self.human.impairment == 'tremor':
+                    self.agents.append(self.human)
+            else: # human urdf
+                self.human.init(self.id, self.np_random)
                 self.agents.append(self.human)
+                self.update_action_space()
+
         # Create furniture (wheelchair, bed, or table)
         if furniture_type is not None:
             self.furniture.init(furniture_type, self.directory, self.id, self.np_random, wheelchair_mounted=self.robot.wheelchair_mounted if self.robot is not None else False)
@@ -187,6 +193,7 @@ class AssistiveEnv(gym.Env):
         actions = np.clip(actions, a_min=self.action_space.low, a_max=self.action_space.high)
         actions *= action_multiplier
         action_index = 0
+
         for i, agent in enumerate(self.agents):
             needs_action = not isinstance(agent, Human) or agent.controllable
             if needs_action:
@@ -199,7 +206,9 @@ class AssistiveEnv(gym.Env):
                     print('Received agent actions of length %d does not match expected action length of %d' % (len(action), agent_action_len))
                     exit()
             # Append the new action to the current measured joint angles
+        
             agent_joint_angles = agent.get_joint_angles(agent.controllable_joint_indices)
+            # print ("agent_joint_angles: ", agent_joint_angles )
             # Update the target robot/human joint angles based on the proposed action and joint limits
             for _ in range(self.frame_skip):
                 if needs_action:

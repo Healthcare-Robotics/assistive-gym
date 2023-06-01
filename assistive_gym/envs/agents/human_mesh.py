@@ -137,7 +137,7 @@ class HumanMesh(Agent):
         # out_mesh.apply_transform(scale)
         # rot = trimesh.transformations.rotation_matrix(np.deg2rad(90), [1, 0, 0])
         # out_mesh.apply_transform(rot)
-
+        
         return out_mesh, vertices, joints
 
     def init(self, directory, id, np_random, gender='female', height=None, body_shape=None, joint_angles=[], position=[0, 0, 0], orientation=[0, 0, 0], skin_color='random', specular_color=[0.1, 0.1, 0.1], body_pose=None, out_mesh=None, vertices=None, joints=None):
