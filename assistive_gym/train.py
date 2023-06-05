@@ -88,8 +88,7 @@ def cost_fn(env, solution, target_pos, end_effector="right_hand", is_collide = F
 
     real_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id(end_effector))[0]
     dist = eulidean_distance(real_pos, target_pos)
-    m = human.cal_manipulibility_chain(solution)
-    # torque = human.cal_torque()
+    m = human.cal_chain_manipulibility(solution, end_effector)
     cost = dist + 1/m
     if is_collide:
         cost+=10
@@ -120,7 +119,7 @@ def generate_target_points(env, num_points=10):
     # points = uniform_sample(human_pos, 0.5, 20)
     human = env.human
     right_hand_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id("right_hand"))[0]
-    points = uniform_sample(right_hand_pos, 0.3, num_points)
+    points = uniform_sample(right_hand_pos, 1.0, num_points)
     return points
 
 
@@ -253,11 +252,12 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
 
             for s in solutions:
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
-                p.performCollisionDetection(physicsClientId=human.id)
                 inverse_dynamic(human)
+
                 self_collisions = human.check_self_collision()
                 is_collide = len(self_collisions) > len(original_self_collisions)
                 print("self_collisions: ", self_collisions, "is_collide: ", is_collide)
+
                 cost, m, dist = cost_fn(env, s, target, is_collide = is_collide)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
