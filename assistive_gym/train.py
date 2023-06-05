@@ -8,6 +8,7 @@ from numpngw import write_apng
 import pybullet as p
 from matplotlib import pyplot as plt
 
+
 def uniform_sample(pos, radius, num_samples):
     """
     Sample points uniformly from the given space
@@ -29,10 +30,28 @@ def uniform_sample(pos, radius, num_samples):
 
         # Add to original point
         x_new = pos[0] + dx
+        # x_new = pos[0] + 0.1
         y_new = pos[1] + dy
         z_new = pos[2] + dz
+        # z_new = pos[2] + 0.3
         points.append([x_new, y_new, z_new])
     return points
+
+
+def inverse_dynamic(human):
+    pos = []
+    default_vel = 1.0
+    for j in human.all_joint_indices:
+        if p.getJointInfo(human.body, j, physicsClientId=human.id)[2] != p.JOINT_FIXED:
+            joint_state = p.getJointState(human.body, j)
+            pos.append(joint_state[0])
+
+    # need to pass flags=1 to overcome inverseDynamics error for floating base
+    # see https://github.com/bulletphysics/bullet3/issues/3188
+    ivd = p.calculateInverseDynamics(human.body, objPositions= pos, objVelocities=[default_vel]*len(pos),
+                                                 objAccelerations=[0] * len(pos), physicsClientId=human.id, flags=1)
+    print ("inverse_dynamic: ", ivd, np.array(ivd).sum())
+    return ivd
 
 
 def draw_point(point, size=0.01):
@@ -40,7 +59,7 @@ def draw_point(point, size=0.01):
     multiBody = p.createMultiBody(baseMass=0,
                                   baseCollisionShapeIndex=sphere,
                                   basePosition=np.array(point))
-    p.setGravity(0, 0, 0, multiBody)
+    p.setGravity(0, 0, 0)
 
 
 def make_env(env_name, coop=False, seed=1001):
@@ -64,7 +83,7 @@ def solve_ik(env, target_pos, end_effector="right_hand"):
     return solution
 
 
-def cost_fn(env, solution, target_pos, end_effector="right_hand"):
+def cost_fn(env, solution, target_pos, end_effector="right_hand", is_collide = False):
     human = env.human
 
     real_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id(end_effector))[0]
@@ -72,6 +91,8 @@ def cost_fn(env, solution, target_pos, end_effector="right_hand"):
     m = human.cal_manipulibility_chain(solution)
     # torque = human.cal_torque()
     cost = dist + 1/m
+    if is_collide:
+        cost+=10
     print("euclidean distance: ", dist, "manipubility: ", m, "cost: ", cost)
 
     return cost, m, dist
@@ -148,6 +169,19 @@ def plot_CMAES_metrics(mean_cost, mean_dist, mean_m):
     # Plot the manipubility values
     plot(mean_m, "Manipubility Values", "Iteration", "Manipubility")
 
+def test_collision():
+    # print("collision1: ", human.check_self_collision())
+    # # print ("collision1: ", perform_collision_check(human))
+    # x1 = np.random.uniform(-1, 1, len(human.controllable_joint_indices))
+    # human.set_joint_angles(human.controllable_joint_indices, x1)
+    # # for i in range (100):
+    # #     p.stepSimulation(physicsClientId=human.id)
+    # #     print("collision2: ", human.check_self_collision())
+    # p.performCollisionDetection(physicsClientId=human.id)
+    # # print("collision2: ", perform_collision_check(human))
+    # print("collision2: ", human.check_self_collision())
+    # time.sleep(100)
+    pass
 
 def plot_mean_evolution(mean_evolution):
     # Plot the mean vector evolution
@@ -210,28 +244,21 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
         mean_cost = []
         mean_dist = []
         mean_m = []
+        original_self_collisions = human.check_self_collision()
 
-        # print("collision1: ", human.check_self_collision())
-        print ("collision1: ", perform_collision_check(human))
-        x1 = np.random.uniform(-1, 1, len(human.controllable_joint_indices))
-        human.set_joint_angles(human.controllable_joint_indices, x1)
-        # for i in range (100):
-        #     p.stepSimulation(physicsClientId=human.id)
-        #     print("collision2: ", human.check_self_collision())
-        # p.performCollisionDetection(physicsClientId=human.id)
-        print("collision2: ", perform_collision_check(human))
-        time.sleep(100)
         while not optimizer.stop():
             timestep += 1
             solutions = optimizer.ask()
-            # print("solutions: ", solutions)
-
             fitness_values = []
+
             for s in solutions:
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
-
-                cost, m, dist = cost_fn(env, s, target)
-                # p.stepSimulation(physicsClientId=human.id)
+                p.performCollisionDetection(physicsClientId=human.id)
+                inverse_dynamic(human)
+                self_collisions = human.check_self_collision()
+                is_collide = len(self_collisions) > len(original_self_collisions)
+                print("self_collisions: ", self_collisions, "is_collide: ", is_collide)
+                cost, m, dist = cost_fn(env, s, target, is_collide = is_collide)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
 

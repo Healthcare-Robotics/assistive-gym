@@ -35,7 +35,7 @@ class HumanUrdf(Agent):
         super(HumanUrdf, self).__init__()
         self.smpl_dict = SMPLDict()
         self.human_dict = HumanUrdfDict()
-        self.controllable_joint_indices = right_arm_joint_indices + body_joint_indices
+        self.controllable_joint_indices = right_arm_joint_indices
         print("controllable_joint_indices: ", len(self.controllable_joint_indices))
         self.controllable = True
         self.motor_forces = 1.0
@@ -43,7 +43,7 @@ class HumanUrdf(Agent):
         self.end_effectors = ['right_hand', 'left_hand', 'right_foot', 'left_foot', 'head']
         # self.chain=  kp.build_serial_chain_from_urdf(open("test_mesh.urdf").read(), end_link_name="right_hand_limb")
         self.chain = kp.build_chain_from_urdf(open("test_mesh.urdf").read())
-        self.right_hand_chain = kp.build_serial_chain_from_urdf(open("test_mesh.urdf").read(), end_link_name="right_hand_limb", root_link_name="spine_2_limb")
+        self.right_hand_chain = kp.build_serial_chain_from_urdf(open("test_mesh.urdf").read(), end_link_name="right_hand_limb", root_link_name="spine_4_limb")
         self.initial_collisions = set() # collision due to initial pose
 
 

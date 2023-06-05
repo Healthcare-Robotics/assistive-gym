@@ -196,7 +196,8 @@ class Agent:
         # p.changeDynamics(self.body, joint, contactStiffness=stiffness, contactDamping=stiffness, physicsClientId=self.id)
 
     def set_gravity(self, ax=0.0, ay=0.0, az=-9.81):
-        p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
+        # p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
+        p.setGravity(ax, ay, az, physicsClientId=self.id)
 
     def enable_force_torque_sensor(self, joint):
         p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)
