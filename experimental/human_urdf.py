@@ -312,6 +312,17 @@ class HumanUrdf(Agent):
         p.performCollisionDetection(physicsClientId=self.id)
         return check_collision( self.body, self.body) # TODO: Check with initial collision
 
+    def check_env_collision(self, body_ids):
+        """
+        Check self collision
+        :return: set of collision pairs
+        """
+        collision_pairs = set()
+        p.performCollisionDetection(physicsClientId=self.id)
+        # print ("env_objects: ", body_ids, [p.getBodyInfo(i, physicsClientId=self.id)[1].decode('UTF-8') for i in body_ids])
+        for env_body in body_ids:
+            collision_pairs.update(check_collision( self.body, env_body))
+        return collision_pairs
 
     def _print_joint_indices(self):
         """

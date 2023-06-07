@@ -30,17 +30,15 @@ def uniform_sample(pos, radius, num_samples):
 
         # Add to original point
         x_new = pos[0] + dx
-        # x_new = pos[0] + 0.1
         y_new = pos[1] + dy
         z_new = pos[2] + dz
-        # z_new = pos[2] + 0.3
         points.append([x_new, y_new, z_new])
     return points
 
 
 def inverse_dynamic(human):
     pos = []
-    default_vel = 1.0
+    default_vel = 0
     for j in human.all_joint_indices:
         if p.getJointInfo(human.body, j, physicsClientId=human.id)[2] != p.JOINT_FIXED:
             joint_state = p.getJointState(human.body, j)
@@ -83,14 +81,54 @@ def solve_ik(env, target_pos, end_effector="right_hand"):
     return solution
 
 
-def cost_fn(env, solution, target_pos, end_effector="right_hand", is_collide = False):
+def get_link_positions(env):
+    human = env.human
+    link_pos = []
+    for i in range(-1, p.getNumJoints(human.body)): # include base
+        pos, orient = human.get_pos_orient(i)
+        link_pos.append(pos)
+    return link_pos
+
+def cal_energy_change(env, original_link_positions, current_link_positions):
+    g = -9.81  # gravitational acceleration
+    human_id = env.human.body
+    total_energy_change = 0
+
+    # Get the number of joints
+    num_joints = p.getNumJoints(human_id)
+
+    # Iterate over all links
+    for i in range(-1, num_joints):
+
+        # Get link state
+        if i == -1:
+            # The base case
+            # state = p.getBasePositionAndOrientation(human_id)
+            # velocity = p.getBaseVelocity(human_id)
+            mass = p.getDynamicsInfo(human_id, -1)[0]
+        else:
+            # state = p.getLinkState(human_id, i)
+            # velocity = p.getLinkState(human_id, i, computeLinkVelocity=1)[6:8]
+            mass = p.getDynamicsInfo(human_id, i)[0]
+        # Calculate initial potential energy
+        potential_energy_initial = mass * g * original_link_positions[i][2] # z axis
+        potential_energy_final = mass * g * current_link_positions[i][2]
+        # Add changes to the total energy change
+        total_energy_change += potential_energy_final - potential_energy_initial
+    print(f"Total energy change: {total_energy_change}")
+
+    return total_energy_change
+
+def cost_fn(env, solution, target_pos, end_effector="right_hand", is_self_collision = False, is_env_collision= False,  energy_change = 0):
     human = env.human
 
     real_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id(end_effector))[0]
     dist = eulidean_distance(real_pos, target_pos)
     m = human.cal_chain_manipulibility(solution, end_effector)
-    cost = dist + 1/m
-    if is_collide:
+    cost = dist + 1/m + -energy_change/100
+    if is_self_collision:
+        cost+=10
+    if is_env_collision:
         cost+=10
     print("euclidean distance: ", dist, "manipubility: ", m, "cost: ", cost)
 
@@ -119,7 +157,7 @@ def generate_target_points(env, num_points=10):
     # points = uniform_sample(human_pos, 0.5, 20)
     human = env.human
     right_hand_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id("right_hand"))[0]
-    points = uniform_sample(right_hand_pos, 1.0, num_points)
+    points = uniform_sample(right_hand_pos, 0.5, num_points)
     return points
 
 
@@ -205,14 +243,6 @@ def step_forward(env, x0):
     #     p.stepSimulation(physicsClientId=env.human.id)
     p.setRealTimeSimulation(1)
 
-def perform_collision_check(human):
-    pairs = set()
-    for j in human.controllable_joint_indices:
-        closestPoints = p.getClosestPoints(human.body, human.body,distance = 0.0,linkIndexA=j, physicsClientId=human.id)
-        for point in closestPoints:
-            pairs.add((point[3], point[4]))
-    return pairs
-
 def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load_policy_path='', coop=False, seed=0,
           extra_configs={}):
     env = make_env(env_name, coop=True)
@@ -227,60 +257,65 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
     best_action_idx = 0
     best_cost = 10 ^ 9
     cost = 0
-
+    env_object_ids= [env.robot.body, env.furniture.body, env.plane.body]
     human = env.human
     for (idx, target) in enumerate(points):
-        original_joint_angles = human.get_joint_angles(human.controllable_joint_indices)
         draw_point(target, size=0.01)
+        original_joint_angles = human.get_joint_angles(human.controllable_joint_indices)
+        original_link_positions = get_link_positions(env)
+        original_self_collisions = human.check_self_collision()
+        original_collisions = human.check_env_collision(env_object_ids)
 
         x0 = get_initial_guess(env, None)
         optimizer = init_optimizer(x0, sigma=0.1)
 
         timestep = 0
-        mean_evolution = []
-        dists = []
-        manipus = []
+
+
         mean_cost = []
         mean_dist = []
         mean_m = []
-        original_self_collisions = human.check_self_collision()
+        mean_evolution = []
+
 
         while not optimizer.stop():
             timestep += 1
             solutions = optimizer.ask()
             fitness_values = []
-
+            dists = []
+            manipus = []
+            energy_changes = []
             for s in solutions:
+
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
+                cur_link_positions = get_link_positions(env)
                 inverse_dynamic(human)
 
                 self_collisions = human.check_self_collision()
-                is_collide = len(self_collisions) > len(original_self_collisions)
-                print("self_collisions: ", self_collisions, "is_collide: ", is_collide)
+                is_self_collision = len(self_collisions) > len(original_self_collisions)
+                env_collisions = human.check_env_collision(env_object_ids)
+                is_env_collision = len(env_collisions) > len(original_collisions)
+                print ("self collision: ", is_self_collision, "env collision: ", env_collisions, "is env collision: ", is_env_collision)
 
-                cost, m, dist = cost_fn(env, s, target, is_collide = is_collide)
+                energy_change = cal_energy_change(env, original_link_positions, cur_link_positions)
+                cost, m, dist= cost_fn(env, s, target, is_self_collision=is_self_collision, is_env_collision=is_env_collision, energy_change = energy_change)
+
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
 
                 fitness_values.append(cost)
                 dists.append(dist)
                 manipus.append(m)
+                energy_changes.append(energy_change)
             optimizer.tell(solutions, fitness_values)
-
-            # step forward
-            # action = {'robot': env.action_space_robot.sample(), 'human': np.mean(solutions, axis=0)}
-            # actions[idx].append(action)
-            mean_evolution.append(np.mean(solutions, axis=0))
-
-            # env.step(action)
-            # cost = cost_function(env, action['human'], target)
             print("timestep: ", timestep, "cost: ", cost)
-            # optimizer.disp()
-
             optimizer.result_pretty()
-            mean_cost.append(np.mean(fitness_values))
-            mean_dist.append(np.mean(dists))
-            mean_m.append(np.mean(manipus))
+
+            mean_evolution.append(np.mean(solutions, axis=0))
+            mean_cost.append(np.mean(fitness_values, axis=0))
+            mean_dist.append(np.mean(dists, axis=0))
+            mean_m.append(np.mean(manipus, axis=0))
+
         env.human.set_joint_angles(env.human.controllable_joint_indices, optimizer.best.x)
         actions[idx] = optimizer.best.x
 

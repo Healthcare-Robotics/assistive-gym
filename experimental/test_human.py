@@ -1,6 +1,7 @@
 import colorsys
 import os
 import pickle
+import time
 
 import numpy as np
 import pybullet as p
@@ -88,6 +89,7 @@ if __name__ == "__main__":
 
     while True:
         p.stepSimulation()
-        check_collision(human.human_id, human.human_id)
+        # time.sleep(100)
+        # check_collision(human.human_id, human.human_id)
     # Disconnect from the simulation
     p.disconnect()

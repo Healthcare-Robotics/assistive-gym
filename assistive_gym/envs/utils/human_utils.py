@@ -86,16 +86,15 @@ def set_joint_angles(human_id, smpl_data: SMPLData):
 # TODO: review the parameters
 def change_dynamic_properties(human_id, link_ids):
     for link_id in link_ids:
-        pass
-        # p.changeDynamics(human_id, link_id,
-        #                  lateralFriction=1.0,
-        #                  spinningFriction=0.1,
-        #                  rollingFriction=0.1,
-        #                  restitution=0.9,
-        #                  linearDamping=0.01,
-        #                  angularDamping=0.01,
-        #                  contactStiffness=1e6,
-        #                  contactDamping=1e3)
+        p.changeDynamics(human_id, link_id,
+                         lateralFriction=1.0,
+                         spinningFriction=0.1,
+                         rollingFriction=0.1,
+                         restitution=0.9,
+                         linearDamping=0.01,
+                         angularDamping=0.01,
+                         contactStiffness=1e6,
+                         contactDamping=1e3)
 
         # p.changeDynamics(human_id, link_id,
         #                  lateralFriction=0.2,
