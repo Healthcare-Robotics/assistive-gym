@@ -114,11 +114,10 @@ class HumanComfortEnv(AssistiveEnv):
         self.robot.motor_gains = self.human.motor_gains = 0.005
 
         # reset human pose
-        # smpl_data = load_smpl(SMPL_PATH)
-        # self.human.set_joint_angles_with_smpl(smpl_data)
+        smpl_data = load_smpl(SMPL_PATH)
+        self.human.set_joint_angles_with_smpl(smpl_data)
 
-        bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
-        self.human.set_on_ground(bed_height)
+
         # p.resetBasePositionAndOrientation(self.human.body, [0.0, 0.0, 2.0], [0.0, 0.0, 0.0, 1.0], physicsClientId=self.id)
 
         if not self.robot.mobile:
@@ -126,9 +125,14 @@ class HumanComfortEnv(AssistiveEnv):
         # self.human.set_gravity(0, 0, -9.81)
         self.human.set_gravity(0, 0, -9.81)
 
+        bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
+        self.human.set_on_ground(bed_height)
+
         # drop human on bed
         for _ in range(100):
             p.stepSimulation(physicsClientId=self.id)
+
+
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 

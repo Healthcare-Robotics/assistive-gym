@@ -38,7 +38,7 @@ def uniform_sample(pos, radius, num_samples):
 
 def inverse_dynamic(human):
     pos = []
-    default_vel = 0
+    default_vel = 0.1
     for j in human.all_joint_indices:
         if p.getJointInfo(human.body, j, physicsClientId=human.id)[2] != p.JOINT_FIXED:
             joint_state = p.getJointState(human.body, j)
@@ -125,6 +125,7 @@ def cost_fn(env, solution, target_pos, end_effector="right_hand", is_self_collis
     real_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id(end_effector))[0]
     dist = eulidean_distance(real_pos, target_pos)
     m = human.cal_chain_manipulibility(solution, end_effector)
+
     cost = dist + 1/m + -energy_change/100
     if is_self_collision:
         cost+=10
@@ -235,7 +236,7 @@ def plot_mean_evolution(mean_evolution):
 
 def step_forward(env, x0):
     p.setJointMotorControlArray(env.human.body, jointIndices=env.human.controllable_joint_indices, controlMode=p.POSITION_CONTROL,
-                                forces=[10000] * len(env.human.controllable_joint_indices),
+                                forces=[1000] * len(env.human.controllable_joint_indices),
                                 positionGains = [0.01] * len(env.human.controllable_joint_indices),
                                 targetPositions=x0,
                                 physicsClientId=env.human.id)

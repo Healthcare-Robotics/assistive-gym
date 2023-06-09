@@ -17,6 +17,7 @@ Collection of helper functions to generate human URDF file from SMPL model
 
 
 class SMPLData:
+
     def __init__(self, body_pose, betas, global_orient): #TODO: add static typing
         self.body_pose = body_pose
         self.betas = betas
@@ -313,6 +314,7 @@ def config_links(links: List[UrdfLink], hull_dict):
             else:
                 # fake link
                 inertia.mass = 0.0
+                inertia.inertia_xxyyzz = tuple([0, 0, 0])
             link.urdf_inertial = inertia
 
 
