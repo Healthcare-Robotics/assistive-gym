@@ -1,4 +1,5 @@
 import os
+import time
 
 from assistive_gym.envs.agents.sawyer import Sawyer
 from assistive_gym.envs.agents.stretch import Stretch
@@ -8,7 +9,7 @@ from experimental.human_urdf import HumanUrdf
 import numpy as np
 import pybullet as p
 
-SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_ros_smpl_re2.pkl")
+SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_ros_smpl_8.pkl")
 class HumanComfortEnv(AssistiveEnv):
     def __init__(self):
         self.robot = Stretch('wheel_right')
@@ -113,31 +114,27 @@ class HumanComfortEnv(AssistiveEnv):
         # Update robot and human motor gains
         self.robot.motor_gains = self.human.motor_gains = 0.005
 
+        bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
+
         # reset human pose
         smpl_data = load_smpl(SMPL_PATH)
         self.human.set_joint_angles_with_smpl(smpl_data)
-
-
-        # p.resetBasePositionAndOrientation(self.human.body, [0.0, 0.0, 2.0], [0.0, 0.0, 0.0, 1.0], physicsClientId=self.id)
+        height, base_height = self.human.get_heights()
+        print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
+        self.human.set_global_orientation(smpl_data, [0, 0, base_height+ bed_height])
 
         if not self.robot.mobile:
             self.robot.set_gravity(0, 0, -9.81)
         # self.human.set_gravity(0, 0, -9.81)
         self.human.set_gravity(0, 0, -9.81)
 
-        bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
-        self.human.set_on_ground(bed_height)
-
-        # drop human on bed
-        for _ in range(100):
-            p.stepSimulation(physicsClientId=self.id)
-
-
-
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
+        # drop human on bed
+        for _ in range(100):
+            p.stepSimulation(physicsClientId=self.id)
         # p.setTimeStep(1/240., physicsClientId=self.id)
         self.init_env_variables()
         return self._get_obs()

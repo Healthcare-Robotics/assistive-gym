@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # Set the simulation parameters
     smpl_path = os.path.join(os.getcwd(), SMPL_PATH)
     smpl_data = load_smpl(smpl_path)
-    set_joint_angles(human.human_id, smpl_data)
+    set_joint_angles(human.human_id, smpl_data.body_pose)
     set_global_orientation(human.human_id, smpl_data.global_orient, [0, 0, 0.2])
     set_self_collisions(human.human_id,  physic_client_id)
 

@@ -272,12 +272,10 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
 
         timestep = 0
 
-
         mean_cost = []
         mean_dist = []
         mean_m = []
         mean_evolution = []
-
 
         while not optimizer.stop():
             timestep += 1
