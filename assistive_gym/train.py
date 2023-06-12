@@ -288,7 +288,7 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
 
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
                 cur_link_positions = get_link_positions(env)
-                inverse_dynamic(human)
+                # inverse_dynamic(human)
 
                 self_collisions = human.check_self_collision()
                 is_self_collision = len(self_collisions) > len(original_self_collisions)

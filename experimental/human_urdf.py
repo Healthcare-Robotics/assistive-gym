@@ -208,7 +208,7 @@ class HumanUrdf(Agent):
         :param ee_quat:
         :return: ik solutions (angles) for all joints in chain
         """
-        t = Transform(ee_quat, ee_pos)
+        t = Transform(None, ee_pos) # TODO: check if this is correct t = Transform(ee_quat, ee_pos)
         print(self.right_hand_chain.get_joint_parameter_names())
         return self.right_hand_chain.inverse_kinematics(t)
 

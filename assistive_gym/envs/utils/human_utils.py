@@ -172,21 +172,28 @@ def set_self_collision(human_id, physic_client_id, num_joints, joint_names, join
                 p.setCollisionFilterPair(human_id, human_id, i, j, 1, physicsClientId=physic_client_id)
 
 
-def set_self_collision2(human_id, physic_client_id, num_joints, joint_chain, joint_to_ignore=[]):
+def set_self_collision2(human_id, physic_client_id, joint_chain, joint_to_ignore=[]):
     all_real_limb_ids = human_dict.limb_index_dict.keys()
     for joint_name in joint_chain:
         # add parent
-        if not joint_name == 'pelvis':
-            parent = human_dict.joint_to_parent_joint_dict[joint_name]
-            parent_limb_id = human_dict.get_dammy_joint_id(parent)
+        parent = human_dict.joint_to_parent_joint_dict[joint_name]
+        parent_limb_id = human_dict.get_dammy_joint_id(parent)
+
         # add child
-        if not joint_name in ['left_foot', 'right_foot', 'left_hand', 'right_hand']:
+        if not joint_name in ['left_foot', 'right_foot', 'left_hand', 'right_hand']: # no child
             child = human_dict.joint_to_child_joint_dict[joint_name]
             child_limb_id = human_dict.get_dammy_joint_id(child)
 
         limb_id = human_dict.get_dammy_joint_id(joint_name)
-        ignore_ids = [parent_limb_id, child_limb_id, limb_id]
 
+        ignore_ids = [parent_limb_id, child_limb_id, limb_id]
+        for j_name in joint_to_ignore:
+            if j_name == "pelvis":
+                ignore_ids.append(human_dict.get_fixed_joint_id(j_name))
+            else:
+                ignore_ids.append(human_dict.get_dammy_joint_id(j_name))
+
+        print (f"ignore_ids: {ignore_ids}")
         for j in all_real_limb_ids:
             if j not in ignore_ids:
                 p.setCollisionFilterPair(human_id, human_id, limb_id, j, 1, physicsClientId=physic_client_id)
@@ -205,11 +212,11 @@ def set_self_collisions(human_id, physic_client_id):
     disable_self_collisions(human_id, num_joints, physic_client_id)
 
     # # only enable self collision for arms and legs with the rest of the body
-    set_self_collision2(human_id, physic_client_id, num_joints, human_dict.joint_chain_dict["right_arm"],
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_arm"],
                         human_dict.joint_collision_ignore_dict["right_arm"])
-    set_self_collision2(human_id, physic_client_id, num_joints, human_dict.joint_chain_dict["left_arm"],
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_arm"],
                         human_dict.joint_collision_ignore_dict["left_arm"])
-    set_self_collision2(human_id, physic_client_id, num_joints, human_dict.joint_chain_dict["right_leg"],
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_leg"],
                         human_dict.joint_collision_ignore_dict["right_leg"])
-    set_self_collision2(human_id, physic_client_id, num_joints, human_dict.joint_chain_dict["left_leg"],
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_leg"],
                         human_dict.joint_collision_ignore_dict["left_leg"])

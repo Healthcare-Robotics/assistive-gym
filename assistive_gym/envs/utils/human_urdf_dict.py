@@ -120,15 +120,15 @@ class HumanUrdfDict:
         self.joint_chain_dict = {
             "body": ["pelvis", "spine_2", "spine_3", "spine_4"],
             "head": ["neck", "head"],
-            "right_arm": ["right_shoulder", "right_elbow", "right_lowarm", "right_hand"],
-            "left_arm":  ["left_shoulder", "left_elbow", "left_lowarm", "left_hand"],
-            "right_leg": ["right_hip", "right_knee", "right_ankle", "right_foot"],
-            "left_leg": ["left_hip", "left_knee", "left_ankle", "left_foot"]
+            "right_arm": ["right_clavicle", "right_shoulder", "right_elbow", "right_lowarm", "right_hand"],
+            "left_arm":  ["left_clavicle", "left_shoulder", "left_elbow", "left_lowarm", "left_hand"],
+            "right_leg": [ "right_hip", "right_knee", "right_ankle", "right_foot"],
+            "left_leg": [ "left_hip", "left_knee", "left_ankle", "left_foot"]
         }
 
         self.joint_collision_ignore_dict = {
-            "right_arm": ["right_clavicle", "spine_4"],
-            "left_arm": ["left_clavicle", "spine_4"],
+            "right_arm": ["spine_4"],
+            "left_arm": ["spine_4"],
             "right_leg": ["pelvis"],
             "left_leg": ["pelvis"]
         }
