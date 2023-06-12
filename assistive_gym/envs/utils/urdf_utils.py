@@ -131,7 +131,7 @@ JOINT_SETTING = {
         },
     "left_elbow":
         {
-            "joint_limits": [[-147.3, 2.8], [0, 0], [0, 0]],  # TODO: check
+            "joint_limits": [[0, 0], [-147.3, 2.8], [0, 0]],  # TODO: check
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
@@ -162,7 +162,7 @@ JOINT_SETTING = {
         },
     "right_elbow":
         {
-            "joint_limits": [[-2.8, 147.3], [0, 0], [0, 0]],
+            "joint_limits": [[0, 0], [-2.8, 147.3], [0, 0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },

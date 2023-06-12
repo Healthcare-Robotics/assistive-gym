@@ -52,6 +52,8 @@ class HumanUrdfTest(Agent):
         #     p.stepSimulation(physicsClientId=self.id)
         #     # time.sleep(0.1)
         p.setRealTimeSimulation(1)
+
+
 if __name__ == "__main__":
     # Start the simulation engine
     physic_client_id = p.connect(p.GUI)
@@ -85,10 +87,10 @@ if __name__ == "__main__":
 
 
     # Set the simulation parameters
-    smpl_path = os.path.join(os.getcwd(), SMPL_PATH)
-    smpl_data = load_smpl(smpl_path)
-    set_joint_angles(human.human_id, smpl_data.body_pose)
-    set_global_orientation(human.human_id, smpl_data.global_orient, [0, 0, 0.2])
+    # smpl_path = os.path.join(os.getcwd(), SMPL_PATH)
+    # smpl_data = load_smpl(smpl_path)
+    # set_joint_angles(human.human_id, smpl_data.body_pose)
+    # set_global_orientation(human.human_id, smpl_data.global_orient, [0, 0, 0.2])
     set_self_collisions(human.human_id,  physic_client_id)
 
     # Set the camera view
@@ -113,9 +115,18 @@ if __name__ == "__main__":
     #     p.addUserDebugLine(joint_pos, joint_d_pos, [1, 0, 0], 2)
     #     p.addUserDebugLine(link_pos, link_d_pos, [0, 0, 1], 2)
 
+    # human.set_joint_angles([81,82,83], [0, np.pi/2, 0], use_limits=False) # right ankle
+    # human.set_joint_angles([61, 62, 63], [0, -np.pi / 2, 0], use_limits=False)  # left ankle
+    human.set_joint_angles([77, 78, 79], [np.pi/2, 0, 0], use_limits=False)  # right shoulder
+
+    human.set_joint_angles([21,22,23], [np.pi/2, 0, 0], use_limits=False) # right knee
+
+
+    # human.set_joint_angles([81,82,83], [np.pi/2, 0, 0])
     while True:
         p.stepSimulation()
-        check_collision(human.human_id, human.human_id)
+        time.sleep(100)
+        # check_collision(human.human_id, human.human_id)
         # human.step_forward()
     # Disconnect from the simulation
     p.disconnect()

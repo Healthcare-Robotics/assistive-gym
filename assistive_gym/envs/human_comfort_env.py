@@ -17,9 +17,14 @@ class HumanComfortEnv(AssistiveEnv):
         super(HumanComfortEnv, self).__init__(robot=self.robot, human=self.human, task='', obs_robot_len=len(self.robot.controllable_joint_indices),
                                          obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
         self.target_pos = np.array([0, 0, 0])
+        self.smpl_file = SMPL_PATH
+
     def get_comfort_score(self):
         return np.random.rand() #TODO: implement this
     # TODO: refactor train to move the score return to env.step
+
+    def set_smpl_file(self, smpl_file):
+        self.smpl_file = smpl_file
 
     def step(self, action):
         if self.human.controllable:
@@ -36,10 +41,6 @@ class HumanComfortEnv(AssistiveEnv):
             # print('Task success:', self.task_success, 'Food reward:', comfort_score)
             pass
 
-        # info = {'total_force_on_human': self.total_force_on_human,
-        #         'task_success': int(self.task_success >= self.total_food_count * self.config('task_success_threshold')),
-        #         'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len,
-        #         'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         info = {'comfort_score': comfort_score}
         done = self.iteration >= 200
         print (done, self.iteration)
@@ -50,82 +51,40 @@ class HumanComfortEnv(AssistiveEnv):
             return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {
                 'robot': info, 'human': info}
 
-    def _get_obs(self, agent=None):
-        # robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
-        # Fix joint angles to be in [-pi, pi]
-        # robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2 * np.pi) - np.pi
-        # if self.robot.mobile:
-        #     # Don't include joint angles for the wheels
-        #     robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
-
+    def _get_obs(self, agent=None): # not needed
         target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
-        self.robot_force_on_human= self.get_total_force()
-        self.total_force_on_human = self.robot_force_on_human
-        # robot_obs = np.concatenate(
-        #     [robot_joint_angles]).ravel()
-        robot_obs = np.array([self.robot_force_on_human])
+
+        robot_obs = np.array([]) # TODO: fix
         if agent == 'robot':
             return robot_obs
         if self.human.controllable:
             human_joint_angles = self.human.get_joint_angles(self.human.controllable_joint_indices)
             target_pos_human, _ = self.human.convert_to_realworld(self.target_pos)
-            human_obs = np.concatenate(
-                [human_joint_angles, [self.robot_force_on_human]]).ravel()
+            human_obs =np.array(human_joint_angles)
             if agent == 'human':
                 return human_obs
 
-            # self.human.cal_manipulibility()
-            # print ("manipulability", self.human.cal_manipulibility())
-            # Co-optimization with both human and robot controllable
             return {'robot': robot_obs, 'human': human_obs}
         return robot_obs
 
     def get_total_force(self):
-        total_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
-        # tool_force = np.sum(self.tool.get_contact_points()[-1])
-        # tool_force_at_target = 0
-        # target_contact_pos = None
-        # for linkA, linkB, posA, posB, force in zip(*self.tool.get_contact_points(self.human)):
-        #     total_force_on_human += force
-        #     # Enforce that contact is close to the target location
-        #     if linkA in [0, 1] and np.linalg.norm(posB - self.target_pos) < 0.025:
-        #         tool_force_at_target += force
-        #         target_contact_pos = posB
-        # return total_force_on_human, tool_force, tool_force_at_target, None if target_contact_pos is None else np.array(
-        #     target_contact_pos)
-        return total_force_on_human
-
-
-    def reset_human(self):
-        # reset human pose
-        # smpl_data = load_smpl(SMPL_PATH)
-        # self.human.set_joint_angles_with_smpl(smpl_data)
-
-        # bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
-        # self.human.set_on_ground(bed_height)
-        # self.human.set_gravity(0, 0, -9.81)
-        p.stepSimulation(physicsClientId=self.id)
+        pass
 
     def reset(self):
         super(HumanComfortEnv, self).reset()
 
         self.build_assistive_env("hospital_bed")
 
-        # Update robot and human motor gains
-        self.robot.motor_gains = self.human.motor_gains = 0.005
-
         bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
 
         # reset human pose
-        smpl_data = load_smpl(SMPL_PATH)
+        smpl_data = load_smpl(self.smpl_file)
         self.human.set_joint_angles_with_smpl(smpl_data)
         height, base_height = self.human.get_heights()
         print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
         self.human.set_global_orientation(smpl_data, [0, 0, base_height+ bed_height])
 
-        if not self.robot.mobile:
-            self.robot.set_gravity(0, 0, -9.81)
-        # self.human.set_gravity(0, 0, -9.81)
+        self.robot.set_gravity(0, 0, -9.81)
         self.human.set_gravity(0, 0, -9.81)
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)

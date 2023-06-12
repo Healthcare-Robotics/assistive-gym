@@ -155,6 +155,7 @@ class Agent:
 
     def set_joint_angles(self, indices, angles, use_limits=True, velocities=0):
         for i, (j, a) in enumerate(zip(indices, angles)):
+            # print ("j: ", self.lower_limits[j], self.upper_limits[j])
             p.resetJointState(self.body, jointIndex=j, targetValue=min(max(a, self.lower_limits[j]), self.upper_limits[j]) if use_limits else a, targetVelocity=velocities if type(velocities) in [int, float] else velocities[i], physicsClientId=self.id)
 
     def set_on_ground(self, base_height=None):

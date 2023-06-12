@@ -71,8 +71,6 @@ class HumanUrdf(Agent):
         return ik_indices
 
     def set_joint_angles_with_smpl(self, smpl_data: SMPLData):
-        # print("global_orient", smpl_data.global_orient)
-        print("pelvis", smpl_data.body_pose[0:3])
         set_joint_angles(self.body, smpl_data.body_pose)
         self.initial_self_collisions = self.check_self_collision()  # collision due to initial pose
 
