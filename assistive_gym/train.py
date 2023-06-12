@@ -1,3 +1,4 @@
+import math
 import os, sys, multiprocessing, gym, ray, shutil, argparse, importlib, glob
 import pickle
 import time
@@ -8,6 +9,32 @@ from numpngw import write_apng
 import pybullet as p
 from matplotlib import pyplot as plt
 
+def fibonacci_quarter_sphere(center, radius, samples=10):
+    '''
+    Reference: https://chiellini.github.io/2020/10/06/fibonacci_spiral_sphere/
+    :param center:
+    :param r:
+    :param samples:
+    :return:
+    '''
+    points = []
+    phi = (np.pi / 2.) * (3. - np.sqrt(5.))  # golden angle in radians, but only in quarter sphere
+
+    for r in radius:
+        for i in range(samples):
+            lat = math.asin(-1.0 + 2.0 * float(i / (samples + 1)))
+            # lat = lat % (-math.pi) if lat < 0 else lat % math.pi
+            # lat = lat % (2*math.pi)
+            lon = phi * i
+
+            x = math.cos(lon) * math.cos(lat) * r + center[0]
+            y = math.sin(lon) * math.cos(lat) * r + center[1]
+            z = math.sin(lat) * r + center[2]
+
+            # Only keep the points that are in the first quadrant
+            if x > center[0] and z > center[2]:
+                points.append([x, y, z])
+    return points
 
 def uniform_sample(pos, radius, num_samples):
     """
@@ -126,7 +153,7 @@ def cost_fn(env, solution, target_pos, end_effector="right_hand", is_self_collis
     dist = eulidean_distance(real_pos, target_pos)
     m = human.cal_chain_manipulibility(solution, end_effector)
 
-    cost = dist + 1/m + -energy_change/100
+    cost = dist + 1/m + np.abs(energy_change)/100
     if is_self_collision:
         cost+=10
     if is_env_collision:
@@ -158,7 +185,8 @@ def generate_target_points(env, num_points=10):
     # points = uniform_sample(human_pos, 0.5, 20)
     human = env.human
     right_hand_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id("right_hand"))[0]
-    points = uniform_sample(right_hand_pos, 0.5, num_points)
+    # points = uniform_sample(right_hand_pos, 0.5, num_points)
+    points = fibonacci_quarter_sphere(right_hand_pos, [0.3,0.4, 0.5], 50)
     return points
 
 
@@ -285,7 +313,6 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
             manipus = []
             energy_changes = []
             for s in solutions:
-
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
                 cur_link_positions = get_link_positions(env)
                 # inverse_dynamic(human)
@@ -324,8 +351,8 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
         if cost < best_cost:
             best_cost = cost
             best_action_idx = idx
-
     env.disconnect()
+
     # save action to replay
     # print("actions: ", len(actions))
     # pickle.dump(actions, open("actions.pkl", "wb"))
@@ -336,8 +363,8 @@ def train(env_name, algo, timesteps_total=10, save_dir='./trained_models/', load
 
 def init_optimizer(x0, sigma):
     opts = {}
-    opts['tolfun']=  1e-3
-    opts['tolx'] = 1e-3
+    opts['tolfun']=  1e-4
+    opts['tolx'] = 1e-4
     es = CMAEvolutionStrategy(x0, sigma, opts)
     return es
 
