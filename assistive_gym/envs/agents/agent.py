@@ -155,6 +155,7 @@ class Agent:
 
     def set_joint_angles(self, indices, angles, use_limits=True, velocities=0):
         for i, (j, a) in enumerate(zip(indices, angles)):
+            # print ("j: ", self.lower_limits[j], self.upper_limits[j])
             p.resetJointState(self.body, jointIndex=j, targetValue=min(max(a, self.lower_limits[j]), self.upper_limits[j]) if use_limits else a, targetVelocity=velocities if type(velocities) in [int, float] else velocities[i], physicsClientId=self.id)
 
     def set_on_ground(self, base_height=None):
@@ -196,7 +197,8 @@ class Agent:
         # p.changeDynamics(self.body, joint, contactStiffness=stiffness, contactDamping=stiffness, physicsClientId=self.id)
 
     def set_gravity(self, ax=0.0, ay=0.0, az=-9.81):
-        p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
+        # p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
+        p.setGravity(ax, ay, az, physicsClientId=self.id)
 
     def enable_force_torque_sensor(self, joint):
         p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)

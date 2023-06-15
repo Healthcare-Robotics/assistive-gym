@@ -118,3 +118,6 @@ venv.bak/
 
 # meshes 
 assistive_gym/envs/assets/human/meshes/
+
+# trained_models
+trained_models/

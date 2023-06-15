@@ -2,6 +2,38 @@ class HumanUrdfDict:
     def __init__(self):
         # TODO: dynamically generate this based on the URDF
         # currently, manually generate this based on the URDF
+
+        #TODO: fix
+        self.limb_name_dict = {
+            "pelvis_limb": 0,
+            "left_hip_limb": 4,
+            "left_knee_limb": 8,
+            "left_ankle_limb": 12,
+            "left_foot_limb": 16,
+            "right_hip_limb": 20,
+            "right_knee_limb": 24,
+            "right_ankle_limb": 28,
+            "right_foot_limb": 32,
+            "spine_2_limb": 36,
+            "spine_3_limb": 40,
+            "spine_4_limb": 44,
+            "neck_limb": 48,
+            "head_limb": 52,
+            "left_clavicle_limb": 56,
+            "left_shoulder_limb": 60,
+            "left_elbow_limb": 64,
+            "left_lowarm_limb": 68,
+            "left_hand_limb": 72,
+            "right_clavicle_limb": 76,
+            "right_shoulder_limb": 80,
+            "right_elbow_limb": 84,
+            "right_lowarm_limb": 88,
+            "right_hand_limb": 92,
+        }
+
+        # create a dictionary of indices to limb names
+        self.limb_index_dict = {v: k for k, v in self.limb_name_dict.items()}
+
         self.joint_dict = {
             "pelvis": 0,
             "left_hip": 1,
@@ -82,19 +114,21 @@ class HumanUrdfDict:
             "right_lowarm": "right_elbow",
             "right_hand": "right_lowarm"
         }
+        self.joint_to_child_joint_dict =  {v: k for k, v in self.joint_to_parent_joint_dict.items()}
+
 
         self.joint_chain_dict = {
             "body": ["pelvis", "spine_2", "spine_3", "spine_4"],
             "head": ["neck", "head"],
-            "right_arm": ["right_shoulder", "right_elbow", "right_lowarm", "right_hand"],
-            "left_arm":  ["left_shoulder", "left_elbow", "left_lowarm", "left_hand"],
-            "right_leg": ["right_hip", "right_knee", "right_ankle", "right_foot"],
-            "left_leg": ["left_hip", "left_knee", "left_ankle", "left_foot"]
+            "right_arm": ["right_clavicle", "right_shoulder", "right_elbow", "right_lowarm", "right_hand"],
+            "left_arm":  ["left_clavicle", "left_shoulder", "left_elbow", "left_lowarm", "left_hand"],
+            "right_leg": [ "right_hip", "right_knee", "right_ankle", "right_foot"],
+            "left_leg": [ "left_hip", "left_knee", "left_ankle", "left_foot"]
         }
 
         self.joint_collision_ignore_dict = {
-            "right_arm": ["right_clavicle", "spine_4"],
-            "left_arm": ["left_clavicle", "spine_4"],
+            "right_arm": ["spine_4"],
+            "left_arm": ["spine_4"],
             "right_leg": ["pelvis"],
             "left_leg": ["pelvis"]
         }
@@ -119,7 +153,7 @@ class HumanUrdfDict:
         joint_id = self.joint_dict[joint_name]
         return joint_id + 3
 
-    def get_joint_id(self, joint_name): # TODO: rename of refactor. The function name is confusing
+    def get_fixed_joint_id(self, joint_name): # TODO: rename of refactor. The function name is confusing
         """
         Obtain the joint id for the given joint name (fixed joint)
         :param joint_name:

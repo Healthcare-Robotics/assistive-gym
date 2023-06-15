@@ -8,60 +8,67 @@ from pytorch3d import transforms as t3d
 from trimesh import Trimesh
 
 from assistive_gym.envs.utils.human_urdf_dict import HumanUrdfDict
-from assistive_gym.envs.utils.smpl_geom import HullWrapper
+from assistive_gym.envs.utils.smpl_geom import generate_geom
 from assistive_gym.envs.utils.urdf_editor import UrdfEditor, UrdfJoint, UrdfLink
 
 """
 Collection of helper functions to generate human URDF file from SMPL model
 """
 
-
+################################################## SMPL setting #######################################################
 class SMPLData:
-    def __init__(self, body_pose, betas, global_orient): #TODO: add static typing
+    def __init__(self, body_pose, betas, global_orient):  # TODO: add static typing
         self.body_pose = body_pose
         self.betas = betas
         self.global_orient = global_orient
 
 
+def load_smpl(filepath) -> SMPLData:
+    with open(filepath, "rb") as handle:
+        data = pickle.load(handle)
+    smpl_data: SMPLData = SMPLData(data["body_pose"], data["betas"], data["global_orient"])
+    return smpl_data
+
+
+################################################## Static setting #####################################################
 human_dict = HumanUrdfDict()
 # BM_FRACTION = body_mass/70.45
 BM_FRACTION = 1.0
 
 JOINT_SETTING = {
     "pelvis": {
-        "joint_limits": [-60, 60] * 3, # deg
+        "joint_limits":[[-60, 60], [-60, 60], [-60, 60]],  # deg
         "joint_damping": 0.0,
         "joint_stiffness": 0.0,
     },
     "left_hip": {
         "joint_limits": [[-90.0, 17.8], [-33.7, 32.6], [-30.5, 38.6]],
-        "joint_damping": [15*10.0] *3,
-        "joint_stiffness": [10.0] *3
+        "joint_damping": [15 * 10.0] * 3,
+        "joint_stiffness": [10.0] * 3
     },
     "left_knee": {
-        "joint_limits": [[-1.3, 139.9], [0, 0], [0, 0]], # TODO: check
+        "joint_limits": [[-1.3, 139.9], [0, 0], [0, 0]],  # TODO: check
         "joint_damping": 0.0,
         "joint_stiffness": 0.0,
     },
     "left_ankle": {
         "joint_limits": [[-30, 30], [-30, 30], [-30, 30]],
-        "joint_damping": 0.0,
         "joint_stiffness": 0.0,
     },
     "left_foot": {
-        "joint_limits":[[-30, 30], [-30, 30], [-30, 30]], # TODO: no value from Henry, set same as ankle
+        "joint_limits": [[-30, 30], [-30, 30], [-30, 30]],  # TODO: no value from Henry, set same as ankle
         "joint_damping": 0.0,
         "joint_stiffness": 0.0,
     },
     "right_hip":
         {
             "joint_limits": [[-90.0, 17.8], [-32.6, 33.7], [-38.6, 30.5]],
-            "joint_damping": [15*10.0] *3,
-            "joint_stiffness": [10.0] *3
+            "joint_damping": [15 * 10.0] * 3,
+            "joint_stiffness": [10.0] * 3
         },
     "right_knee":
         {
-            "joint_limits": [[-1.3, 139.9], [0, 0], [0, 0]], # TODO: check
+            "joint_limits": [[-1.3, 139.9], [0, 0], [0, 0]],  # TODO: check
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
@@ -73,7 +80,7 @@ JOINT_SETTING = {
         },
     "right_foot":
         {
-            "joint_limits":[[-30, 30], [-30, 30], [-30, 30]],
+            "joint_limits": [[-30, 30], [-30, 30], [-30, 30]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
@@ -97,62 +104,64 @@ JOINT_SETTING = {
         },
     "neck":
         {
-            "joint_limits": [[-30, 30], [-5,5], [-5, 5]],
+            "joint_limits": [[-30, 30], [-5, 5], [-5, 5]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "head":
         {
-            "joint_limits": [[-30, 30], [-5,5], [-5, 5]],
+            "joint_limits": [[-30, 30], [-5, 5], [-5, 5]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "left_clavicle":
         {
-            "joint_limits": [[-88.9/3.0, 81.4/3.0], [-140.7/3.0, 43.7/3.0], [-90.0/3.0, 80.4/3.0]],
+            "joint_limits": [[-88.9 / 3.0, 81.4 / 3.0], [-140.7 / 3.0, 43.7 / 3.0], [-90.0 / 3.0, 80.4 / 3.0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "left_shoulder":
         {
-            "joint_limits":  [[-88.9*2/3.0, 81.4*2/3.0], [-140.7*2/3.0, 43.7*2/3.0], [-90.0*2/3.0, 80.4*2/3.0]],
+            "joint_limits": [[-88.9 * 2 / 3.0, 81.4 * 2 / 3.0], [-140.7 * 2 / 3.0, 43.7 * 2 / 3.0],
+                             [-90.0 * 2 / 3.0, 80.4 * 2 / 3.0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
 
         },
     "left_elbow":
         {
-            "joint_limits": [[-147.3, 2.8], [0, 0], [0, 0]], #TODO: check
+            "joint_limits": [[0, 0], [-147.3, 2.8], [0, 0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "left_lowarm":
         {
-            "joint_limits":  [[-30, 30], [-30, 30], [-30, 30]],
+            "joint_limits": [[-30, 30], [-30, 30], [-30, 30]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "left_hand":
         {
-            "joint_limits":  [[-30, 30], [-30, 30], [-30, 30]],
+            "joint_limits": [[-30, 30], [-30, 30], [-30, 30]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "right_clavicle":
         {
-            "joint_limits":  [[-88.9/3.0, 81.4/3.0], [-43.7/3.0, 140.7/3.0], [-90.0/3.0, 80.4/3.0]],
+            "joint_limits": [[-88.9 / 3.0, 81.4 / 3.0], [-43.7 / 3.0, 140.7 / 3.0], [-90.0 / 3.0, 80.4 / 3.0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "right_shoulder":
         {
-            "joint_limits": [[-88.9*2/3.0, 81.4*2/3.0], [-43.7*2/3.0, 140.7*2/3.0], [-90.0*2/3.0, 80.4*2/3.0]],
+            "joint_limits": [[-88.9 * 2 / 3.0, 81.4 * 2 / 3.0], [-43.7 * 2 / 3.0, 140.7 * 2 / 3.0],
+                             [-90.0 * 2 / 3.0, 80.4 * 2 / 3.0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
     "right_elbow":
         {
-            "joint_limits": [[-2.8, 147.3], [0, 0], [0, 0]],
+            "joint_limits": [[0, 0], [-2.8, 147.3], [0, 0]],
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
@@ -164,19 +173,35 @@ JOINT_SETTING = {
         },
     "right_hand":
         {
-            "joint_limits": [[-30, 30], [-30, 30], [-30, 30]], #TODO: no limits from Henry
+            "joint_limits": [[-30, 30], [-30, 30], [-30, 30]],  # TODO: no limits from Henry
             "joint_damping": 0.0,
             "joint_stiffness": 0.0,
         },
 }
 
 
-def load_smpl(filepath) -> SMPLData:
-    with open(filepath, "rb") as handle:
-        data = pickle.load(handle)
-    smpl_data: SMPLData = SMPLData(data["body_pose"], data["betas"], data["global_orient"])
-    return smpl_data
+#################################### URDF Generation ##################################################################
+def generate_human_mesh(physic_id, ref_urdf_path, out_urdf_path, smpl_path):
+    smpl_data = load_smpl(smpl_path)
+    body = p.loadURDF(ref_urdf_path, [0, 0, 0],
+                      flags=p.URDF_USE_SELF_COLLISION,
+                      useFixedBase=False)
+    hull_dict, joint_pos_dict, _ = generate_geom(smpl_path, smpl_data)
+    # now trying to scale the urdf file
+    generate_urdf(body, physic_id, hull_dict, joint_pos_dict, out_urdf_path)
 
+
+def generate_urdf(human_id, physic_client_id, hull_dict, pos_dict, out_path):
+    editor = UrdfEditor()
+    editor.initializeFromBulletBody(human_id, physic_client_id)  # load all properties to editor
+
+    config_links(editor.urdfLinks, hull_dict)
+    config_joints(editor.urdfJoints, pos_dict)
+
+    editor.saveUrdf(out_path, saveVisuals=True)
+
+
+#################################### Angle Conversion ##################################################################
 def convert_aa_to_euler_quat(aa, seq="XYZ"):
     aa = np.array(aa)
     mat = t3d.axis_angle_to_matrix(torch.from_numpy(aa))
@@ -199,6 +224,10 @@ def euler_convert_np(q, from_seq='XYZ', to_seq='XYZ'):
     return Rotation.from_euler(from_seq, q).as_euler(to_seq)
 
 
+def deg_to_rad(deg):
+    return deg * np.pi / 180.0
+
+#################################### Joint & Link Properties ###########################################################
 def mul_tuple(t, multiplier):
     return tuple(multiplier * elem for elem in t)
 
@@ -251,8 +280,6 @@ def simple_inertia(inertia):
     """
     return tuple([inertia[0][0], inertia[1][1], inertia[2][2]])
 
-def deg_to_rad(deg):
-    return deg * np.pi / 180.0
 
 def config_joints(joints: List[UrdfJoint], pos_dict):
     # smpl joint is spherical.
@@ -313,14 +340,5 @@ def config_links(links: List[UrdfLink], hull_dict):
             else:
                 # fake link
                 inertia.mass = 0.0
+                inertia.inertia_xxyyzz = tuple([0, 0, 0])
             link.urdf_inertial = inertia
-
-
-def generate_urdf(human_id, physic_client_id, hull_dict, pos_dict):
-    editor = UrdfEditor()
-    editor.initializeFromBulletBody(human_id, physic_client_id)  # load all properties to editor
-
-    config_links(editor.urdfLinks, hull_dict)
-    config_joints(editor.urdfJoints, pos_dict)
-
-    editor.saveUrdf("test_mesh.urdf", True)
