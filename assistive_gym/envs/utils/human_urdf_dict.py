@@ -3,7 +3,8 @@ class HumanUrdfDict:
         # TODO: dynamically generate this based on the URDF
         # currently, manually generate this based on the URDF
 
-        #TODO: fix
+        self.end_effectors = ['right_hand', 'left_hand', 'right_foot', 'left_foot', 'head']
+
         self.limb_name_dict = {
             "pelvis_limb": 0,
             "left_hip_limb": 4,
@@ -48,10 +49,10 @@ class HumanUrdfDict:
             "spine_3": 37,
             "spine_4": 41,
             "neck": 45,
-            "head":  49,
+            "head": 49,
             "left_clavicle": 53,
             "left_shoulder": 57,
-            "left_elbow":  61,
+            "left_elbow": 61,
             "left_lowarm": 65,
             "left_hand": 69,
             "right_clavicle": 73,
@@ -114,25 +115,23 @@ class HumanUrdfDict:
             "right_lowarm": "right_elbow",
             "right_hand": "right_lowarm"
         }
-        self.joint_to_child_joint_dict =  {v: k for k, v in self.joint_to_parent_joint_dict.items()}
-
+        self.joint_to_child_joint_dict = {v: k for k, v in self.joint_to_parent_joint_dict.items()}
 
         self.joint_chain_dict = {
-            "body": ["pelvis", "spine_2", "spine_3", "spine_4"],
             "head": ["neck", "head"],
-            "right_arm": ["right_clavicle", "right_shoulder", "right_elbow", "right_lowarm", "right_hand"],
-            "left_arm":  ["left_clavicle", "left_shoulder", "left_elbow", "left_lowarm", "left_hand"],
-            "right_leg": [ "right_hip", "right_knee", "right_ankle", "right_foot"],
-            "left_leg": [ "left_hip", "left_knee", "left_ankle", "left_foot"]
+            "right_hand": ["right_clavicle", "right_shoulder", "right_elbow", "right_lowarm", "right_hand"],
+            "left_hand": ["left_clavicle", "left_shoulder", "left_elbow", "left_lowarm", "left_hand"],
+            "right_foot": ["right_hip", "right_knee", "right_ankle", "right_foot"],
+            "left_foot": ["left_hip", "left_knee", "left_ankle", "left_foot"]
         }
 
         self.joint_collision_ignore_dict = {
-            "right_arm": ["spine_4"],
-            "left_arm": ["spine_4"],
-            "right_leg": ["pelvis"],
-            "left_leg": ["pelvis"]
+            "head": [],
+            "right_hand": ["spine_4"],
+            "left_hand": ["spine_4"],
+            "right_foot": ["pelvis"],
+            "left_foot": ["pelvis"]
         }
-
 
     # TODO: solve the issue with fixed joint in URDF
     def get_joint_ids(self, joint_name):
@@ -153,10 +152,18 @@ class HumanUrdfDict:
         joint_id = self.joint_dict[joint_name]
         return joint_id + 3
 
-    def get_fixed_joint_id(self, joint_name): # TODO: rename of refactor. The function name is confusing
+    def get_fixed_joint_id(self, joint_name):  # TODO: rename of refactor. The function name is confusing
         """
         Obtain the joint id for the given joint name (fixed joint)
         :param joint_name:
         :return:
         """
         return self.joint_dict[joint_name]
+
+    def get_real_link_indices(self, end_effector):
+        if end_effector not in self.joint_chain_dict:
+            raise Exception("The end effector {} is not in the joint chain dict".format(end_effector))
+        real_link_indices = []
+        for j in self.joint_chain_dict[end_effector]:
+            real_link_indices.append(self.get_dammy_joint_id(j))
+        return real_link_indices

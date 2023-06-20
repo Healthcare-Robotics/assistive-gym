@@ -92,8 +92,10 @@ class HumanComfortEnv(AssistiveEnv):
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
         # drop human on bed
-        for _ in range(100):
+        for _ in range(1000):
             p.stepSimulation(physicsClientId=self.id)
+        for j in self.human.all_joint_indices:
+            print (j, p.getDynamicsInfo(self.human.body, j, physicsClientId=self.id))
         # p.setTimeStep(1/240., physicsClientId=self.id)
         self.init_env_variables()
         return self._get_obs()

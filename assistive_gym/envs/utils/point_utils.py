@@ -12,7 +12,6 @@ def get_single_target(ee_pos):
 
 
 def eulidean_distance(cur, target):
-    print("current: ", cur, "target: ", target)
     # convert tuple to np array
     cur = np.array(cur)
     return np.sqrt(np.sum(np.square(cur - target)))

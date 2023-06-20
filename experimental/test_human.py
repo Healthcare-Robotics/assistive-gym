@@ -21,7 +21,7 @@ from assistive_gym.envs.utils.smpl_dict import SMPLDict
 from assistive_gym.envs.utils.smpl_geom import generate_geom
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf
 
-SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_ros_smpl_9.pkl")
+SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_ros_smpl_8.pkl")
 class HumanUrdfTest(Agent):
     def __init__(self):
         super(HumanUrdfTest, self).__init__()

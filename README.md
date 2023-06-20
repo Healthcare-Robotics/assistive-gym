@@ -184,4 +184,14 @@ numpy-stl
 vtk
 ```
 
+# Train human comfort 
+## Command 
 
+```bash
+# pyenv eval "$(pyenv init -)" -> python 3.7.10
+cd assistive-gym/
+# train
+python3 -m assistive_gym.train --env "HumanComfort-v1" --num-points 50 --smpl-file "examples/data/smpl_bp_ros_smpl_8.pkl" --save-dir "trained_models" --render-gui --train
+# render
+python3 -m assistive_gym.train --env "HumanComfort-v1" --smpl-file "examples/data/smpl_bp_ros_smpl_8.pkl" --save-dir "trained_models" --render
+```
