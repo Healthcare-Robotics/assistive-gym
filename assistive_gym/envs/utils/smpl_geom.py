@@ -75,7 +75,7 @@ def generate_geom(model_path, smpl_data = None):
     hull_dict = {}
 
     # create joint geometries
-    geom_dir = "/home/louis/Documents/Projects/assistive-gym/assistive_gym/envs/assets/human/meshes/"
+    geom_dir = "/home/hrl5/Documents/Projects/assistive-gym/assistive_gym/envs/assets/human/meshes/"
     os.makedirs(geom_dir, exist_ok=True)
     joint_pos_dict = {}
     total_mass = 0
