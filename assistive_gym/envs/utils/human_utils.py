@@ -48,7 +48,7 @@ def set_global_orientation(human_id, axis_angle, pos):
 
 def set_joint_angle(human_id, pose, smpl_joint_name, robot_joint_name):
     smpl_angles, _ = convert_aa_to_euler_quat(pose[smpl_dict.get_pose_ids(smpl_joint_name)])
-    print ("joint name: ", robot_joint_name, np.array(smpl_angles)*180.0/np.pi)
+    # print ("joint name: ", robot_joint_name, np.array(smpl_angles)*180.0/np.pi)
     # smpl_angles = pose[smpl_dict.get_pose_ids(smpl_joint_name)]
     robot_joints = human_dict.get_joint_ids(robot_joint_name)
     for i in range(0, 3):

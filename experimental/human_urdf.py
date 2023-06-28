@@ -236,7 +236,7 @@ class HumanUrdf(Agent):
         # print (g_pos, g_orient, g_quat)
         ret = chain.forward_kinematics(th, world=Transform(g_quat, list(g_pos)))
         # ret = chain.forward_kinematics(th)
-        print(ret)
+        # print(ret)
 
         j_angles = []
         for key in ret:
@@ -272,7 +272,7 @@ class HumanUrdf(Agent):
         for i in range(0, len(ee_idxes)):
             ee = ee_idxes[i]
             ee_pos = ee_pos_arr[i]
-            print("ee_pos: ", ee_pos)
+            # print("ee_pos: ", ee_pos)
             J_linear, J_angular = p.calculateJacobian(self.body, ee, localPosition=ee_pos,
                                                       objPositions=joint_angles, objVelocities=joint_velocities,
                                                       objAccelerations=joint_accelerations, physicsClientId=self.id)
@@ -288,17 +288,22 @@ class HumanUrdf(Agent):
 
         return avg_manipubility
 
-    def check_self_collision(self):
+    def check_self_collision(self, end_effector=None):
         """
         Check self collision
         :return: set of collision pairs
         """
         p.performCollisionDetection(physicsClientId=self.id)
         self_collision_pairs= check_collision(self.body, self.body)  # TODO: Check with initial collision
-        for pair in self_collision_pairs:
-            LOG.debug (f"Self collision: {pair}, {self.human_dict.limb_index_dict[pair[0]]},"
-                          f" {self.human_dict.limb_index_dict[pair[1]]}")
-        return self_collision_pairs
+        if end_effector is None:
+            for pair in self_collision_pairs:
+                LOG.debug (f"Self collision: {pair}, {self.human_dict.limb_index_dict[pair[0]]},"
+                              f" {self.human_dict.limb_index_dict[pair[1]]}")
+            return self_collision_pairs
+        else:
+            link_indices = self.human_dict.get_real_link_indices(end_effector)
+            self_collision_pairs = [pair for pair in self_collision_pairs if pair[0] in link_indices or pair[1] in link_indices]
+            return self_collision_pairs
 
     def get_link_positions(self, center_of_mass= True, end_effector_name=None):
         link_positions = []
@@ -351,7 +356,7 @@ class HumanUrdf(Agent):
         # print("torques: ", len(torques))
         return torques
 
-    def check_env_collision(self, body_ids):
+    def check_env_collision(self, body_ids, end_effector= None):
         """
         Check self collision
         :return: set of collision pairs
@@ -359,8 +364,17 @@ class HumanUrdf(Agent):
         collision_pairs = set()
         p.performCollisionDetection(physicsClientId=self.id)
         # print ("env_objects: ", body_ids, [p.getBodyInfo(i, physicsClientId=self.id)[1].decode('UTF-8') for i in body_ids])
-        for env_body in body_ids:
-            collision_pairs.update(check_collision(self.body, env_body))
+        if end_effector is None:
+            for env_body in body_ids:
+                collision_pairs.update(check_collision(self.body, env_body))
+        else:
+            joint_indices = self.human_dict.get_real_link_indices(end_effector)
+            for env_body in body_ids:
+                pairs = check_collision(self.body, env_body)
+                for pair in pairs:
+                    if  pair[0] in joint_indices or pair[1] in joint_indices:
+                        collision_pairs.add( pair)
+
         return collision_pairs
 
     def _print_joint_indices(self):
