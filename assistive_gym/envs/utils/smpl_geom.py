@@ -75,7 +75,17 @@ def generate_geom(model_path, smpl_data = None):
     hull_dict = {}
 
     # create joint geometries
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     geom_dir = "/home/hrl5/Documents/Projects/assistive-gym/assistive_gym/envs/assets/human/meshes/"
+=======
+    print("need to change geom_dir in smpl_geom.py line 79")
+    geom_dir = "/home/hrl5/assistive-gym/assistive_gym/envs/assets/human/meshes/"
+>>>>>>> Stashed changes
+=======
+    print("need to change geom_dir in smpl_geom.py line 79")
+    geom_dir = "/home/hrl5/assistive-gym/assistive_gym/envs/assets/human/meshes/"
+>>>>>>> Stashed changes
     os.makedirs(geom_dir, exist_ok=True)
     joint_pos_dict = {}
     total_mass = 0

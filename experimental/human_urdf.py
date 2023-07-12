@@ -255,6 +255,45 @@ class HumanUrdf(Agent):
         for _ in range(5):  # 5 is the number of skip steps
             p.stepSimulation(physicsClientId=self.id)
 
+<<<<<<< Updated upstream
+=======
+    def get_reba_score(self):
+        human_dict = HumanUrdfDict()
+        rebaScore = RebaScore()
+        # list joints in the order required for a reba score
+        joints = ["head", "neck", "left_shoulder", "left_elbow", "left_lowarm", "right_shoulder", "right_elbow", "right_lowarm", # 7
+            "left_hip", "left_knee", "left_ankle", "right_hip", "right_knee", "right_ankle", "left_hand", "right_hand"] # 15
+        jnts = ["right_shoulder", "right_elbow", "right_lowarm"]
+        
+        # obtain the links in the right order for the rebascore code
+        dammy_ids = []
+        for joint in joints:
+            dammy_ids.append(human_dict.get_dammy_joint_id(joint))
+
+        # use dammy ids to obtain the right link, use the right knee [12] as the root joint
+        pose = []
+        root = p.getLinkState(self.body, dammy_ids[12])[4] # root joint
+
+
+        for i in dammy_ids:
+            # get the location of each dammy joint and append to the pose list
+            loc = p.getLinkState(self.body, i)[4]
+            norm_loc = [loc[0] - root[0], loc[1] - root[1], loc[2] - root[2]]
+            pose.append(loc)
+    
+        pose = np.array(pose)
+        # following code is from the ergonomic repo (https://github.com/rs9000/ergonomics/blob/master/ergonomics/reba.py
+        arms_params = rebaScore.get_arms_angles_from_pose_right(pose)
+
+        # calculate scores
+        rebaScore.set_arms(arms_params)
+        _, partial_b = rebaScore.compute_score_b()
+        arm_score = np.sum(partial_b)
+        
+        # return all info
+        return arm_score
+
+>>>>>>> Stashed changes
     def cal_chain_manipulibility(self, joint_angles, ee: str):
         chain = self.chain[ee]
         J = chain.jacobian(joint_angles, end_only=True)
