@@ -17,18 +17,22 @@ from assistive_gym.envs.utils.point_utils import fibonacci_evenly_sampling_range
 
 LOG = get_logger()
 
+
 class OriginalHumanInfo:
-    def __init__(self, original_angles, original_link_positions, original_self_collisions, original_env_collisions):
-        self.link_positions = original_link_positions
+    def __init__(self, original_angles: np.ndarray, original_link_positions: np.ndarray, original_self_collisions,
+                 original_env_collisions):
+        self.link_positions = original_link_positions  # should be array of tuples that are the link positions
         self.angles = original_angles
         self.self_collisions = original_self_collisions
         self.env_collisions = original_env_collisions
+
 
 class MaximumHumanDynamics:
     def __init__(self, max_torque, max_manipulibility, max_energy):
         self.torque = max_torque
         self.manipulibility = max_manipulibility
         self.energy = max_energy
+
 
 def create_point(point, size=0.01, color=[1, 0, 0, 1]):
     sphere = p.createCollisionShape(p.GEOM_SPHERE, radius=size)
@@ -93,8 +97,8 @@ def cal_energy_change(human, original_link_positions, end_effector):
 
 def generate_target_points(env, num_points, ee_pos):
     human = env.human
-    right_hand_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id("right_hand"))[0]
-    points = fibonacci_evenly_sampling_range_sphere(right_hand_pos, [0.25, 0.5], num_points)
+    ee_pos, _ = human.get_ee_pos_orient("right_hand")
+    points = fibonacci_evenly_sampling_range_sphere(ee_pos, [0.25, 0.5], num_points)
     return get_valid_points(env, points)
 
 
@@ -177,7 +181,7 @@ def step_forward(env, x0, env_object_ids, end_effector="right_hand"):
         angle_dist = cal_angle_diff(cur_joint_angles, x0)
         count += 1
         if has_new_collision(original_self_collisions, self_collision) or has_new_collision(original_env_collisions,
-                                                                                            env_collision):
+                                                                                            env_collision, human, end_effector):
             LOG.info(f"{bcolors.FAIL}sim step: {count}, collision{bcolors.ENDC}")
             return angle_dist, self_collision, env_collision, True
 
@@ -197,27 +201,40 @@ def cal_angle_diff(cur, target):
 def cal_mid_angle(lower_bounds, upper_bounds):
     return (np.array(lower_bounds) + np.array(upper_bounds)) / 2
 
+def has_new_collision(old_collisions: Set, new_collisions: Set, human, end_effector="right_hand") -> bool:
+    link_ids = set(human.human_dict.get_real_link_indices(end_effector))
+    # print ("link ids", link_ids)
+    collisions = set()
+    for o in old_collisions:
+        collisions.add((o[0], o[1]))
+    # print (collisions)
 
-def has_new_collision(old_collisions: Set, new_collisions: Set) -> bool:
     for collision in new_collisions:
-        if collision not in old_collisions:
+        if not collision[0] in link_ids and not collision[1] in link_ids:
+            continue # not end effector chain collision, skip
+        # TODO: fix it, since link1 and link2 in collision from different object, so there is a slim chance of collision
+        if (collision[0], collision[1]) not in collisions or (collision[1], collision[0]) not in collisions: #new collision:
+            print ("new collision: ", collision)
             return True
+        else:
+            # collision in old collision
+            link1, link2, penetration = collision
+            if abs(penetration) > 0.015: # magic number. we have penetration between spine4 and shoulder in pose 5
+                print ("old collision with deep penetration: ", collision)
+                return True
     return False
 
 
-def cost_fn(human, ee_name:str, angle_config: np.ndarray, ee_target_pos: np.ndarray, original_info: OriginalHumanInfo,
-            max_dynamics: MaximumHumanDynamics, env_collisions, angle_dist):
-    # check collision
-    has_new_self_collision = has_new_collision(original_info.self_collisions, human.check_self_collision())
-    has_new_env_collision = has_new_collision(original_info.env_collisions, env_collisions)
-    LOG.debug(f"self collision: {has_new_self_collision}, env collision: {has_new_env_collision}")
+def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.ndarray, original_info: OriginalHumanInfo,
+            max_dynamics: MaximumHumanDynamics,  has_self_collision,has_env_collision, has_valid_robot_ik, angle_dist):
+
 
     # cal energy
     energy_change, energy_original, energy_final = cal_energy_change(human, original_info.link_positions, ee_name)
 
     # cal dist
-    ee_real_pos = p.getLinkState(human.body, human.human_dict.get_dammy_joint_id(ee_name))[0]
-    dist = eulidean_distance(ee_real_pos, ee_target_pos)
+    ee_pos, _= human.get_ee_pos_orient(ee_name)
+    dist = eulidean_distance(ee_pos, ee_target_pos)
 
     # cal torque
     torque = cal_torque_magnitude(human, ee_name)
@@ -228,23 +245,25 @@ def cost_fn(human, ee_name:str, angle_config: np.ndarray, ee_target_pos: np.ndar
     # cal angle displacement from mid angle
     mid_angle = cal_mid_angle(human.controllable_joint_lower_limits, human.controllable_joint_upper_limits)
     mid_angle_displacement = cal_angle_diff(angle_config, mid_angle)
-    print ("mid_angle_displacement: ", mid_angle_displacement)
+    print("mid_angle_displacement: ", mid_angle_displacement)
 
-    w = [1, 1, 3, 1, 2]
+    w = [1, 1, 4, 1, 1]
     # cost without simulate collision
     # cost = dist + 1.0/m + np.abs(energy_final)/1000.0
     # cost = 1.0/m + (energy_final-49)/5
     # cost = dist + 1 / manipulibility + energy_final / 100 + torque / 10
-    cost = (w[0]*dist + w[1]* 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-           + w[3]* torque / max_dynamics.torque + w[4] * mid_angle_displacement)/np.sum(w)
+    cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
+            + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement) / np.sum(w)
 
     # cost with simulate collision
     # cost = angle_dist + 1 / manipulibility + energy_final / 50 + torque / 10
 
-    if has_new_self_collision:
+    if has_self_collision:
         cost += 100
-    if has_new_env_collision:
+    if has_env_collision:
         cost += 100
+    if not has_valid_robot_ik:
+        cost += 1000
 
     return cost, manipulibility, dist, energy_final, torque
 
@@ -304,23 +323,31 @@ def get_max_torque(env, end_effector="right_hand"):
     human = env.human
     human.set_joint_angles(human.controllable_joint_indices, len(human.controllable_joint_indices) * [0])
     torque = cal_torque_magnitude(human, end_effector)
-    print ("max torque: ", torque)
+    print("max torque: ", torque)
     return torque
 
 
 def max_torque_cost_fn(human, end_effector):
     torque = cal_torque_magnitude(human, end_effector)
-    return 1.0/torque
+    return 1.0 / torque
 
 
 def max_manipulibity_cost_fn(human, end_effector, joint_angles):
     manipulibility = human.cal_chain_manipulibility(joint_angles, end_effector)
-    return 1.0/ manipulibility
+    return 1.0 / manipulibility
 
 
 def max_energy_cost_fn(human, end_effector, original_link_positions):
     _, _, energy_final = cal_energy_change(human, original_link_positions, end_effector)
-    return 1.0/energy_final
+    return 1.0 / energy_final
+
+def detect_collisions(original_info: OriginalHumanInfo, self_collisions, env_collisions, human, end_effector):
+    # check collision
+    has_new_self_collision = has_new_collision(original_info.self_collisions, self_collisions, human, end_effector)
+    has_new_env_collision = has_new_collision(original_info.env_collisions, env_collisions, human, end_effector)
+    LOG.debug(f"self collision: {has_new_self_collision}, env collision: {has_new_env_collision}")
+
+    return has_new_self_collision, has_new_env_collision
 
 
 def find_max_val(human, cost_fn, original_joint_angles, original_link_positions, end_effector="right_hand"):
@@ -337,29 +364,121 @@ def find_max_val(human, cost_fn, original_joint_angles, original_link_positions,
                 human.set_joint_angles(human.controllable_joint_indices, s)
                 cost = max_torque_cost_fn(human, end_effector)
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
+
             elif cost_fn == max_manipulibity_cost_fn:
                 cost = max_manipulibity_cost_fn(human, end_effector, s)
+
             elif cost_fn == max_energy_cost_fn:
                 human.set_joint_angles(human.controllable_joint_indices, s)
                 cost = max_energy_cost_fn(human, end_effector, original_link_positions)
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
+
             fitness_values.append(cost)
         optimizer.tell(solutions, fitness_values)
 
     human.set_joint_angles(human.controllable_joint_indices, optimizer.best.x)
-    return optimizer.best.x, 1.0/optimizer.best.f
+    return optimizer.best.x, 1.0 / optimizer.best.f
+
+
+def find_robot_start_pos_orient(env, end_effector="right_hand"):
+    # find bed bb
+    bed = env.furniture
+    bed_bb = p.getAABB(bed.body, physicsClientId=env.id)
+    bed_pos = p.getBasePositionAndOrientation(bed.body, physicsClientId=env.id)[0]
+
+    # find ee pos
+    ee_pos, _ = env.human.get_ee_pos_orient(end_effector)
+    # print ("ee real pos: ", ee_real_pos)
+
+    # find the side of the bed
+    side = "right" if ee_pos[0] > bed_pos[0] else "left"
+    bed_xx, bed_yy, bed_zz = bed_bb[1] if side == "right" else bed_bb[0]
+
+    # find robot base and bb
+    robot_bb = p.getAABB(env.robot.body, physicsClientId=env.id)
+    robot_x_size, robot_y_size, robot_z_size = np.subtract(robot_bb[1], robot_bb[0])
+    # print("robot: ", robot_bb)
+    base_pos = p.getBasePositionAndOrientation(env.robot.body, physicsClientId=env.id)[0]
+
+    # new pos: side of the bed, near end effector, with z axis unchanged
+    if side == "right":
+        pos = (bed_xx + robot_x_size / 2 + 0.1, ee_pos[1] + robot_y_size / 2, base_pos[2])
+        orient = env.robot.get_quaternion([0, 0, -np.pi / 2])
+    else:  # left
+        pos = (bed_xx - robot_x_size / 2 - 0.1, ee_pos[1], base_pos[2])
+        orient = env.robot.get_quaternion([0, 0, np.pi / 2])
+    return pos, orient, side
+
+
+def find_robot_ik_solution(env, end_effector:str, human_link_robot_collision):
+    """
+    Find robot ik solution with TOC. Place the robot in best base position and orientation.
+    :param env:
+    :param end_effector: str
+    :param human_link_robot_collision: dict(agent, [link1, link2, ...]) to check for collision with robot
+    :return:
+    """
+
+    human, robot, furniture = env.human, env.robot, env.furniture
+    # naive solution without toc
+    # robot_base_pos, robot_base_orient, side = find_robot_start_pos_orient(env)
+    # p.resetBasePositionAndOrientation(robot.body, robot_base_pos, robot_base_orient)
+    # ee_pos, _ = human.get_ee_pos_orient(end_effector)
+    # has_valid_robot_ik, robot_angles = robot.ik_random_restarts2(right=True, target_pos=ee_pos,
+    #                                                target_orient=None, max_iterations=500,
+    #                                                randomize_limits=False,
+    #                                                collision_objects={furniture: None,
+    #                                                                   human: human_link_robot_collision})
+    # if has_valid_robot_ik:
+    #     robot.set_joint_angles(robot.controllable_joint_indices, robot_angles)
+
+    # find robot base pos
+    robot_base_pos, robot_base_orient, side = find_robot_start_pos_orient(env)
+    ee_pos, ee_orient = human.get_ee_pos_orient(end_effector)
+    _, _, best_poses = robot.position_robot_toc2(robot_base_pos, side, [(ee_pos, None)],
+                                                 [(ee_pos, None)], human,
+                                                 base_euler_orient=robot_base_orient, attempts=100,
+                                                 random_position=0.5, max_ik_iterations=100,
+                                                 collision_objects={
+                                                     furniture: None,
+                                                     human: human_link_robot_collision})
+
+    # TODO: reuse best_poses (ik solution) from toc instead of resolving ik
+    is_success, robot_joint_angles = robot.ik_random_restarts2(right=True, target_pos=ee_pos,
+                                                               target_orient=None, max_iterations=500,
+                                                               randomize_limits=False,
+                                                               collision_objects={furniture: None,
+                                                                                  human: human_link_robot_collision})
+
+    if is_success: # TODO: what if we can't find a solution?
+        robot.set_joint_angles(robot.right_arm_joint_indices, robot_joint_angles, use_limits=True)
+    return is_success
+
+
+def get_human_link_robot_collision(human, end_effector):
+    human_link_robot_collision = []
+    for ee in human.human_dict.end_effectors:
+        human_link_robot_collision.extend([link for link in human.human_dict.get_real_link_indices(ee)])
+    # ignore collision with end effector and end effector's parent link
+    parent_ee = human.human_dict.joint_to_parent_joint_dict[end_effector]
+    link_to_ignores = [human.human_dict.get_dammy_joint_id(end_effector),
+                       human.human_dict.get_dammy_joint_id(parent_ee)]
+    human_link_robot_collision = [link for link in human_link_robot_collision if link not in link_to_ignores]
+    print("human_link: ", human_link_robot_collision)
+    return human_link_robot_collision
 
 
 def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
-          end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False):
+          end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False):
     start_time = time.time()
     env = make_env(env_name, smpl_file, coop=True)
     if render:
         env.render()
     env.reset()
 
-    human = env.human
-    env_object_ids = [env.robot.body, env.furniture.body, env.plane.body]  # set env object for collision check
+    human, robot, furniture, plane = env.human, env.robot, env.furniture, env.plane
+    env_object_ids = [furniture.body, plane.body]  # set env object for collision check
+    human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
 
     # original value
     original_joint_angles = human.get_joint_angles(human.controllable_joint_indices)
@@ -367,7 +486,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     original_self_collisions = human.check_self_collision()
     original_env_collisions = human.check_env_collision(env_object_ids)
     original_info = OriginalHumanInfo(original_joint_angles, original_link_positions, original_self_collisions,
-                                        original_env_collisions)
+                                      original_env_collisions)
     # draw original ee pos
     original_ee_pos = human.get_pos_orient(human.human_dict.get_dammy_joint_id(end_effector), center_of_mass=True)[0]
     draw_point(original_ee_pos, size=0.01, color=[0, 1, 0, 1])
@@ -376,16 +495,21 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     mean_cost, mean_dist, mean_m, mean_energy, mean_torque, mean_evolution = [], [], [], [], [], []
     actions = []
 
-    _, max_torque = find_max_val(human, max_torque_cost_fn, original_joint_angles, original_link_positions, end_effector)
-    _, max_manipubility = find_max_val(human, max_manipulibity_cost_fn, original_joint_angles, original_link_positions, end_effector)
-    _, max_energy = find_max_val(human, max_energy_cost_fn, original_joint_angles, original_link_positions, end_effector)
-    print ("max torque: ", max_torque, "max manipubility: ", max_manipubility, "max energy: ", max_energy)
+    _, max_torque = find_max_val(human, max_torque_cost_fn, original_joint_angles, original_link_positions,
+                                 end_effector)
+    _, max_manipubility = find_max_val(human, max_manipulibity_cost_fn, original_joint_angles, original_link_positions,
+                                       end_effector)
+    _, max_energy = find_max_val(human, max_energy_cost_fn, original_joint_angles, original_link_positions,
+                                 end_effector)
+    print("max torque: ", max_torque, "max manipubility: ", max_manipubility, "max energy: ", max_energy)
     max_dynamics = MaximumHumanDynamics(max_torque, max_manipubility, max_energy)
     env.reset()
 
     # init optimizer
     x0 = np.array(original_joint_angles)
     optimizer = init_optimizer(x0, 0.1, human.controllable_joint_lower_limits, human.controllable_joint_upper_limits)
+
+    # human.ray_cast(end_effector)
 
     while not optimizer.stop():
         timestep += 1
@@ -395,15 +519,27 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
             if simulate_collision:
                 # step forward env
                 angle_dist, _, env_collisions, _ = step_forward(env, s, env_object_ids, end_effector)
-                cost, m, dist, energy, torque = cost_fn(human, end_effector, s, original_ee_pos, original_info, max_dynamics, env_collisions, angle_dist)
+                self_collisions = human.check_self_collision()
+                has_self_collision, has_env_collision= detect_collisions(original_info, self_collisions, env_collisions, human, end_effector)
+                cost, m, dist, energy, torque = cost_fn(human, end_effector, s, original_ee_pos, original_info,
+                                                        max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist)
                 env.reset_human(is_collision=True)
                 LOG.info(
                     f"{bcolors.OKGREEN}timestep: {timestep}, cost: {cost}, angle_dist: {angle_dist} , dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
             else:
                 # set angle directly
                 human.set_joint_angles(human.controllable_joint_indices, s)  # force set joint angle
-                env_collisions = human.check_env_collision(env_object_ids)
-                cost, m, dist, energy, torque = cost_fn(human, end_effector,s, original_ee_pos,  original_info, max_dynamics, env_collisions, angle_dist=0)
+                # check collision
+                env_collisions, self_collisions  = human.check_env_collision(env_object_ids), human.check_self_collision()
+                has_self_collision, has_env_collision = detect_collisions(original_info, self_collisions, env_collisions, human, end_effector)
+
+                if robot_ik: # solve robot ik when doing training
+                    has_valid_robot_ik = False if has_env_collision or has_self_collision else find_robot_ik_solution(env, end_effector, human_link_robot_collision )
+                else:
+                    has_valid_robot_ik = True
+
+                cost, m, dist, energy, torque = cost_fn(human, end_effector, s, original_ee_pos, original_info,
+                                                        max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist=0)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
                 LOG.info(
@@ -413,7 +549,6 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
             manipus.append(m)
             energy_changes.append(energy)
             torques.append(torque)
-
 
         optimizer.tell(solutions, fitness_values)
         # optimizer.result_pretty()
@@ -427,15 +562,20 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
         mean_energy.append(np.mean(energy_changes, axis=0))
         mean_torque.append(np.mean(torques, axis=0))
 
-
     if simulate_collision:
         angle_dist, self_collision, env_collisions, is_collision = step_forward(env, optimizer.best.x, env_object_ids)
     else:
         # get the best solution value
         env.human.set_joint_angles(env.human.controllable_joint_indices, optimizer.best.x)
-        env_collisions = env.human.check_env_collision(env_object_ids)
+        self_collisions, env_collisions = human.check_self_collision(), human.check_env_collision(env_object_ids)
+        has_self_collision, has_env_collision = detect_collisions(original_info, self_collisions, env_collisions, human, end_effector)
+        if robot_ik:  # solve robot ik when doing training
+            has_valid_robot_ik = False if has_env_collision or has_self_collision else find_robot_ik_solution(env,end_effector, human_link_robot_collision)
+        else:
+            has_valid_robot_ik = True
         angle_dist = 0
-    cost, m, dist, energy, torque = cost_fn(human, end_effector, optimizer.best.x, original_ee_pos,  original_info, max_dynamics, env_collisions, angle_dist)
+    cost, m, dist, energy, torque = cost_fn(human, end_effector, optimizer.best.x, original_ee_pos, original_info,
+                                            max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist)
     LOG.info(
         f"{bcolors.OKBLUE} Best cost: {cost}, dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
     action = {
@@ -516,7 +656,10 @@ def render(env_name, smpl_file, save_dir):
 
     for (idx, action) in enumerate(actions):
         env.human.set_joint_angles(env.human.controllable_joint_indices, action["solution"])
-        time.sleep(0.5)
+        human_link_robot_collision = get_human_link_robot_collision(env.human, "right_hand")
+        # find_robot_ik_solution(env, "right_hand", human_link_robot_collision)
+        time.sleep(2)
+
         if idx == best_idx:
             plot_cmaes_metrics(action['mean_cost'], action['mean_dist'], action['mean_m'], action['mean_energy'],
                                action['mean_torque'])
@@ -549,6 +692,7 @@ if __name__ == '__main__':
                         help='Whether to render during training')
     parser.add_argument('--end-effector', default='right_hand', help='end effector name')
     parser.add_argument("--simulate-collision", action='store_true', default=False, help="simulate collision")
+    parser.add_argument("--robot-ik", action='store_true', default=False, help="solve robot ik during training")
 
     # replay
     parser.add_argument('--load-policy-path', default='./trained_models/',
@@ -563,7 +707,7 @@ if __name__ == '__main__':
 
     if args.train:
         _, actions = train(args.env, args.seed, args.num_points, args.smpl_file, args.end_effector, args.save_dir,
-                           args.render_gui, args.simulate_collision)
+                           args.render_gui, args.simulate_collision, args.robot_ik)
 
     if args.render:
         render(args.env, args.smpl_file, args.save_dir)

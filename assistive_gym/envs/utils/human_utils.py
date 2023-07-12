@@ -106,21 +106,25 @@ def change_dynamic_properties(human_id, link_ids):
                          contactDamping=1e6)  # contact damping need to be much larger than contact stiffness so that no bounciness
 
 
-def check_collision(body_id, other_body_id):
+def check_collision(body_id, other_body_id, include_penetration=True):
     """
     Check if two bodies are in collision and print out the link ids of the colliding links
     Can be used to check self collision if body_id == other_body_id
     :param body_id:
     :param other_body_id:
-    :return:
+    :return: set of tuples of colliding link ids (optionally with penetration in meter)
     """
     contact_points = p.getContactPoints(bodyA=body_id, bodyB=other_body_id)
     contact_pais = set()
     for contact in contact_points:
         link_id_A = contact[3]
         link_id_B = contact[4]
+        penetration = contact[8]
         # print(f"Link {link_id_A} of body {body_id} collided with link {link_id_B} of body {other_body_id}.")
-        contact_pais.add((link_id_A, link_id_B))
+        if include_penetration:
+            contact_pais.add((link_id_A, link_id_B, penetration))
+        else:
+            contact_pais.add((link_id_A, link_id_B))
     return contact_pais
 
 

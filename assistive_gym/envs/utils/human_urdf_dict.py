@@ -145,7 +145,7 @@ class HumanUrdfDict:
 
     def get_dammy_joint_id(self, joint_name):
         """
-        Obtain the dammy joint id for the given joint name (revolute joint only)
+        Obtain the dammy joint id for the given joint name (same as link id)
         :param joint_name:
         :return:
         """

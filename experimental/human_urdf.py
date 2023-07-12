@@ -1,5 +1,6 @@
 import colorsys
 import os
+import time
 
 import numpy as np
 import pybullet as p
@@ -305,6 +306,7 @@ class HumanUrdf(Agent):
             self_collision_pairs = [pair for pair in self_collision_pairs if pair[0] in link_indices or pair[1] in link_indices]
             return self_collision_pairs
 
+    # get link positions for all link in the chain/ all links in body
     def get_link_positions(self, center_of_mass= True, end_effector_name=None):
         link_positions = []
         if end_effector_name is None:
@@ -376,6 +378,36 @@ class HumanUrdf(Agent):
                         collision_pairs.add( pair)
 
         return collision_pairs
+
+    def ray_cast(self, end_effector: str):
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+
+        to_pos = ee_pos + np.array([0, 0, 1])  # ray's ending position
+        result = p.rayTest(ee_pos, to_pos)
+
+        # visualize the ray from 'from_pos' to 'to_pos'
+        ray_id = p.addUserDebugLine(ee_pos, to_pos, [1, 0, 0])  # the ray is red
+
+        # The result is a list of ray hit information tuples. Each tuple contains:
+        # - The object ID of the hit object
+        # - The link index of the hit link
+        # - The hit position in the world frame
+        # - The hit surface normal in the world frame
+        # - The hit fraction along the ray's length (0=start, 1=end)
+
+        for hit in result:
+            object_id, link_index, hit_position, hit_normal, hit_fraction = hit
+            print(f"Hit object ID: {object_id}")
+            print(f"Hit link index: {link_index}")
+            print(f"Hit position: {hit_position}")
+            print(f"Hit normal: {hit_normal}")
+            print(f"Hit fraction: {hit_fraction}")
+        time.sleep(10)
+        # p.removeUserDebugItem(ray_id)  # remove the visualized ray
+
+    def get_ee_pos_orient(self, end_effector):
+        ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector))[:2]
+        return ee_pos, ee_orient
 
     def _print_joint_indices(self):
         """

@@ -1,6 +1,7 @@
 import os
 import time
 
+from assistive_gym.envs.agents.pr2 import PR2
 from assistive_gym.envs.agents.sawyer import Sawyer
 from assistive_gym.envs.agents.stretch import Stretch
 from assistive_gym.envs.env import AssistiveEnv
@@ -99,6 +100,9 @@ class HumanComfortEnv(AssistiveEnv):
 
         self.robot.set_gravity(0, 0, -9.81)
         self.human.set_gravity(0, 0, -9.81)
+        # debug robot
+        for j in range(p.getNumJoints(self.robot.body, physicsClientId=self.id)):
+            print(p.getJointInfo(self.robot.body, j, physicsClientId=self.id))
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
