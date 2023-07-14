@@ -48,7 +48,7 @@ def set_global_orientation(human_id, axis_angle, pos):
 
 def set_joint_angle(human_id, pose, smpl_joint_name, robot_joint_name):
     smpl_angles, _ = convert_aa_to_euler_quat(pose[smpl_dict.get_pose_ids(smpl_joint_name)])
-    print ("joint name: ", robot_joint_name, np.array(smpl_angles)*180.0/np.pi)
+    # print ("joint name: ", robot_joint_name, np.array(smpl_angles)*180.0/np.pi)
     # smpl_angles = pose[smpl_dict.get_pose_ids(smpl_joint_name)]
     robot_joints = human_dict.get_joint_ids(robot_joint_name)
     for i in range(0, 3):
@@ -91,17 +91,6 @@ def set_joint_angles(human_id, pose):
     set_joint_angle(human_id, pose, "Neck", "neck")
     set_joint_angle(human_id, pose, "Head", "head")
 
-
-def plot(vals, title, xlabel, ylabel):
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.plot(vals)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.show()
-
-
 # TODO: review the parameters
 def change_dynamic_properties(human_id, link_ids):
     for link_id in link_ids:
@@ -114,24 +103,28 @@ def change_dynamic_properties(human_id, link_ids):
                          angularDamping=0.01,
                          contactStiffness=1e3,
                          # contact stiffness need to be large otherwise the body will penetrate the ground
-                         contactDamping=1e8)  # contact damping need to be much larger than contact stiffness so that no bounciness
+                         contactDamping=1e6)  # contact damping need to be much larger than contact stiffness so that no bounciness
 
 
-def check_collision(body_id, other_body_id):
+def check_collision(body_id, other_body_id, include_penetration=True):
     """
     Check if two bodies are in collision and print out the link ids of the colliding links
     Can be used to check self collision if body_id == other_body_id
     :param body_id:
     :param other_body_id:
-    :return:
+    :return: set of tuples of colliding link ids (optionally with penetration in meter)
     """
     contact_points = p.getContactPoints(bodyA=body_id, bodyB=other_body_id)
     contact_pais = set()
     for contact in contact_points:
         link_id_A = contact[3]
         link_id_B = contact[4]
+        penetration = contact[8]
         # print(f"Link {link_id_A} of body {body_id} collided with link {link_id_B} of body {other_body_id}.")
-        contact_pais.add((link_id_A, link_id_B))
+        if include_penetration:
+            contact_pais.add((link_id_A, link_id_B, penetration))
+        else:
+            contact_pais.add((link_id_A, link_id_B))
     return contact_pais
 
 
@@ -190,12 +183,14 @@ def set_self_collision2(human_id, physic_client_id, joint_chain, joint_to_ignore
         for j_name in joint_to_ignore:
             if j_name == "pelvis":
                 ignore_ids.append(human_dict.get_fixed_joint_id(j_name))
-            else:
-                ignore_ids.append(human_dict.get_dammy_joint_id(j_name))
+            # else:
+            #     if joint_name ==
+            #     ignore_ids.append(human_dict.get_dammy_joint_id(j_name))
 
-        print (f"ignore_ids: {ignore_ids}")
+        # print (f"ignore_ids: {ignore_ids}")
         for j in all_real_limb_ids:
             if j not in ignore_ids:
+                # print (f"enable collision between {j} and {limb_id}")
                 p.setCollisionFilterPair(human_id, human_id, limb_id, j, 1, physicsClientId=physic_client_id)
 
 
@@ -212,11 +207,11 @@ def set_self_collisions(human_id, physic_client_id):
     disable_self_collisions(human_id, num_joints, physic_client_id)
 
     # # only enable self collision for arms and legs with the rest of the body
-    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_arm"],
-                        human_dict.joint_collision_ignore_dict["right_arm"])
-    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_arm"],
-                        human_dict.joint_collision_ignore_dict["left_arm"])
-    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_leg"],
-                        human_dict.joint_collision_ignore_dict["right_leg"])
-    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_leg"],
-                        human_dict.joint_collision_ignore_dict["left_leg"])
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_hand"],
+                        human_dict.joint_collision_ignore_dict["right_hand"])
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_hand"],
+                        human_dict.joint_collision_ignore_dict["left_hand"])
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_foot"],
+                        human_dict.joint_collision_ignore_dict["right_foot"])
+    set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_foot"],
+                        human_dict.joint_collision_ignore_dict["left_foot"])

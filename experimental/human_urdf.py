@@ -1,5 +1,6 @@
 import colorsys
 import os
+import time
 
 import numpy as np
 import pybullet as p
@@ -7,11 +8,14 @@ import pybullet_data
 from cma import CMAEvolutionStrategy
 from gym.utils import seeding
 from kinpy import Transform
+from ergonomics.reba import RebaScore
 
 from assistive_gym.envs.agents.agent import Agent
 from assistive_gym.envs.utils.human_urdf_dict import HumanUrdfDict
-from assistive_gym.envs.utils.human_utils import set_self_collisions, change_dynamic_properties, check_collision, plot, \
+from assistive_gym.envs.utils.human_utils import set_self_collisions, change_dynamic_properties, check_collision, \
     set_joint_angles, set_global_orientation
+from assistive_gym.envs.utils.log_utils import get_logger
+from assistive_gym.envs.utils.plot_utils import plot
 from assistive_gym.envs.utils.smpl_dict import SMPLDict
 
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf, SMPLData
@@ -33,12 +37,9 @@ left_arm_joint_indices = [57, 58, 59, 61, 62, 63, 65, 66, 67, 69, 70, 71]
 right_arm_joint_indices = [73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89, 90, 91]  # with clavicle
 body_joint_indices = [33, 34, 35, 37, 38, 39, 41, 42, 43]
 all_joint_indices = list(range(0, 93))
+##################################################################################################
 
-
-def get_limb_name_from_limb_idx(param):
-    pass
-
-
+LOG = get_logger()
 class HumanUrdf(Agent):
     def __init__(self):
         super(HumanUrdf, self).__init__()
@@ -52,7 +53,6 @@ class HumanUrdf(Agent):
         self.smpl_dict = SMPLDict()
         self.human_dict = HumanUrdfDict()
         self.urdf_path = URDF_PATH
-        self.end_effectors = ['right_hand', 'left_hand', 'right_foot', 'left_foot', 'head']
         self.initial_self_collisions = set()  # collision due to initial pose
 
         # will be init in self.init()
@@ -111,7 +111,7 @@ class HumanUrdf(Agent):
                 mean_evolution.append(np.mean(solutions, axis=0))
                 mean_cost.append(np.mean(costs))
             cma.tell(solutions, costs)
-            cma.logger.add()
+            cma.LOG.add()
             cma.disp()
         self._set_joint_angles(cma.best.x)
         plot(mean_cost, "Cost Function", "Iteration", "Cost")
@@ -153,7 +153,7 @@ class HumanUrdf(Agent):
     def _init_kinematic_chain(self):
         chain = {}
         chain['whole_body'] = kp.build_chain_from_urdf(open(self.urdf_path).read())
-        for ee in self.end_effectors:
+        for ee in self.human_dict.end_effectors:
             end_link_name, root_link_name = self._get_end_link_and_root_link_name(ee)
             chain[ee] = kp.build_serial_chain_from_urdf(open(self.urdf_path).read(),
                                                         end_link_name=end_link_name,
@@ -183,7 +183,7 @@ class HumanUrdf(Agent):
         :return: Cartesian position of center of mass of the target link
         """
         original_angles = self.get_joint_angles(self.controllable_joint_indices)
-        print("original_angles", original_angles.shape, "joint_angles", joint_angles.shape)
+        LOG.debug(f"original_angles: {original_angles.shape}, joint_angles: {joint_angles.shape}")
         self.control(self.controllable_joint_indices, joint_angles, 0, 0)  # forward to calculate fk
         self.step_simulation()
         _, motor_positions, _, _ = self.get_motor_joint_states()
@@ -200,14 +200,15 @@ class HumanUrdf(Agent):
 
     # inverse kinematic using kinpy
     # most of the case it wont be able to find a solution as good as pybullet
-    def ik_chain(self, ee_pos, ee_quat=[1, 0, 0, 0]):
+    def ik_chain(self, ee_pos, ee_quat=[1, 0, 0, 0], ee_name='right_hand'):
         """
         :param ee_pos:
         :param ee_quat:
         :return: ik solutions (angles) for all joints in chain
         """
         t = Transform(None, ee_pos) # TODO: check if this is correct t = Transform(ee_quat, ee_pos)
-        print(self.right_hand_chain.get_joint_parameter_names())
+        chain = self.chain[ee_name]
+        LOG.info(self.right_hand_chain.get_joint_parameter_names())
         return self.right_hand_chain.inverse_kinematics(t)
 
     # fk for a chain using kinpy
@@ -237,7 +238,7 @@ class HumanUrdf(Agent):
         # print (g_pos, g_orient, g_quat)
         ret = chain.forward_kinematics(th, world=Transform(g_quat, list(g_pos)))
         # ret = chain.forward_kinematics(th)
-        print(ret)
+        # print(ret)
 
         j_angles = []
         for key in ret:
@@ -255,8 +256,7 @@ class HumanUrdf(Agent):
         for _ in range(5):  # 5 is the number of skip steps
             p.stepSimulation(physicsClientId=self.id)
 
-<<<<<<< Updated upstream
-=======
+
     def get_reba_score(self):
         human_dict = HumanUrdfDict()
         rebaScore = RebaScore()
@@ -293,7 +293,19 @@ class HumanUrdf(Agent):
         # return all info
         return arm_score
 
->>>>>>> Stashed changes
+    def get_perp_wrist_orientation(self, hand='right'):
+        human_dict = HumanUrdfDict()
+        # determine wrist index for the correct hand
+        if hand == 'right':
+            wrist_ind = human_dict.get_dammy_joint_id("right_hand")
+        else:
+            wrist_ind = human_dict.get_dammy_joint_id("left_hand")
+
+        wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
+        array = p.getEulerFromQuaternion(wrist_orientation)
+
+        return array[0]
+
     def cal_chain_manipulibility(self, joint_angles, ee: str):
         chain = self.chain[ee]
         J = chain.jacobian(joint_angles, end_only=True)
@@ -312,7 +324,7 @@ class HumanUrdf(Agent):
         for i in range(0, len(ee_idxes)):
             ee = ee_idxes[i]
             ee_pos = ee_pos_arr[i]
-            print("ee_pos: ", ee_pos)
+            # print("ee_pos: ", ee_pos)
             J_linear, J_angular = p.calculateJacobian(self.body, ee, localPosition=ee_pos,
                                                       objPositions=joint_angles, objVelocities=joint_velocities,
                                                       objAccelerations=joint_accelerations, physicsClientId=self.id)
@@ -323,24 +335,81 @@ class HumanUrdf(Agent):
             m = np.sqrt(np.linalg.det(J @ J.T))
             J_arr.append(J)
             m_arr.append(m)
-            print("End effector idx: ", ee, "Jacobian_l: ", J_linear.shape, "Jacobian_r: ", J_angular.shape,
-                  "Manipulibility: ", m)
+            LOG.debug(f"End effector idx: {ee}, Jacobian_l: {J_linear.shape}, Jacobian_r: {J_angular.shape}, Manipulibility: {m}")
         avg_manipubility = np.mean(m_arr)
 
         return avg_manipubility
 
-    def check_self_collision(self):
+    def check_self_collision(self, end_effector=None):
         """
         Check self collision
         :return: set of collision pairs
         """
         p.performCollisionDetection(physicsClientId=self.id)
         self_collision_pairs= check_collision(self.body, self.body)  # TODO: Check with initial collision
-        for pair in self_collision_pairs:
-            print ("Self collision: ", pair, self.human_dict.limb_index_dict[pair[0]], self.human_dict.limb_index_dict[pair[1]])
-        return self_collision_pairs
+        if end_effector is None:
+            for pair in self_collision_pairs:
+                LOG.debug (f"Self collision: {pair}, {self.human_dict.limb_index_dict[pair[0]]},"
+                              f" {self.human_dict.limb_index_dict[pair[1]]}")
+            return self_collision_pairs
+        else:
+            link_indices = self.human_dict.get_real_link_indices(end_effector)
+            self_collision_pairs = [pair for pair in self_collision_pairs if pair[0] in link_indices or pair[1] in link_indices]
+            return self_collision_pairs
 
-    def check_env_collision(self, body_ids):
+    # get link positions for all link in the chain/ all links in body
+    def get_link_positions(self, center_of_mass= True, end_effector_name=None):
+        link_positions = []
+        if end_effector_name is None:
+            for i in range(-1, p.getNumJoints(self.body)):  # include base
+                pos, orient = self.get_pos_orient(i, center_of_mass=center_of_mass)
+                link_positions.append(pos)
+        # only for real link in chain
+        else:
+            for i in self.human_dict.get_real_link_indices(end_effector_name):
+                pos, orient = self.get_pos_orient(i, center_of_mass=center_of_mass)
+                link_positions.append(pos)
+
+        return link_positions
+
+    def inverse_dynamic(self, end_effector_name=None):
+        # inverse dynamics will return the torque for base 7 DOF + all joints DOF (in our case of floating base + 23 joints, it will be 76)
+        # we need pass all DOF positions to inverse dynamics method, then filter out the result
+        # see: https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_utils/pd_controller_stable.py
+
+        base_pos, base_orn = p.getBasePositionAndOrientation(self.body, physicsClientId=self.id)
+        joint_positions = []
+        joint_positions.extend(list(base_pos))
+        joint_positions.extend(list(base_orn)) # DOF for base = 7
+
+        default_velocity = 0.0
+        joint_indices_map = {} # (joint_index, index)
+        count = 6
+        for j in self.all_joint_indices:
+            if p.getJointInfo(self.body, j, physicsClientId=self.id)[2] != p.JOINT_FIXED:
+                joint_state = p.getJointState(self.body, j)
+                joint_positions.append(joint_state[0])
+                count+=1
+                joint_indices_map[j] = count
+        # print("joint_positions: ", len(joint_positions))
+
+        # need to pass flags=1 to overcome inverseDynamics error for floating base
+        # see https://github.com/bulletphysics/bullet3/issues/3188
+        torques = p.calculateInverseDynamics(self.body, objPositions=joint_positions,
+                                             objVelocities=[default_velocity] * (len(joint_positions)),
+                                             objAccelerations=[0] * (len(joint_positions)), physicsClientId=self.id, flags=1)
+        if end_effector_name is None:
+            torques = torques[7:]
+        else:
+            # filter out the torques for the end effector
+            indices = []
+            for j in self.controllable_joint_indices:
+                indices.append(joint_indices_map[j])
+            torques = [torques[i] for i in indices]
+        # print("torques: ", len(torques))
+        return torques
+
+    def check_env_collision(self, body_ids, end_effector= None):
         """
         Check self collision
         :return: set of collision pairs
@@ -348,9 +417,48 @@ class HumanUrdf(Agent):
         collision_pairs = set()
         p.performCollisionDetection(physicsClientId=self.id)
         # print ("env_objects: ", body_ids, [p.getBodyInfo(i, physicsClientId=self.id)[1].decode('UTF-8') for i in body_ids])
-        for env_body in body_ids:
-            collision_pairs.update(check_collision(self.body, env_body))
+        if end_effector is None:
+            for env_body in body_ids:
+                collision_pairs.update(check_collision(self.body, env_body))
+        else:
+            joint_indices = self.human_dict.get_real_link_indices(end_effector)
+            for env_body in body_ids:
+                pairs = check_collision(self.body, env_body)
+                for pair in pairs:
+                    if  pair[0] in joint_indices or pair[1] in joint_indices:
+                        collision_pairs.add( pair)
+
         return collision_pairs
+
+    def ray_cast(self, end_effector: str):
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+
+        to_pos = ee_pos + np.array([0, 0, 1])  # ray's ending position
+        result = p.rayTest(ee_pos, to_pos)
+
+        # visualize the ray from 'from_pos' to 'to_pos'
+        ray_id = p.addUserDebugLine(ee_pos, to_pos, [1, 0, 0])  # the ray is red
+
+        # The result is a list of ray hit information tuples. Each tuple contains:
+        # - The object ID of the hit object
+        # - The link index of the hit link
+        # - The hit position in the world frame
+        # - The hit surface normal in the world frame
+        # - The hit fraction along the ray's length (0=start, 1=end)
+
+        for hit in result:
+            object_id, link_index, hit_position, hit_normal, hit_fraction = hit
+            print(f"Hit object ID: {object_id}")
+            print(f"Hit link index: {link_index}")
+            print(f"Hit position: {hit_position}")
+            print(f"Hit normal: {hit_normal}")
+            print(f"Hit fraction: {hit_fraction}")
+        time.sleep(10)
+        # p.removeUserDebugItem(ray_id)  # remove the visualized ray
+
+    def get_ee_pos_orient(self, end_effector):
+        ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector))[:2]
+        return ee_pos, ee_orient
 
     def _print_joint_indices(self):
         """
@@ -362,19 +470,19 @@ class HumanUrdf(Agent):
         human_dict = self.human_dict
 
         left_arms = human_dict.get_joint_ids("left_clavicle")
-        for name in human_dict.joint_chain_dict["left_arm"]:
+        for name in human_dict.joint_chain_dict["left_hand"]:
             left_arms.extend(human_dict.get_joint_ids(name))
 
         right_arms = human_dict.get_joint_ids("right_clavicle")
-        for name in human_dict.joint_chain_dict["right_arm"]:
+        for name in human_dict.joint_chain_dict["right_hand"]:
             right_arms.extend(human_dict.get_joint_ids(name))
 
         left_legs = []
-        for name in human_dict.joint_chain_dict["left_leg"]:
+        for name in human_dict.joint_chain_dict["left_foot"]:
             left_legs.extend(human_dict.get_joint_ids(name))
 
         right_legs = []
-        for name in human_dict.joint_chain_dict["right_leg"]:
+        for name in human_dict.joint_chain_dict["right_foot"]:
             right_legs.extend(human_dict.get_joint_ids(name))
 
         print("left arms: ", left_arms)

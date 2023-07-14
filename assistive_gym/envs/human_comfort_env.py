@@ -1,6 +1,7 @@
 import os
 import time
 
+from assistive_gym.envs.agents.pr2 import PR2
 from assistive_gym.envs.agents.sawyer import Sawyer
 from assistive_gym.envs.agents.stretch import Stretch
 from assistive_gym.envs.env import AssistiveEnv
@@ -14,12 +15,10 @@ import pybullet as p
 SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_ros_smpl_8.pkl")
 class HumanComfortEnv(AssistiveEnv):
     def __init__(self):
-        # self.robot = Stretch('wheel_right') # ADD STRETCH
+        self.robot = Stretch('wheel_right') # ADD STRETCH
         self.human = HumanUrdf()
-        # super(HumanComfortEnv, self).__init__(robot=self.robot, human=self.human, task='', obs_robot_len=len(self.robot.controllable_joint_indices), # ADD STRETCH
-        #                                  obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
-        super(HumanComfortEnv, self).__init__(robot=None, human=self.human, task='', obs_robot_len=0,
-                                          obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
+        super(HumanComfortEnv, self).__init__(robot=self.robot, human=self.human, task='', obs_robot_len=len(self.robot.controllable_joint_indices), # ADD STRETCH
+                                         obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
         self.target_pos = np.array([0, 0, 0])
         self.smpl_file = SMPL_PATH
 
@@ -56,7 +55,7 @@ class HumanComfortEnv(AssistiveEnv):
                 'robot': info, 'human': info}
 
     def _get_obs(self, agent=None): # not needed
-        # target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos) # ADD STRETCH
+        target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos) # ADD STRETCH
 
         robot_obs = np.array([]) # TODO: fix
         if agent == 'robot':
@@ -71,8 +70,21 @@ class HumanComfortEnv(AssistiveEnv):
             return {'robot': robot_obs, 'human': human_obs}
         return robot_obs
 
-    def get_total_force(self):
-        pass
+    def reset_human(self, is_collision):
+        if not is_collision:
+            self.human.set_joint_angles_with_smpl(load_smpl(self.smpl_file)) #TODO: fix
+        else:
+            bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
+            smpl_data = load_smpl(self.smpl_file)
+            self.human.set_joint_angles_with_smpl(smpl_data)
+            height, base_height = self.human.get_heights()
+            print("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
+            self.human.set_global_orientation(smpl_data, [0, 0, bed_height])
+            self.human.set_gravity(0, 0, -9.81)
+            p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
+            for _ in range(100):
+                p.stepSimulation(physicsClientId=self.id)
+
 
     
     def get_reba_score(self):
@@ -166,10 +178,13 @@ class HumanComfortEnv(AssistiveEnv):
         self.human.set_joint_angles_with_smpl(smpl_data)
         height, base_height = self.human.get_heights()
         print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
-        self.human.set_global_orientation(smpl_data, [0, 0, base_height+ bed_height])
+        self.human.set_global_orientation(smpl_data, [0, 0,  bed_height])
 
-        # self.robot.set_gravity(0, 0, -9.81) # ADD STRETCH
+        self.robot.set_gravity(0, 0, -9.81) # ADD STRETCH
         self.human.set_gravity(0, 0, -9.81)
+        # debug robot
+        for j in range(p.getNumJoints(self.robot.body, physicsClientId=self.id)):
+            print(p.getJointInfo(self.robot.body, j, physicsClientId=self.id))
 
         # calculating the rebaScore
         self.get_reba_score()
@@ -181,6 +196,7 @@ class HumanComfortEnv(AssistiveEnv):
         # drop human on bed
         for i in range(100):
             p.stepSimulation(physicsClientId=self.id)
+
         # p.setTimeStep(1/240., physicsClientId=self.id)
         self.init_env_variables()
         return self._get_obs()
