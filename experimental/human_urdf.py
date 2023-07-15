@@ -16,6 +16,7 @@ from assistive_gym.envs.utils.human_utils import set_self_collisions, change_dyn
 from assistive_gym.envs.utils.log_utils import get_logger
 from assistive_gym.envs.utils.plot_utils import plot
 from assistive_gym.envs.utils.smpl_dict import SMPLDict
+from scipy.spatial.transform import Rotation as R
 
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf, SMPLData
 import kinpy as kp
@@ -379,40 +380,47 @@ class HumanUrdf(Agent):
 
         return collision_pairs
 
-    def ray_cast(self, end_effector: str):
-        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
-
-        to_pos = ee_pos + np.array([0, 0, 1])  # ray's ending position
-        result = p.rayTest(ee_pos, to_pos)
-
-        # visualize the ray from 'from_pos' to 'to_pos'
-        ray_id = p.addUserDebugLine(ee_pos, to_pos, [1, 0, 0])  # the ray is red
-
-        # The result is a list of ray hit information tuples. Each tuple contains:
-        # - The object ID of the hit object
-        # - The link index of the hit link
-        # - The hit position in the world frame
-        # - The hit surface normal in the world frame
-        # - The hit fraction along the ray's length (0=start, 1=end)
-
-        for hit in result:
-            object_id, link_index, hit_position, hit_normal, hit_fraction = hit
-            print(f"Hit object ID: {object_id}")
-            print(f"Hit link index: {link_index}")
-            print(f"Hit position: {hit_position}")
-            print(f"Hit normal: {hit_normal}")
-            print(f"Hit fraction: {hit_fraction}")
-        time.sleep(10)
-        # p.removeUserDebugItem(ray_id)  # remove the visualized ray
-
     def get_ee_pos_orient(self, end_effector):
-        ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector))[:2]
+        ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector),  computeForwardKinematics=True, physicsClientId=self.id)[0:2]
         return ee_pos, ee_orient
+
+    def get_ee_bb_dimension(self, end_effector, draw_bb=False):
+        """
+        Return the AABB bounding box dimensions of the end effector
+        :param end_effector:
+        :return:
+        """
+        link_idx = self.human_dict.get_dammy_joint_id(end_effector)
+        min_pos, max_pos = p.getAABB(self.body, link_idx, physicsClientId=self.id)
+        # compute box lengths
+        box_dims = [max_pos[i] - min_pos[i] for i in range(3)]
+        if draw_bb: # fopr debugging
+            # compute box position (which is the center of the AABB)
+            box_pos, box_orient = p.getLinkState(self.body, link_idx, physicsClientId=self.id)[:2]
+
+            # set the box halfExtents
+            half_extends= [length/ 2 for length in box_dims]
+            collision_shape_id = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=half_extends)
+            visual_shape_id = p.createVisualShape(shapeType=p.GEOM_BOX, rgbaColor=[1, 0, 0, 0.7], halfExtents=half_extends)
+
+            # create a multi-body with baseMass=0 (making it static)
+            box_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collision_shape_id,
+                                      baseVisualShapeIndex=visual_shape_id, basePosition=box_pos,
+                                          baseOrientation=[0, 0, 0, 1], physicsClientId=self.id)
+
+        return np.array(box_dims)
+
+    def get_ee_collision_shape_pos_orient(self, end_effector, collision_shape_radius=0.05):
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+        ee_rot_matrix = np.array(p.getMatrixFromQuaternion(ee_orient)).reshape(3, 3)
+        ee_norm_vec = -ee_rot_matrix[:, 1]  # perpendicular to the palm, pointing from palm outward
+        pos_offset = ee_norm_vec / np.linalg.norm(ee_norm_vec) * collision_shape_radius # create a displacement along the normal vector, and scale it by the radius
+        return np.array(ee_pos) + pos_offset, ee_orient
 
     def _print_joint_indices(self):
         """
         Getting the joint index for debugging purpose
-        TODO: refactor for programmatically generate the joint ind
+        TODO: refactor for programmatically generate the joint index
         :return:
         """
         print(self._get_controllable_joints())
