@@ -293,7 +293,7 @@ class HumanUrdf(Agent):
         # return all info
         return arm_score
 
-    def get_perp_wrist_orientation(self, hand='right'):
+    def get_perp_wrist_orientation(self, hand='right', pill=True):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         if hand == 'right':
@@ -303,8 +303,12 @@ class HumanUrdf(Agent):
 
         wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
         array = p.getEulerFromQuaternion(wrist_orientation)
+        pitch = array[0]
 
-        return array[0]
+        if pill and pitch > np.pi/2:
+            pitch = abs(pitch - np.pi)
+
+        return pitch
 
     def cal_chain_manipulibility(self, joint_angles, ee: str):
         chain = self.chain[ee]

@@ -252,17 +252,30 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     reba = human.get_reba_score()
     max_reba = 9.0
 
-    # cal wrist orient
+    # cal wrist orient (pill)
     wr_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation())
-    max_wr_offset = abs(-np.pi/2 - np.pi)
+    max_wr_offset = np.pi
 
-    w = [1, 1, 4, 1, 1, 2, 6]
+    # cal wrist orient (cane)
+    cane_wr_offset = abs(abs(human.get_perp_wrist_orientation(pill=False)) - np.pi/2)
+    max_cane_wr_offset = np.pi/2
+
+    # cal wrist orient (cup/bottle)
+    cup_wr_offset = abs(human.get_perp_wrist_orientation(pill=False))
+    max_cup_wr_offset = np.pi
+    # to add --> a y or z dimension as well to ensure cup will be upright
+    # potentially add a cup=True term and figure out how to incorporate the second rotation
+
+
+    w = [1, 1, 4, 1, 1, 2, 0, 0, 6]
     # cost without simulate collision
     # cost = dist + 1.0/m + np.abs(energy_final)/1000.0
     # cost = 1.0/m + (energy_final-49)/5
     # cost = dist + 1 / manipulibility + energy_final / 100 + torque / 10
     cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-            + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba + w[6] * wr_offset/max_wr_offset) / np.sum(w)
+            + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba 
+            + w[6] * wr_offset/max_wr_offset + w[7] * cane_wr_offset/max_cane_wr_offset
+            + w[8] * cup_wr_offset/max_cup_wr_offset) / np.sum(w)
 
     # cost with simulate collision
     # cost = angle_dist + 1 / manipulibility + energy_final / 50 + torque / 10
@@ -273,7 +286,11 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
         cost += 100
     if not has_valid_robot_ik:
         cost += 1000
-    if wr_offset > 0.25: 
+    # if wr_offset > 0.23: 
+    #     cost += 100
+    # if cane_wr_offset > 0.23:
+    #     cost += 100
+    if cup_wr_offset > 0.23:
         cost += 100
 
     return cost, manipulibility, dist, energy_final, torque, reba, wr_offset
