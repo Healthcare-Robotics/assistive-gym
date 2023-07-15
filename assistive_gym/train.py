@@ -227,7 +227,8 @@ def has_new_collision(old_collisions: Set, new_collisions: Set, human, end_effec
 
 
 def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.ndarray, original_info: OriginalHumanInfo,
-            max_dynamics: MaximumHumanDynamics,  has_self_collision,has_env_collision, has_valid_robot_ik, angle_dist):
+            max_dynamics: MaximumHumanDynamics,  has_self_collision,has_env_collision, has_valid_robot_ik, angle_dist, 
+            offset_lims=[1000, 1000, 1000], obj_wts=[0, 0, 0]):
 
 
     # cal energy
@@ -267,7 +268,8 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     # potentially add a cup=True term and figure out how to incorporate the second rotation
 
 
-    w = [1, 1, 4, 1, 1, 2, 0, 0, 0]
+    w = [1, 1, 4, 1, 1, 2]
+    w = w + obj_wts
     # cost without simulate collision
     # cost = dist + 1.0/m + np.abs(energy_final)/1000.0
     # cost = 1.0/m + (energy_final-49)/5
@@ -286,12 +288,12 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
         cost += 100
     if not has_valid_robot_ik:
         cost += 1000
-    # if wr_offset > 0.23: 
-    #     cost += 100
-    # if cane_wr_offset > 0.23:
-    #     cost += 100
-    # if cup_wr_offset > 0.23:
-    #     cost += 100
+    if wr_offset > offset_lims[0]: 
+        cost += 100
+    if cane_wr_offset > offset_lims[1]:
+        cost += 100
+    if cup_wr_offset > offset_lims[2]:
+        cost += 100
 
     return cost, manipulibility, dist, energy_final, torque, reba, wr_offset
 
@@ -496,9 +498,20 @@ def get_human_link_robot_collision(human, end_effector):
     print("human_link: ", human_link_robot_collision)
     return human_link_robot_collision
 
+def choose_upward_hand(human, pill=False):
+    right_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector="right_hand", pill=pill))
+    left_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector="left_hand", pill=pill))
+
+    if right_offset > np.pi/2 and left_offset < np.pi/2:
+        return "left_hand"
+    elif right_offset < np.pi/2 and left_offset > np.pi/2:
+        return "right_hand"
+    else:
+        return None
+
 
 def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
-          end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False):
+          end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False, handover_obj=None):
     start_time = time.time()
     env = make_env(env_name, smpl_file, coop=True)
     if render:
@@ -506,10 +519,20 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     env.reset()
 
     human, robot, furniture, plane = env.human, env.robot, env.furniture, env.plane
-    # switch controllable indicies to left arm if end_effector does not equal right
+    # wts and limits will be reset based on task
+    obj_wts = [0, 0, 0]
+    offset_lims = [1000, 1000, 100]
+    # switch controllable indicies to left arm if end_effector does not equal right and the pill is not defined
     if end_effector != 'right_hand':
         human.reset_controllable_joints(end_effector)
-        
+    if handover_obj == "pill":
+        obj_wts = [6, 0, 0]
+        offset_lims = [0.23, 1000, 100]
+        ee = choose_upward_hand(human, pill=True)
+        if ee is not None: 
+            human.reset_controllable_joints(ee)
+            end_effector = ee
+
     env_object_ids = [furniture.body, plane.body]  # set env object for collision check
     human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
 
@@ -555,7 +578,8 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                 self_collisions = human.check_self_collision()
                 has_self_collision, has_env_collision= detect_collisions(original_info, self_collisions, env_collisions, human, end_effector)
                 cost, m, dist, energy, torque = cost_fn(human, end_effector, s, original_ee_pos, original_info,
-                                                        max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist)
+                                                        max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
+                                                        angle_dist, offset_lims, obj_wts)
                 env.reset_human(is_collision=True)
                 LOG.info(
                     f"{bcolors.OKGREEN}timestep: {timestep}, cost: {cost}, angle_dist: {angle_dist} , dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
@@ -572,7 +596,8 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                     has_valid_robot_ik = True
 
                 cost, m, dist, energy, torque, reba, wr_orient = cost_fn(human, end_effector, s, original_ee_pos, original_info,
-                                                        max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist=0)
+                                                        max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
+                                                        angle_dist=0, offset_lims=offset_lims, obj_wts=obj_wts)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
                 LOG.info(
@@ -727,6 +752,7 @@ if __name__ == '__main__':
     parser.add_argument('--end-effector', default='right_hand', help='end effector name')
     parser.add_argument("--simulate-collision", action='store_true', default=False, help="simulate collision")
     parser.add_argument("--robot-ik", action='store_true', default=False, help="solve robot ik during training")
+    parser.add_argument("--handover-obj", default=None, help="define if the handover object is default, pill, bottle, or cane")
 
     # replay
     parser.add_argument('--load-policy-path', default='./trained_models/',
@@ -741,7 +767,7 @@ if __name__ == '__main__':
 
     if args.train:
         _, actions = train(args.env, args.seed, args.num_points, args.smpl_file, args.end_effector, args.save_dir,
-                           args.render_gui, args.simulate_collision, args.robot_ik)
+                           args.render_gui, args.simulate_collision, args.robot_ik, args.handover_obj)
 
     if args.render:
         render(args.env, args.smpl_file, args.save_dir)
