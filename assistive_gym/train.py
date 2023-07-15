@@ -249,25 +249,25 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     print("mid_angle_displacement: ", mid_angle_displacement)
 
     # cal reba
-    reba = human.get_reba_score()
+    reba = human.get_reba_score(end_effector=ee_name)
     max_reba = 9.0
 
     # cal wrist orient (pill)
-    wr_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation())
+    wr_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector=ee_name, pill=True))
     max_wr_offset = np.pi
 
     # cal wrist orient (cane)
-    cane_wr_offset = abs(abs(human.get_perp_wrist_orientation(pill=False)) - np.pi/2)
+    cane_wr_offset = abs(abs(human.get_perp_wrist_orientation(end_effector=ee_name)) - np.pi/2)
     max_cane_wr_offset = np.pi/2
 
-    # cal wrist orient (cup/bottle)
-    cup_wr_offset = abs(human.get_perp_wrist_orientation(pill=False))
+    # cal wrist orient (cup/bottle - right hand only -- need to update)
+    cup_wr_offset = abs(human.get_perp_wrist_orientation(end_effector=ee_name))
     max_cup_wr_offset = np.pi
     # to add --> a y or z dimension as well to ensure cup will be upright
     # potentially add a cup=True term and figure out how to incorporate the second rotation
 
 
-    w = [1, 1, 4, 1, 1, 2, 0, 0, 6]
+    w = [1, 1, 4, 1, 1, 2, 0, 0, 0]
     # cost without simulate collision
     # cost = dist + 1.0/m + np.abs(energy_final)/1000.0
     # cost = 1.0/m + (energy_final-49)/5
@@ -290,8 +290,8 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     #     cost += 100
     # if cane_wr_offset > 0.23:
     #     cost += 100
-    if cup_wr_offset > 0.23:
-        cost += 100
+    # if cup_wr_offset > 0.23:
+    #     cost += 100
 
     return cost, manipulibility, dist, energy_final, torque, reba, wr_offset
 
@@ -506,6 +506,10 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     env.reset()
 
     human, robot, furniture, plane = env.human, env.robot, env.furniture, env.plane
+    # switch controllable indicies to left arm if end_effector does not equal right
+    if end_effector != 'right_hand':
+        human.reset_controllable_joints(end_effector)
+        
     env_object_ids = [furniture.body, plane.body]  # set env object for collision check
     human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
 
