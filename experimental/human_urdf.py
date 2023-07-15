@@ -318,6 +318,13 @@ class HumanUrdf(Agent):
 
         return pitch
 
+    def get_para_wrist_orientation(self, end_effector="right_hand"):
+        human_dict = HumanUrdfDict()
+        # determine wrist index for the correct hand
+        wrist_ind = human_dict.get_dammy_joint_id(end_effector)
+        wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
+        return wrist_orientation[1]
+
     def cal_chain_manipulibility(self, joint_angles, ee: str):
         chain = self.chain[ee]
         J = chain.jacobian(joint_angles, end_only=True)

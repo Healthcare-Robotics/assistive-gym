@@ -257,30 +257,21 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     wr_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector=ee_name, pill=True))
     max_wr_offset = np.pi
 
-    # cal wrist orient (cane)
-    cane_wr_offset = abs(abs(human.get_perp_wrist_orientation(end_effector=ee_name)) - np.pi/2)
-    max_cane_wr_offset = np.pi/2
-
-    # cal wrist orient (cup/bottle - right hand only -- need to update)
-    cup_wr_offset = abs(human.get_perp_wrist_orientation(end_effector=ee_name))
-    max_cup_wr_offset = np.pi
-    # to add --> a y or z dimension as well to ensure cup will be upright
-    # potentially add a cup=True term and figure out how to incorporate the second rotation
+    # cal wrist orient (cup/bottle)
+    cup_wr_offset_x = abs(human.get_perp_wrist_orientation(end_effector=ee_name))
+    cup_wr_offset_y = abs(human.get_para_wrist_orientation(end_effector=ee_name))
+    max_cup_x = np.pi
+    max_cup_y = 1
 
 
     w = [1, 1, 4, 1, 1, 2]
     w = w + obj_wts
-    # cost without simulate collision
-    # cost = dist + 1.0/m + np.abs(energy_final)/1000.0
-    # cost = 1.0/m + (energy_final-49)/5
-    # cost = dist + 1 / manipulibility + energy_final / 100 + torque / 10
+
     cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
             + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba 
-            + w[6] * wr_offset/max_wr_offset + w[7] * cane_wr_offset/max_cane_wr_offset
-            + w[8] * cup_wr_offset/max_cup_wr_offset) / np.sum(w)
+            + w[6] * wr_offset/max_wr_offset + w[7] * cup_wr_offset_x/max_cup_x
+            + w[8] * cup_wr_offset_y/max_cup_y) / np.sum(w)
 
-    # cost with simulate collision
-    # cost = angle_dist + 1 / manipulibility + energy_final / 50 + torque / 10
 
     if has_self_collision:
         cost += 100
@@ -290,9 +281,9 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
         cost += 1000
     if wr_offset > offset_lims[0]: 
         cost += 100
-    if cane_wr_offset > offset_lims[1]:
+    if cup_wr_offset_x > offset_lims[1]:
         cost += 100
-    if cup_wr_offset > offset_lims[2]:
+    if cup_wr_offset_y > offset_lims[2]:
         cost += 100
 
     return cost, manipulibility, dist, energy_final, torque, reba, wr_offset
@@ -509,6 +500,20 @@ def choose_upward_hand(human, pill=False):
     else:
         return None
 
+def choose_upper_hand(human):
+    right_pos = human.get_link_positions(True, end_effector_name="right_hand")
+    left_pos = human.get_link_positions(True, end_effector_name="left_hand")
+    right_shoulder_z = right_pos[1][2]
+    left_shoulder_z = left_pos[1][2]
+    print("right_shoulder_z: ", right_shoulder_z, "\nleft_shoudler_z: ", left_shoulder_z)
+    diff = right_shoulder_z - left_shoulder_z
+    if diff > 0.1:
+        return "right_hand"
+    elif diff < -0.1:
+        return "left_hand"
+    else:
+        return None
+
 
 def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
           end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False, handover_obj=None):
@@ -519,12 +524,13 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     env.reset()
 
     human, robot, furniture, plane = env.human, env.robot, env.furniture, env.plane
-    # wts and limits will be reset based on task
-    obj_wts = [0, 0, 0]
-    offset_lims = [1000, 1000, 100]
-    # switch controllable indicies to left arm if end_effector does not equal right and the pill is not defined
+    # switch controllable indicies to left arm if end_effector does not equal right > this will likely be removed/can be overwritten by an object
     if end_effector != 'right_hand':
         human.reset_controllable_joints(end_effector)
+
+    # add specifications based on handover type
+    obj_wts = [0, 0, 0]
+    offset_lims = [1000, 1000, 100]
     if handover_obj == "pill":
         obj_wts = [6, 0, 0]
         offset_lims = [0.23, 1000, 100]
@@ -532,6 +538,14 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
         if ee is not None: 
             human.reset_controllable_joints(ee)
             end_effector = ee
+    elif handover_obj == "cup":
+        obj_wts = [0, 6, 5]
+        offset_lims = [1000, 0.23, 0.23]
+        ee = choose_upper_hand(human)
+        if ee is not None:
+            human.reset_controllable_joints(ee)
+            end_effector = ee
+        input("cup was successfully assigned and " + str(ee) + " was choosen\ncontinue?")
 
     env_object_ids = [furniture.body, plane.body]  # set env object for collision check
     human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
