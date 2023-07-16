@@ -475,6 +475,59 @@ class HumanUrdf(Agent):
         time.sleep(10)
         # p.removeUserDebugItem(ray_id)  # remove the visualized ray
 
+    def ray_cast_perp(self, end_effector: str, ray_length=0.15):
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+
+        rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
+        ray_dir = rotation.reshape(3, 3)[:, 1]
+        end = np.array(ray_dir)* (-ray_length)
+        # using midpoint as start pos so that the hand is not counted as a collision
+        start_pos = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
+        to_pos = ee_pos + np.array(ray_dir) * -ray_length
+        result = p.rayTest(start_pos, to_pos)
+
+        # visualize the ray from 'from_pos' to 'to_pos'
+        ray_id = p.addUserDebugLine(ee_pos, to_pos, [ray_length, 0, 0])  # the ray is red
+        res_id = result[0][0]
+        print("res_id: ", res_id)
+        if res_id > 0:
+            print("obj name: ", p.getBodyInfo(res_id)[1])
+        p.removeUserDebugItem(ray_id)  # remove the visualized ray
+        return res_id == 2
+
+    def ray_cast_para(self, end_effector: str, ray_length=1.0):
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+
+        rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
+        mat = rotation.reshape(3, 3)
+        ray_dir = mat[:, 2]
+        ray_dir = [ray_dir[2], -ray_dir[1], ray_dir[0]]
+        to_pos = ee_pos + np.array(ray_dir) * ray_length
+        # to_pos = ee_pos + np.array([0, 0, 1])  # ray's ending position
+        result = p.rayTest(ee_pos, to_pos)
+
+        # visualize the ray from 'from_pos' to 'to_pos'
+        ray_id = p.addUserDebugLine(ee_pos, to_pos, [ray_length, 0, 0])  # the ray is red
+
+        # The result is a list of ray hit information tuples. Each tuple contains:
+        # - The object ID of the hit object
+        # - The link index of the hit link
+        # - The hit position in the world frame
+        # - The hit surface normal in the world frame
+        # - The hit fraction along the ray's length (0=start, 1=end)
+
+        for hit in result:
+            object_id, link_index, hit_position, hit_normal, hit_fraction = hit
+            print(f"Hit object ID: {object_id}")
+            print(f"Hit link index: {link_index}")
+            print(f"Hit position: {hit_position}")
+            print(f"Hit normal: {hit_normal}")
+            print(f"Hit fraction: {hit_fraction}")
+        print("length result: ", len(result), " result: ", result)
+        time.sleep(10)
+        # p.removeUserDebugItem(ray_id)  # remove the visualized ray
+        return len(result) > 0
+
     def get_ee_pos_orient(self, end_effector):
         ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector))[:2]
         return ee_pos, ee_orient

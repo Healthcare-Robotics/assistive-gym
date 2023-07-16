@@ -263,7 +263,6 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     max_cup_x = np.pi
     max_cup_y = 1
 
-
     w = [1, 1, 4, 1, 1, 2]
     w = w + obj_wts
 
@@ -285,6 +284,11 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
         cost += 100
     if cup_wr_offset_y > offset_lims[2]:
         cost += 100
+    if obj_wts[1] > 0:
+        mult = human.ray_cast_perp(end_effector=ee_name)
+        print("collision: ", mult)
+        time.sleep(0.25)
+        cost += 100 * mult
 
     return cost, manipulibility, dist, energy_final, torque, reba, wr_offset
 
@@ -545,7 +549,6 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
         if ee is not None:
             human.reset_controllable_joints(ee)
             end_effector = ee
-        input("cup was successfully assigned and " + str(ee) + " was choosen\ncontinue?")
 
     env_object_ids = [furniture.body, plane.body]  # set env object for collision check
     human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
