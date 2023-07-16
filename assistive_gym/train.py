@@ -204,25 +204,30 @@ def cal_mid_angle(lower_bounds, upper_bounds):
 def has_new_collision(old_collisions: Set, new_collisions: Set, human, end_effector="right_hand") -> bool:
     link_ids = set(human.human_dict.get_real_link_indices(end_effector))
     # print ("link ids", link_ids)
+
+    # convert old collision to set of tuples (link1, link2), remove penetration
     collisions = set()
     for o in old_collisions:
         collisions.add((o[0], o[1]))
-    # print (collisions)
 
+    collision_arr = [] # list of collision that is new or has deep penetration
     for collision in new_collisions:
         if not collision[0] in link_ids and not collision[1] in link_ids:
             continue # not end effector chain collision, skip
         # TODO: fix it, since link1 and link2 in collision from different object, so there is a slim chance of collision
         if (collision[0], collision[1]) not in collisions or (collision[1], collision[0]) not in collisions: #new collision:
             print ("new collision: ", collision)
-            return True
+            if abs(collision[2]) > 0.005:  # magic number. we have penetration between spine4 and shoulder in pose 5
+                collision_arr.append(collision)
         else:
             # collision in old collision
             link1, link2, penetration = collision
+            print("old collision with deep: ", collision)
             if abs(penetration) > 0.015: # magic number. we have penetration between spine4 and shoulder in pose 5
                 print ("old collision with deep penetration: ", collision)
-                return True
-    return False
+                collision_arr.append(collision)
+
+    return True if len(collision_arr) > 0 else False
 
 
 
@@ -275,7 +280,7 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     if has_self_collision:
         cost += 100
     if has_env_collision:
-        cost += 100
+        cost += 1000
     if not has_valid_robot_ik:
         cost += 1000
     if wr_offset > offset_lims[0]: 
@@ -555,7 +560,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
 
     # original value
     original_joint_angles = human.get_joint_angles(human.controllable_joint_indices)
-    original_link_positions = human.get_link_positions(True, end_effector_name=end_effector)
+    original_link_positions = human.get_link_positions(center_of_mass=True, end_effector_name=end_effector)
     original_self_collisions = human.check_self_collision()
     original_env_collisions = human.check_env_collision(env_object_ids)
     original_info = OriginalHumanInfo(original_joint_angles, original_link_positions, original_self_collisions,
@@ -722,7 +727,7 @@ def init_optimizer2(x0, sigma, lower_bounds, upper_bounds):
     return es
 
 
-def render(env_name, smpl_file, save_dir):
+def render(env_name, smpl_file, save_dir, end_effector):
     save_dir = get_save_dir(save_dir, env_name, smpl_file)
     actions = pickle.load(open(os.path.join(save_dir, "actions.pkl"), "rb"))
     env = make_env(env_name, coop=True, smpl_file=smpl_file)
@@ -730,9 +735,10 @@ def render(env_name, smpl_file, save_dir):
     env.reset()
     best_idx = 0
 
+    env.human.reset_controllable_joints(end_effector)
     for (idx, action) in enumerate(actions):
         env.human.set_joint_angles(env.human.controllable_joint_indices, action["solution"])
-        human_link_robot_collision = get_human_link_robot_collision(env.human, "right_hand")
+        human_link_robot_collision = get_human_link_robot_collision(env.human, end_effector)
         # find_robot_ik_solution(env, "right_hand", human_link_robot_collision)
         time.sleep(2)
 
@@ -787,4 +793,4 @@ if __name__ == '__main__':
                            args.render_gui, args.simulate_collision, args.robot_ik, args.handover_obj)
 
     if args.render:
-        render(args.env, args.smpl_file, args.save_dir)
+        render(args.env, args.smpl_file, args.save_dir, args.end_effector)
