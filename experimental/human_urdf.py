@@ -9,6 +9,7 @@ from cma import CMAEvolutionStrategy
 from gym.utils import seeding
 from kinpy import Transform
 from ergonomics.reba import RebaScore
+# from panda3d.bullet import BulletAllHitsRayResult
 
 from assistive_gym.envs.agents.agent import Agent
 from assistive_gym.envs.utils.human_urdf_dict import HumanUrdfDict
@@ -305,25 +306,33 @@ class HumanUrdf(Agent):
         # return all info
         return arm_score
 
-    def get_perp_wrist_orientation(self, end_effector="right_hand", pill=False):
+    def get_roll_wrist_orientation(self, end_effector="right_hand", pill=False):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         wrist_ind = human_dict.get_dammy_joint_id(end_effector)
         wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
         array = p.getEulerFromQuaternion(wrist_orientation)
-        pitch = array[0]
+        roll = array[0]
 
-        if pill and pitch > np.pi/2:
-            pitch = abs(pitch - np.pi)
+        if pill and roll > np.pi/2:
+            roll = abs(roll - np.pi)
 
-        return pitch
+        return roll
 
-    def get_para_wrist_orientation(self, end_effector="right_hand"):
+    def get_pitch_wrist_orientation(self, end_effector="right_hand"):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         wrist_ind = human_dict.get_dammy_joint_id(end_effector)
         wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
         return wrist_orientation[1]
+
+    def get_yaw_wrist_orientation(self, end_effector="right_hand"):
+        human_dict = HumanUrdfDict()
+        # determine wrist index for the correct hand
+        wrist_ind = human_dict.get_dammy_joint_id(end_effector)
+        wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
+        array = p.getEulerFromQuaternion(wrist_orientation)
+        return array[2]
 
     def cal_chain_manipulibility(self, joint_angles, ee: str):
         chain = self.chain[ee]
@@ -475,58 +484,62 @@ class HumanUrdf(Agent):
         time.sleep(10)
         # p.removeUserDebugItem(ray_id)  # remove the visualized ray
 
-    def ray_cast_perp(self, end_effector: str, ray_length=0.15):
+    def ray_cast_perpendicular(self, end_effector: str, ray_length=0.17):
         ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
 
         rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
         ray_dir = rotation.reshape(3, 3)[:, 1]
-        end = np.array(ray_dir)* (-ray_length)
         # using midpoint as start pos so that the hand is not counted as a collision
+        dist = -0.05 # how far from the hand should the ray start
+        end = [ee_pos[0] + (ray_dir[0]*dist), ee_pos[1] + (ray_dir[1]*dist), ee_pos[2] + (ray_dir[2]*dist)]
+        # ray start and end
         start_pos = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
-        to_pos = ee_pos + np.array(ray_dir) * -ray_length
+        to_pos = [start_pos[0] + (ray_dir[0]*-ray_length), start_pos[1] + (ray_dir[1]*-ray_length), start_pos[2] + (ray_dir[2]*-ray_length)]
         result = p.rayTest(start_pos, to_pos)
 
         # visualize the ray from 'from_pos' to 'to_pos'
-        ray_id = p.addUserDebugLine(ee_pos, to_pos, [ray_length, 0, 0])  # the ray is red
+        ray_id = p.addUserDebugLine(start_pos, to_pos, [0, 1, 0])  # the ray is green
         res_id = result[0][0]
-        print("res_id: ", res_id)
-        if res_id > 0:
-            print("obj name: ", p.getBodyInfo(res_id)[1])
         p.removeUserDebugItem(ray_id)  # remove the visualized ray
-        return res_id == 2
 
-    def ray_cast_para(self, end_effector: str, ray_length=1.0):
+        return res_id > 0
+
+    def ray_cast_parallel(self, end_effector: str, ray_length=0.5):
         ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
 
         rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
-        mat = rotation.reshape(3, 3)
-        ray_dir = mat[:, 2]
-        ray_dir = [ray_dir[2], -ray_dir[1], ray_dir[0]]
-        to_pos = ee_pos + np.array(ray_dir) * ray_length
-        # to_pos = ee_pos + np.array([0, 0, 1])  # ray's ending position
-        result = p.rayTest(ee_pos, to_pos)
+        ray_dir = rotation.reshape(3, 3)[:, 2]
+        # RAY 1
+        # using midpoint as start pos so that the hand is not counted as a collision
+        dist = -0.075 # how far from the hand should the ray start
+        end = [ee_pos[0] + (ray_dir[0]*dist), ee_pos[1] + (ray_dir[1]*dist), ee_pos[2] + (ray_dir[2]*dist)]
+        # ray start and end
+        start_pos = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
+        to_pos = [start_pos[0] + (ray_dir[0]*-ray_length), start_pos[1] + (ray_dir[1]*-ray_length), start_pos[2] + (ray_dir[2]*-ray_length)]
+        result = p.rayTest(start_pos, to_pos)
+
+        # RAY 2
+        dist = 0.075 # how far from the hand should the ray start
+        end = [ee_pos[0] + (ray_dir[0]*dist), ee_pos[1] + (ray_dir[1]*dist), ee_pos[2] + (ray_dir[2]*dist)]
+        # ray start and end
+        start_pos_b = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
+        to_pos_b= [start_pos[0] + (ray_dir[0]*ray_length), start_pos[1] + (ray_dir[1]*ray_length), start_pos[2] + (ray_dir[2]*ray_length)]
+        result_b = p.rayTest(start_pos_b, to_pos_b)
 
         # visualize the ray from 'from_pos' to 'to_pos'
-        ray_id = p.addUserDebugLine(ee_pos, to_pos, [ray_length, 0, 0])  # the ray is red
+        p.addUserDebugLine(start_pos, to_pos, [0, 0, 1])  # the ray is blue
+        p.addUserDebugLine(start_pos_b, to_pos_b, [0, 0, 1])  # the ray is blue
+        res_id = result[0][0]
+        res_id_b = result_b[0][0]
+        p.removeAllUserDebugItems() # remove all rays
+        return res_id + res_id_b > -2
 
-        # The result is a list of ray hit information tuples. Each tuple contains:
-        # - The object ID of the hit object
-        # - The link index of the hit link
-        # - The hit position in the world frame
-        # - The hit surface normal in the world frame
-        # - The hit fraction along the ray's length (0=start, 1=end)
-
-        for hit in result:
-            object_id, link_index, hit_position, hit_normal, hit_fraction = hit
-            print(f"Hit object ID: {object_id}")
-            print(f"Hit link index: {link_index}")
-            print(f"Hit position: {hit_position}")
-            print(f"Hit normal: {hit_normal}")
-            print(f"Hit fraction: {hit_fraction}")
-        print("length result: ", len(result), " result: ", result)
-        time.sleep(10)
-        # p.removeUserDebugItem(ray_id)  # remove the visualized ray
-        return len(result) > 0
+    def check_collision_radius(self, end_effector="right_hand", distance=0.05):
+        human_dict = HumanUrdfDict()
+        link = human_dict.get_dammy_joint_id(end_effector)
+        out = p.getClosestPoints(self.body, self.body, distance, linkIndexA=link)
+        print("out: ", out, "\n len(out) > 5: ", len(out) > 5)
+        return len(out) > 0
 
     def get_ee_pos_orient(self, end_effector):
         ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector))[:2]

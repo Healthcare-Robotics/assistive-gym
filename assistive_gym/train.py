@@ -233,7 +233,7 @@ def has_new_collision(old_collisions: Set, new_collisions: Set, human, end_effec
 
 def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.ndarray, original_info: OriginalHumanInfo,
             max_dynamics: MaximumHumanDynamics,  has_self_collision,has_env_collision, has_valid_robot_ik, angle_dist, 
-            offset_lims=[1000, 1000, 1000], obj_wts=[0, 0, 0]):
+            offset_lims=[1000, 1000, 1000, 1000], obj_wts=[0, 0, 0, 0], cane=False):
 
 
     # cal energy
@@ -259,22 +259,24 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     max_reba = 9.0
 
     # cal wrist orient (pill)
-    wr_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector=ee_name, pill=True))
+    wr_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector=ee_name, pill=True))
     max_wr_offset = np.pi
 
-    # cal wrist orient (cup/bottle)
-    cup_wr_offset_x = abs(human.get_perp_wrist_orientation(end_effector=ee_name))
-    cup_wr_offset_y = abs(human.get_para_wrist_orientation(end_effector=ee_name))
+    # cal wrist orient (cup and cane)
+    cup_wr_offset_x = abs(human.get_roll_wrist_orientation(end_effector=ee_name))
+    cup_wr_offset_y = abs(human.get_pitch_wrist_orientation(end_effector=ee_name))
+    cup_wr_offset_z = abs(abs(human.get_yaw_wrist_orientation(end_effector=ee_name)) - (np.pi))
     max_cup_x = np.pi
     max_cup_y = 1
+    max_cup_z = np.pi
 
     w = [1, 1, 4, 1, 1, 2]
     w = w + obj_wts
 
     cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
             + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba 
-            + w[6] * wr_offset/max_wr_offset + w[7] * cup_wr_offset_x/max_cup_x
-            + w[8] * cup_wr_offset_y/max_cup_y) / np.sum(w)
+            + w[6] * wr_offset/max_wr_offset + w[7] * cup_wr_offset_x/max_cup_x + w[8] * cup_wr_offset_y/max_cup_y 
+            + w[9] * cup_wr_offset_z/max_cup_z) / np.sum(w)
 
 
     if has_self_collision:
@@ -282,18 +284,15 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     if has_env_collision:
         cost += 1000
     if not has_valid_robot_ik:
-        cost += 1000
+        cost += 10000
     if wr_offset > offset_lims[0]: 
         cost += 100
-    if cup_wr_offset_x > offset_lims[1]:
-        cost += 100
-    if cup_wr_offset_y > offset_lims[2]:
+    if cup_wr_offset_x > offset_lims[1] or cup_wr_offset_y > offset_lims[2]:
         cost += 100
     if obj_wts[1] > 0:
-        mult = human.ray_cast_perp(end_effector=ee_name)
-        print("collision: ", mult)
-        time.sleep(0.25)
-        cost += 100 * mult
+        cost += 100 * human.ray_cast_perpendicular(end_effector=ee_name, ray_length=0.2)
+    if cane:
+        cost += 100 * human.ray_cast_parallel(end_effector=ee_name)
 
     return cost, manipulibility, dist, energy_final, torque, reba, wr_offset
 
@@ -498,9 +497,10 @@ def get_human_link_robot_collision(human, end_effector):
     print("human_link: ", human_link_robot_collision)
     return human_link_robot_collision
 
+
 def choose_upward_hand(human, pill=False):
-    right_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector="right_hand", pill=pill))
-    left_offset = abs(-np.pi/2 - human.get_perp_wrist_orientation(end_effector="left_hand", pill=pill))
+    right_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="right_hand", pill=pill))
+    left_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="left_hand", pill=pill))
 
     if right_offset > np.pi/2 and left_offset < np.pi/2:
         return "left_hand"
@@ -508,6 +508,7 @@ def choose_upward_hand(human, pill=False):
         return "right_hand"
     else:
         return None
+
 
 def choose_upper_hand(human):
     right_pos = human.get_link_positions(True, end_effector_name="right_hand")
@@ -538,22 +539,28 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
         human.reset_controllable_joints(end_effector)
 
     # add specifications based on handover type
-    obj_wts = [0, 0, 0]
-    offset_lims = [1000, 1000, 100]
+    obj_wts = [0, 0, 0, 0]
+    offset_lims = [1000, 1000, 1000, 1000]
+    cane = False
     if handover_obj == "pill":
-        obj_wts = [6, 0, 0]
-        offset_lims = [0.23, 1000, 100]
+        obj_wts = [6, 0, 0, 0]
+        offset_lims = [0.27, 1000, 1000, 1000]
         ee = choose_upward_hand(human, pill=True)
         if ee is not None: 
             human.reset_controllable_joints(ee)
             end_effector = ee
     elif handover_obj == "cup":
-        obj_wts = [0, 6, 5]
-        offset_lims = [1000, 0.23, 0.23]
+        obj_wts = [0, 7, 4, 4]
+        offset_lims = [1000, 0.23, 0.23, 1000]
         ee = choose_upper_hand(human)
         if ee is not None:
             human.reset_controllable_joints(ee)
             end_effector = ee
+    elif handover_obj == "cane":
+        obj_wts = [0, 6, 4, 5]
+        offset_lims = [1000, 0.23, 0.23, 1000]
+        cane = True
+
 
     env_object_ids = [furniture.body, plane.body]  # set env object for collision check
     human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
@@ -601,7 +608,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                 has_self_collision, has_env_collision= detect_collisions(original_info, self_collisions, env_collisions, human, end_effector)
                 cost, m, dist, energy, torque = cost_fn(human, end_effector, s, original_ee_pos, original_info,
                                                         max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
-                                                        angle_dist, offset_lims, obj_wts)
+                                                        angle_dist, offset_lims, obj_wts, cane)
                 env.reset_human(is_collision=True)
                 LOG.info(
                     f"{bcolors.OKGREEN}timestep: {timestep}, cost: {cost}, angle_dist: {angle_dist} , dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
@@ -619,7 +626,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
 
                 cost, m, dist, energy, torque, reba, wr_orient = cost_fn(human, end_effector, s, original_ee_pos, original_info,
                                                         max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
-                                                        angle_dist=0, offset_lims=offset_lims, obj_wts=obj_wts)
+                                                        angle_dist=0, offset_lims=offset_lims, obj_wts=obj_wts, cane=cane)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
                 LOG.info(
@@ -655,7 +662,8 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
             has_valid_robot_ik = True
         angle_dist = 0
     cost, m, dist, energy, torque, reba, wrist_orient = cost_fn(human, end_effector, optimizer.best.x, original_ee_pos, original_info,
-                                            max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist)
+                                            max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist, offset_lims, 
+                                            obj_wts, cane)
     LOG.info(
         f"{bcolors.OKBLUE} Best cost: {cost}, dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
     action = {
