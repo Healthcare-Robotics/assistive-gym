@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pybullet as p
 import pybullet_data
+from numpy.linalg import norm
 from cma import CMAEvolutionStrategy
 from gym.utils import seeding
 from kinpy import Transform
@@ -306,25 +307,34 @@ class HumanUrdf(Agent):
         # return all info
         return arm_score
 
-    def get_roll_wrist_orientation(self, end_effector="right_hand", pill=False):
+    def get_roll_wrist_orientation(self, end_effector="right_hand"):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
-        wrist_ind = human_dict.get_dammy_joint_id(end_effector)
-        wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
-        array = p.getEulerFromQuaternion(wrist_orientation)
-        roll = array[0]
+        _, ee_orient = self.get_ee_pos_orient(end_effector)
+        rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
+        ray_dir = rotation.reshape(3, 3)[:, 1]
+        print("ray_dir: ", ray_dir)
 
-        if pill and roll > np.pi/2:
-            roll = abs(roll - np.pi)
+        goal = [0, 0, 1]
+        cosine = np.dot(ray_dir, goal)/(norm(ray_dir)*norm(goal))
+        print("Cosine Similarity:", cosine)
 
-        return roll
+
+        return cosine
 
     def get_pitch_wrist_orientation(self, end_effector="right_hand"):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
-        wrist_ind = human_dict.get_dammy_joint_id(end_effector)
-        wrist_orientation = p.getLinkState(self.body, wrist_ind)[1]
-        return wrist_orientation[1]
+        _, ee_orient = self.get_ee_pos_orient(end_effector)
+        rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
+        ray_dir = rotation.reshape(3, 3)[:, 2]
+        print("ray_dir: ", ray_dir)
+
+        goal = [0, 0, 1]
+        cosine = np.dot(ray_dir, goal)/(norm(ray_dir)*norm(goal))
+        print("Cosine Similarity:", cosine)
+
+        return cosine
 
     def get_yaw_wrist_orientation(self, end_effector="right_hand"):
         human_dict = HumanUrdfDict()

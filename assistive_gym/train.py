@@ -263,8 +263,8 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
 
     if pill:
         # cal wrist orient (pill)
-        wr_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector=ee_name, pill=True))
-        max_wr_offset = np.pi
+        wr_offset = human.get_roll_wrist_orientation(end_effector=ee_name) 
+        max_wr_offset = 1
         w = w + obj_wts
         # cal cost
         cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
@@ -274,24 +274,16 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
         cost += 100 * (wr_offset > offset_lim)
     elif cup or cane:
         # cal wrist orient (cup and cane)
-        cup_wr_offset_x = abs(human.get_roll_wrist_orientation(end_effector=ee_name))
-        cup_wr_offset_y = abs(human.get_pitch_wrist_orientation(end_effector=ee_name))
-        cup_wr_offset_z = abs(abs(human.get_yaw_wrist_orientation(end_effector=ee_name)) - (np.pi))
-        max_cup_x = np.pi
-        max_cup_y = 1
-        max_cup_z = np.pi
+        cup_wr_offset = abs(human.get_pitch_wrist_orientation(end_effector=ee_name) - 1)
+        max_cup = 1
         w = w + obj_wts
         # cal cost
         cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
             + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba 
-            + w[6] * cup_wr_offset_x/max_cup_x + w[7] * cup_wr_offset_y/max_cup_y + w[8] * cup_wr_offset_z/max_cup_z) / np.sum(w)
+            + w[6] * cup_wr_offset/max_cup) / np.sum(w)
         # check angles and raycasts
-        cost += 100 * cup_wr_offset_x > offset_lim 
-        cost += 100 * cup_wr_offset_y > offset_lim 
-        cost += 100 * cup_wr_offset_z > offset_lim # potentially remove if cane is failing
+        cost += 100 * cup_wr_offset > offset_lim 
         cost += 100 * human.ray_cast_perpendicular(end_effector=ee_name, ray_length=0.1)
-        if cup:
-            cost += 100 * human.ray_cast_parallel(end_effector=ee_name, ray_length=0.2)
         if cane:
             cost += 100 * human.ray_cast_parallel(end_effector=ee_name)
     else:
@@ -508,9 +500,9 @@ def get_human_link_robot_collision(human, end_effector):
     return human_link_robot_collision
 
 
-def choose_upward_hand(human, pill=False):
-    right_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="right_hand", pill=pill))
-    left_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="left_hand", pill=pill))
+def choose_upward_hand(human):
+    right_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="right_hand"))
+    left_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="left_hand"))
 
     if right_offset > np.pi/2 and left_offset < np.pi/2:
         return "left_hand"
@@ -557,13 +549,13 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     if handover_obj == "pill":
         obj_wts = [6]
         offset_lim = 0.27
-        ee = choose_upward_hand(human, pill=True)
+        ee = choose_upward_hand(human)
         if ee is not None: 
             human.reset_controllable_joints(ee)
             end_effector = ee
         pill = True
     elif handover_obj == "cup":
-        obj_wts = [5, 6, 6] # roll, pitch, yaw
+        obj_wts = [6]
         offset_lim = 0.23
         ee = choose_upper_hand(human)
         if ee is not None:
@@ -571,7 +563,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
             end_effector = ee
         cup = True
     elif handover_obj == "cane":
-        obj_wts = [5.5, 4, 4] # roll, pitch, yaw
+        obj_wts = [6]
         offset_lim = 0.23
         cane = True
 
