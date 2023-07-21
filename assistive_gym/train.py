@@ -1,11 +1,12 @@
 import os, sys, multiprocessing, gym, ray, shutil, argparse, importlib, glob
 import pickle
 import time
+from enum import Enum
 
 from torch.utils.hipify.hipify_python import bcolors
 
 from assistive_gym.envs.utils.log_utils import get_logger
-from typing import Set
+from typing import Set, Optional
 
 import numpy as np
 from cma import CMA, CMAEvolutionStrategy
@@ -33,6 +34,18 @@ class MaximumHumanDynamics:
         self.manipulibility = max_manipulibility
         self.energy = max_energy
 
+
+class HandoverObject(Enum):
+    PILL = 1
+    CUP = 2
+    CANE = 3
+
+class HandoverObjectConfig:
+    def __init__(self, object_type: HandoverObject, weights: list, limits: list, end_effector: Optional[str]):
+        self.object_type = object_type
+        self.weights = weights
+        self.limits = limits
+        self.end_effector = end_effector
 
 def create_point(point, size=0.01, color=[1, 0, 0, 1]):
     sphere = p.createCollisionShape(p.GEOM_SPHERE, radius=size)
@@ -230,11 +243,9 @@ def has_new_collision(old_collisions: Set, new_collisions: Set, human, end_effec
     return True if len(collision_arr) > 0 else False
 
 
-
 def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.ndarray, original_info: OriginalHumanInfo,
             max_dynamics: MaximumHumanDynamics,  has_self_collision,has_env_collision, has_valid_robot_ik, angle_dist, 
-            obj_wts, offset_lim, pill=False, cup=False, cane=False):
-
+            object_config: Optional[HandoverObjectConfig]):
 
     # cal energy
     energy_change, energy_original, energy_final = cal_energy_change(human, original_info.link_positions, ee_name)
@@ -261,34 +272,37 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     w = [1, 1, 4, 1, 1, 2]
     cost = None
 
-    if pill:
-        # cal wrist orient (pill)
-        wr_offset = human.get_roll_wrist_orientation(end_effector=ee_name) 
-        max_wr_offset = 1
-        w = w + obj_wts
-        # cal cost
-        cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-            + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba 
-            + w[6] * wr_offset/max_wr_offset) / np.sum(w)
-        # check angle
-        cost += 100 * (wr_offset > offset_lim)
-    elif cup or cane:
-        # cal wrist orient (cup and cane)
-        cup_wr_offset = abs(human.get_pitch_wrist_orientation(end_effector=ee_name) - 1)
-        max_cup = 1
-        w = w + obj_wts
-        # cal cost
-        cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-            + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba 
-            + w[6] * cup_wr_offset/max_cup) / np.sum(w)
-        # check angles and raycasts
-        cost += 100 * cup_wr_offset > offset_lim 
-        cost += 100 * human.ray_cast_perpendicular(end_effector=ee_name, ray_length=0.1)
-        if cane:
-            cost += 100 * human.ray_cast_parallel(end_effector=ee_name)
+    if not object_config: # no object handover case
+        cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[
+            2] * energy_final / max_dynamics.energy \
+                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[
+                    5] * reba / max_reba) / np.sum(w)
     else:
-        cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-            + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba) / np.sum(w)
+        if object_config.object_type == HandoverObject.PILL:
+            # cal wrist orient (pill)
+            wr_offset = human.get_roll_wrist_orientation(end_effector=ee_name)
+            max_wr_offset = 1
+            w = w + object_config.weights
+            # cal cost
+            cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
+                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba
+                + w[6] * wr_offset/max_wr_offset) / np.sum(w)
+            # check angle
+            cost += 100 * (wr_offset > object_config.limits[0])
+        elif object_config.object_type in [HandoverObject.CUP, HandoverObject.CANE]:
+            # cal wrist orient (cup and cane)
+            cup_wr_offset = abs(human.get_pitch_wrist_orientation(end_effector=ee_name) - 1)
+            max_cup = 1
+            w = w + object_config.weights
+            # cal cost
+            cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
+                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba
+                + w[6] * cup_wr_offset/max_cup) / np.sum(w)
+            # check angles and raycasts
+            cost += 100 * cup_wr_offset > object_config.limits[0]
+            cost += 100 * human.ray_cast_perpendicular(end_effector=ee_name, ray_length=0.1)
+            if object_config.object_type == HandoverObject.CANE:
+                cost += 100 * human.ray_cast_parallel(end_effector=ee_name)
 
     if has_self_collision:
         cost += 10000
@@ -527,6 +541,21 @@ def choose_upper_hand(human):
         return None
 
 
+def get_handover_object_config(object_name, human) -> Optional[HandoverObjectConfig]:
+    if object_name == None: # case: no handover object
+        return None
+    if object_name == "pill":
+        ee = choose_upward_hand(human)
+        return HandoverObjectConfig(HandoverObject.PILL, weights=[6], limits=[0.27], end_effector=ee)
+    elif object_name == "cup":
+        ee = choose_upper_hand(human)
+        return HandoverObjectConfig(HandoverObject.CUP, weights=[6], limits=[0.23], end_effector=ee)
+    elif object_name == "cane":
+        return HandoverObjectConfig(HandoverObject.CANE, weights=[6], limits=[0.23], end_effector=None)
+    else:
+        raise ValueError("Object name not recognized")
+
+
 def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
           end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False, handover_obj=None):
     start_time = time.time()
@@ -537,36 +566,9 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
 
     human, robot, furniture, plane = env.human, env.robot, env.furniture, env.plane
     # switch controllable indicies to left arm if end_effector does not equal right > this will likely be removed/can be overwritten by an object
-    if end_effector != 'right_hand':
-        human.reset_controllable_joints(end_effector)
-
-    # add specifications based on handover type
-    obj_wts = []
-    offset_lim = []
-    pill = False
-    cup = False
-    cane = False
-    if handover_obj == "pill":
-        obj_wts = [6]
-        offset_lim = 0.27
-        ee = choose_upward_hand(human)
-        if ee is not None: 
-            human.reset_controllable_joints(ee)
-            end_effector = ee
-        pill = True
-    elif handover_obj == "cup":
-        obj_wts = [6]
-        offset_lim = 0.23
-        ee = choose_upper_hand(human)
-        if ee is not None:
-            human.reset_controllable_joints(ee)
-            end_effector = ee
-        cup = True
-    elif handover_obj == "cane":
-        obj_wts = [6]
-        offset_lim = 0.23
-        cane = True
-
+    handover_obj_config = get_handover_object_config(handover_obj, human)
+    if handover_obj_config and handover_obj_config.end_effector: # reset the end effector based on the object
+        human.reset_controllable_joints(handover_obj_config.end_effector)
 
     env_object_ids = [furniture.body, plane.body]  # set env object for collision check
     human_link_robot_collision = get_human_link_robot_collision(human, end_effector)
@@ -614,7 +616,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                 has_self_collision, has_env_collision= detect_collisions(original_info, self_collisions, env_collisions, human, end_effector)
                 cost, m, dist, energy, torque = cost_fn(human, end_effector, s, original_ee_pos, original_info,
                                                         max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
-                                                        angle_dist, obj_wts, offset_lim, pill, cup, cane)
+                                                        angle_dist, handover_obj_config)
                 env.reset_human(is_collision=True)
                 LOG.info(
                     f"{bcolors.OKGREEN}timestep: {timestep}, cost: {cost}, angle_dist: {angle_dist} , dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
@@ -630,9 +632,10 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                 else:
                     has_valid_robot_ik = True
 
+
                 cost, m, dist, energy, torque, reba = cost_fn(human, end_effector, s, original_ee_pos, original_info,
                                                         max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
-                                                        angle_dist=0, offset_lim=offset_lim, obj_wts=obj_wts, pill=pill, cup=cup, cane=cane)
+                                                        0, handover_obj_config)
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
                 LOG.info(
@@ -669,7 +672,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
         angle_dist = 0
     cost, m, dist, energy, torque, reba = cost_fn(human, end_effector, optimizer.best.x, original_ee_pos, original_info,
                                             max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, angle_dist, 
-                                            obj_wts, offset_lim, pill, cup, cane)
+                                            handover_obj_config)
     LOG.info(
         f"{bcolors.OKBLUE} Best cost: {cost}, dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
     action = {
