@@ -21,7 +21,7 @@ from assistive_gym.envs.utils.smpl_dict import SMPLDict
 from assistive_gym.envs.utils.smpl_geom import generate_geom
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf
 
-SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_ros_smpl_8.pkl")
+SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_neutral.pkl")
 class HumanUrdfTest(Agent):
     def __init__(self):
         super(HumanUrdfTest, self).__init__()
@@ -53,6 +53,12 @@ class HumanUrdfTest(Agent):
         #     # time.sleep(0.1)
         p.setRealTimeSimulation(1)
 
+    def get_parallel_wrist_orientation(self, end_effector="right_hand", pill=False):
+        human_dict = HumanUrdfDict()
+        # determine wrist index for the correct hand
+        wrist_ind = human_dict.get_dammy_joint_id(end_effector)
+        wrist_orientation = p.getLinkState(self.human_id, wrist_ind)[1]
+        return wrist_orientation[1]
 
 if __name__ == "__main__":
     # Start the simulation engine
@@ -121,6 +127,18 @@ if __name__ == "__main__":
     # human.set_joint_angles([21,22,23], [np.pi/2, 0, 0], use_limits=False) # right knee
     # human.set_joint_angles([81,82,83], [np.pi/2, 0, 0])
 
+    # human.set_joint_angles([85,86,87], [np.pi/2, 0, 0]) # wrist edit
+    init_angle = 0
+    stop = False
+    for i in range(1000):
+        if stop:
+            break
+        init_angle += 0.1
+        # print("### angle: ", init_angle)
+        orn = p.getQuaternionFromEuler([0, init_angle, 0])
+        p.resetBasePositionAndOrientation(human.human_id, [0, 0, 2], orn)
+        print(human.get_parallel_wrist_orientation(end_effector="left_hand"))
+        stop = "n"==input("continue? ###")
 
     human.set_joint_angles(human.controllable_joint_indices, [np.pi/2] * len(human.controllable_joint_indices), use_limits=True)
     time.sleep(100)

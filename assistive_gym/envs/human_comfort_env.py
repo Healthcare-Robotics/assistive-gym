@@ -7,7 +7,9 @@ from assistive_gym.envs.agents.stretch import Stretch
 from assistive_gym.envs.agents.stretch_dex import StretchDex
 from assistive_gym.envs.env import AssistiveEnv
 from assistive_gym.envs.utils.urdf_utils import load_smpl
+from assistive_gym.envs.utils.human_urdf_dict import HumanUrdfDict
 from experimental.human_urdf import HumanUrdf
+from ergonomics.reba import RebaScore
 import numpy as np
 import pybullet as p
 
@@ -16,7 +18,7 @@ class HumanComfortEnv(AssistiveEnv):
     def __init__(self):
         self.robot = StretchDex('wheel_right')
         self.human = HumanUrdf()
-        super(HumanComfortEnv, self).__init__(robot=self.robot, human=self.human, task='', obs_robot_len=len(self.robot.controllable_joint_indices),
+        super(HumanComfortEnv, self).__init__(robot=self.robot, human=self.human, task='', obs_robot_len=len(self.robot.controllable_joint_indices), 
                                          obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
         self.target_pos = np.array([0, 0, 0])
         self.smpl_file = SMPL_PATH
@@ -55,7 +57,7 @@ class HumanComfortEnv(AssistiveEnv):
                 'robot': info, 'human': info}
 
     def _get_obs(self, agent=None): # not needed
-        target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos)
+        target_pos_real, _ = self.robot.convert_to_realworld(self.target_pos) 
 
         robot_obs = np.array([]) # TODO: fix
         if agent == 'robot':
@@ -85,9 +87,6 @@ class HumanComfortEnv(AssistiveEnv):
             for _ in range(100):
                 p.stepSimulation(physicsClientId=self.id)
 
-    # for clearing human hand
-
-
     def reset(self):
         super(HumanComfortEnv, self).reset()
 
@@ -102,7 +101,7 @@ class HumanComfortEnv(AssistiveEnv):
         print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
         self.human.set_global_orientation(smpl_data, [0, 0,  bed_height])
 
-        self.robot.set_gravity(0, 0, -9.81)
+        self.robot.set_gravity(0, 0, -9.81) 
         self.human.set_gravity(0, 0, -9.81)
 
         self.robot.set_joint_angles([4], [0.5]) # for stretch_dex: move the gripper upward
@@ -128,7 +127,7 @@ class HumanComfortEnv(AssistiveEnv):
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
         # drop human on bed
-        for _ in range(100):
+        for i in range(100):
             p.stepSimulation(physicsClientId=self.id)
 
         # p.setTimeStep(1/240., physicsClientId=self.id)
