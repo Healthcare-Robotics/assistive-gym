@@ -1,7 +1,11 @@
+import time
+
 import numpy as np
 import pybullet as p
 from .agent import Agent
 from ..utils.human_utils import check_collision
+from scipy.spatial.transform import Rotation as R
+
 # TODO: refactor this one out from human_utils
 
 class Robot(Agent):
@@ -80,9 +84,6 @@ class Robot(Agent):
         if set_instantly:
             self.set_joint_angles(indices, positions, use_limits=True)
 
-    def randomize_init_joint_angles(self, task, offset=0):
-        return
-
     def ik_random_restarts(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, step_sim=False, check_env_collisions=False, randomize_limits=True, collision_objects=[]):
         if target_orient is not None and len(target_orient) < 4:
             target_orient = self.get_quaternion(target_orient)
@@ -122,7 +123,7 @@ class Robot(Agent):
         self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices, np.array(best_ik_angles))
         return False, np.array(best_ik_angles)
 
-    def ik_random_restarts2(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, randomize_limits=False, collision_objects=None):
+    def ik_random_restarts2(self, right, target_pos, target_orient, max_iterations=1000, max_ik_random_restarts=40, success_threshold=0.03, randomize_limits=False, collision_objects=None, tool = None):
         '''
 
         :param right:
@@ -146,10 +147,15 @@ class Robot(Agent):
                                           ik_indices=self.right_arm_ik_indices if right else self.left_arm_ik_indices,
                                           max_iterations=max_iterations, half_range=self.half_range,
                                           randomize_limits=(randomize_limits and r >= 10))
+
             self.set_joint_angles(self.right_arm_joint_indices if right else self.left_arm_joint_indices,
                                   target_joint_angles)
             gripper_pos, gripper_orient = self.get_pos_orient(
                 self.right_end_effector if right else self.left_end_effector)
+
+            if tool is not None:
+                tool.reset_pos_orient()
+
             if np.linalg.norm(target_pos - np.array(gripper_pos)) < success_threshold and (
                     target_orient is None or np.linalg.norm(
                     target_orient - np.array(gripper_orient)) < success_threshold or np.isclose(
@@ -279,10 +285,11 @@ class Robot(Agent):
             self.set_joint_angles(self.right_arm_joint_indices if arm == 'right' else self.left_arm_joint_indices, best_start_joint_poses[i])
         return best_position, best_orientation, best_start_joint_poses
 
+    #TODO: for the bed, robot seems to run under, so need to find a better way to model. Might be a different bed/ using AABB
     def position_robot_toc2(self, base_pos, arms, start_pos_orient, target_pos_orients, human, base_euler_orient=np.zeros(3),
                            max_ik_iterations=200, max_ik_random_restarts=1, randomize_limits=False, attempts=100,
                            jlwki_restarts=1, check_env_collisions=False, right_side=True,
-                           random_rotation=30, random_position=0.5, collision_objects={}):
+                           random_rotation=30, random_position=0.5, collision_objects={}, tool = None):
         # Continually randomize the robot base position and orientation
         # Select best base pose according to number of goals reached and manipulability
         if type(arms) == str:
@@ -312,6 +319,7 @@ class Robot(Agent):
             p.performCollisionDetection(physicsClientId=self.id)
             for agent, _ in collision_objects.items():
                 if len(check_collision(self.body, agent.body))> 0: # got collision
+                    print ("robot base collision with agent")
                     continue
 
             # Reset all robot joints to their defaults
@@ -340,7 +348,8 @@ class Robot(Agent):
                                                                                   max_ik_random_restarts=max_ik_random_restarts,
                                                                                   success_threshold=0.03,
                                                                                   randomize_limits=randomize_limits,
-                                                                                   collision_objects=collision_objects)
+                                                                                   collision_objects=collision_objects,
+                                                                                   tool = tool)
                         if not success:
                             continue
                         _, motor_positions, _, _ = self.get_motor_joint_states()

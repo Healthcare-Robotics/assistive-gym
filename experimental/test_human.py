@@ -140,8 +140,11 @@ if __name__ == "__main__":
         print(human.get_parallel_wrist_orientation(end_effector="left_hand"))
         stop = "n"==input("continue? ###")
 
-    while True:
-        p.stepSimulation()
+    human.set_joint_angles(human.controllable_joint_indices, [np.pi/2] * len(human.controllable_joint_indices), use_limits=True)
+    time.sleep(100)
+
+    # while True:
+        # p.stepSimulation()
         # check_collision(human.human_id, human.human_id)
         # human.step_forward()
     # Disconnect from the simulation
