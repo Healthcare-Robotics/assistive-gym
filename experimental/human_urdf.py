@@ -307,7 +307,7 @@ class HumanUrdf(Agent):
         # return all info
         return arm_score
 
-    def get_roll_wrist_orientation(self, end_effector="right_hand"):
+    def get_palm_normal_offset(self, end_effector="right_hand"):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         _, ee_orient = self.get_ee_pos_orient(end_effector)
@@ -322,7 +322,7 @@ class HumanUrdf(Agent):
 
         return cosine
 
-    def get_pitch_wrist_orientation(self, end_effector="right_hand"):
+    def get_palm_parallel_offset(self, end_effector="right_hand"):
         human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         _, ee_orient = self.get_ee_pos_orient(end_effector)

@@ -263,7 +263,7 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
 
     if pill:
         # cal wrist orient (pill)
-        wr_offset = human.get_roll_wrist_orientation(end_effector=ee_name) 
+        wr_offset = human.get_palm_normal_offset(end_effector=ee_name) 
         max_wr_offset = 1
         w = w + obj_wts
         # cal cost
@@ -274,7 +274,7 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
         cost += 100 * (wr_offset > offset_lim)
     elif cup or cane:
         # cal wrist orient (cup and cane)
-        cup_wr_offset = abs(human.get_pitch_wrist_orientation(end_effector=ee_name) - 1)
+        cup_wr_offset = abs(human.get_palm_parallel_offset(end_effector=ee_name) - 1)
         max_cup = 1
         w = w + obj_wts
         # cal cost
@@ -501,8 +501,8 @@ def get_human_link_robot_collision(human, end_effector):
 
 
 def choose_upward_hand(human):
-    right_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="right_hand"))
-    left_offset = abs(-np.pi/2 - human.get_roll_wrist_orientation(end_effector="left_hand"))
+    right_offset = abs(-np.pi/2 - human.get_palm_normal_offset(end_effector="right_hand"))
+    left_offset = abs(-np.pi/2 - human.get_palm_normal_offset(end_effector="left_hand"))
 
     if right_offset > np.pi/2 and left_offset < np.pi/2:
         return "left_hand"
