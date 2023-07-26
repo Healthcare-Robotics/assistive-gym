@@ -551,6 +551,13 @@ class HumanUrdf(Agent):
         return np.array(box_dims)
 
     def get_ee_collision_shape_pos_orient(self, end_effector, collision_shape_radius=0.05):
+        """
+        Return the position and orientation of the collision shape based on end effector position and orientation
+        Note that for now, we try to move the collision shape to one side of the end effector, along the normal vector
+        :param end_effector:
+        :param collision_shape_radius:
+        :return:
+        """
         ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
         ee_rot_matrix = np.array(p.getMatrixFromQuaternion(ee_orient)).reshape(3, 3)
         ee_norm_vec = -ee_rot_matrix[:, 1]  # perpendicular to the palm, pointing from palm outward

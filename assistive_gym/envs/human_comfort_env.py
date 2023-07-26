@@ -22,7 +22,7 @@ class HumanComfortEnv(AssistiveEnv):
                                          obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
         self.target_pos = np.array([0, 0, 0])
         self.smpl_file = SMPL_PATH
-        self.task = 'comfort_standing_up' # task = 'comfort_standing_up', 'comfort_taking_medicine',  'comfort_drinking'
+        self.task = 'comfort_taking_medicine' # task = 'comfort_standing_up', 'comfort_taking_medicine',  'comfort_drinking'
 
     def get_comfort_score(self):
         return np.random.rand() #TODO: implement this
@@ -30,6 +30,11 @@ class HumanComfortEnv(AssistiveEnv):
 
     def set_smpl_file(self, smpl_file):
         self.smpl_file = smpl_file
+
+    def set_task(self, task):
+        if not task: # default task
+            task = "comfort_taking_medicine"
+        self.task = task  # task = 'comfort_standing_up', 'comfort_taking_medicine',  'comfort_drinking'
 
     def step(self, action):
         if self.human.controllable:
