@@ -51,6 +51,7 @@ cd assistive-gym
 pip3 install -e .
 ```
 
+
 ## Getting Started
 We provide a [10 Minute Getting Started Guide](https://github.com/Healthcare-Robotics/assistive-gym/wiki/3.-Getting-Started) to help you get familiar with using Assistive Gym for assistive robotics research.
 
@@ -146,3 +147,51 @@ This allows robots to learn to provide assistance that is consist with a person'
 ![Human preferences](images/human_preferences.gif "Human preferences")
 
 Refer to [the paper](https://arxiv.org/abs/1910.04700) for details on features in Assistive Gym.
+
+
+# Note on installation on Unbuntu 22
+- Need to use pyenv to install python 3.7.10
+```bash
+pyenv install 3.7.10
+pyenv local 3.7.10 
+```
+- If there is error when executing project, please install the following lib
+```
+sudo apt-get install python-tk python3-tk tk-dev
+sudo apt-get install build-essential zlib1g-dev libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev liblzma-dev
+```
+- There is backward incompatible change in gym package. To fix it, we need to modify the source code in `/.pyenv/versions/3.7.10/lib/python3.7/site-packages/gym/wrappers/time_limit.py`
+Please refer to https://stackoverflow.com/questions/74060371/gym-super-mario-bros-7-3-0-valueerror-not-enough-values-to-unpack-expected
+
+- Missing installations
+```
+# downgrade protobuf 
+pip3 install protobuf==3.20.*
+
+
+pip3 install pytorch3
+
+pip3 install opencv-python
+
+pip3 install matplotlib
+
+pip3 install chumpy
+pip3 install open3d # for trimesh decimation
+```
+Added lib for geom 
+```
+numpy-stl
+vtk
+```
+
+# Train human comfort 
+## Command 
+
+```bash
+# pyenv eval "$(pyenv init -)" -> python 3.7.10
+cd assistive-gym/
+# train
+python3 -m assistive_gym.train --env "HumanComfort-v1" --num-points 50 --smpl-file "examples/data/smpl_bp_ros_smpl_8.pkl" --save-dir "trained_models" --render-gui --train
+# render
+python3 -m assistive_gym.train --env "HumanComfort-v1" --smpl-file "examples/data/smpl_bp_ros_smpl_8.pkl" --save-dir "trained_models" --render
+```
