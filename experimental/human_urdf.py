@@ -559,10 +559,20 @@ class HumanUrdf(Agent):
         :return:
         """
         ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+        ee_norm_vec = self.get_ee_normal_vector(end_effector)
+        pos_offset = ee_norm_vec * collision_shape_radius # create a displacement along the normal vector, and scale it by the radius
+        return np.array(ee_pos) + pos_offset, ee_orient
+
+    def get_ee_normal_vector(self, end_effector):
+        """
+        Return the normal vector of the end effector (normalized)
+        :param end_effector:
+        :return:
+        """
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
         ee_rot_matrix = np.array(p.getMatrixFromQuaternion(ee_orient)).reshape(3, 3)
         ee_norm_vec = -ee_rot_matrix[:, 1]  # perpendicular to the palm, pointing from palm outward
-        pos_offset = ee_norm_vec / np.linalg.norm(ee_norm_vec) * collision_shape_radius # create a displacement along the normal vector, and scale it by the radius
-        return np.array(ee_pos) + pos_offset, ee_orient
+        return ee_norm_vec/np.linalg.norm(ee_norm_vec)
 
     def _print_joint_indices(self):
         """
