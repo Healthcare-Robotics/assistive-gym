@@ -19,6 +19,7 @@ from assistive_gym.envs.utils.human_utils import set_self_collisions, change_dyn
 from assistive_gym.envs.utils.log_utils import get_logger
 from assistive_gym.envs.utils.plot_utils import plot
 from assistive_gym.envs.utils.smpl_dict import SMPLDict
+from scipy.spatial.transform import Rotation as R
 
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf, SMPLData
 import kinpy as kp
@@ -80,17 +81,11 @@ class HumanUrdf(Agent):
         set_global_orientation(self.body, smpl_data.global_orient, pos)
 
     def reset_controllable_joints(self, end_effector):
-        if end_effector == 'left_hand':
-            self.controllable_joint_indices = left_arm_joint_indices
-            self.controllable_joint_lower_limits = np.array([self.lower_limits[i] for i in self.controllable_joint_indices])
-            self.controllable_joint_upper_limits = np.array([self.upper_limits[i] for i in self.controllable_joint_indices])
-        elif end_effector == 'right_hand':
-            self.controllable_joint_indices = right_arm_joint_indices
-            self.controllable_joint_lower_limits = np.array([self.lower_limits[i] for i in self.controllable_joint_indices])
-            self.controllable_joint_upper_limits = np.array([self.upper_limits[i] for i in self.controllable_joint_indices])
-        else:
-            print("ERROR: indices could not be reset for provided end effector: ", end_effector)
-    
+        if end_effector not in ['left_hand', 'right_hand']:
+            raise ValueError("end_effector must be either 'left_hand' or 'right_hand'")
+        self.controllable_joint_indices = left_arm_joint_indices if end_effector == 'left_hand' else right_arm_joint_indices
+        self.controllable_joint_lower_limits = np.array([self.lower_limits[i] for i in self.controllable_joint_indices])
+        self.controllable_joint_upper_limits = np.array([self.upper_limits[i] for i in self.controllable_joint_indices])
 
     def fit_joint_angle(self, target_angles, start_angles=None):
         def cost_fn(current_angles, target_angles):
@@ -308,7 +303,6 @@ class HumanUrdf(Agent):
         return arm_score
 
     def get_palm_normal_offset(self, end_effector="right_hand"):
-        human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         _, ee_orient = self.get_ee_pos_orient(end_effector)
         rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
@@ -323,7 +317,6 @@ class HumanUrdf(Agent):
         return cosine
 
     def get_palm_parallel_offset(self, end_effector="right_hand"):
-        human_dict = HumanUrdfDict()
         # determine wrist index for the correct hand
         _, ee_orient = self.get_ee_pos_orient(end_effector)
         rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
@@ -468,31 +461,62 @@ class HumanUrdf(Agent):
 
         return collision_pairs
 
-    def ray_cast(self, end_effector: str):
+    def ray_cast_perpendicular(self, end_effector: str, ray_length=0.17):
         ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
 
-        to_pos = ee_pos + np.array([0, 0, 1])  # ray's ending position
-        result = p.rayTest(ee_pos, to_pos)
+        rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
+        ray_dir = rotation.reshape(3, 3)[:, 1]
+        # using midpoint as start pos so that the hand is not counted as a collision
+        dist = -0.05 # how far from the hand should the ray start
+        end = [ee_pos[0] + (ray_dir[0]*dist), ee_pos[1] + (ray_dir[1]*dist), ee_pos[2] + (ray_dir[2]*dist)]
+        # ray start and end
+        start_pos = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
+        to_pos = [start_pos[0] + (ray_dir[0]*-ray_length), start_pos[1] + (ray_dir[1]*-ray_length), start_pos[2] + (ray_dir[2]*-ray_length)]
+        result = p.rayTest(start_pos, to_pos)
 
         # visualize the ray from 'from_pos' to 'to_pos'
-        ray_id = p.addUserDebugLine(ee_pos, to_pos, [1, 0, 0])  # the ray is red
+        ray_id = p.addUserDebugLine(start_pos, to_pos, [0, 1, 0])  # the ray is green
+        res_id = result[0][0]
+        p.removeUserDebugItem(ray_id)  # remove the visualized ray
 
-        # The result is a list of ray hit information tuples. Each tuple contains:
-        # - The object ID of the hit object
-        # - The link index of the hit link
-        # - The hit position in the world frame
-        # - The hit surface normal in the world frame
-        # - The hit fraction along the ray's length (0=start, 1=end)
+        return res_id > 0
 
-        for hit in result:
-            object_id, link_index, hit_position, hit_normal, hit_fraction = hit
-            print(f"Hit object ID: {object_id}")
-            print(f"Hit link index: {link_index}")
-            print(f"Hit position: {hit_position}")
-            print(f"Hit normal: {hit_normal}")
-            print(f"Hit fraction: {hit_fraction}")
-        time.sleep(10)
-        # p.removeUserDebugItem(ray_id)  # remove the visualized ray
+    def ray_cast_parallel(self, end_effector: str, ray_length=0.5):
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+
+        rotation = np.array(p.getMatrixFromQuaternion(ee_orient))
+        ray_dir = rotation.reshape(3, 3)[:, 2]
+        # RAY 1
+        # using midpoint as start pos so that the hand is not counted as a collision
+        dist = -0.075 # how far from the hand should the ray start
+        end = [ee_pos[0] + (ray_dir[0]*dist), ee_pos[1] + (ray_dir[1]*dist), ee_pos[2] + (ray_dir[2]*dist)]
+        # ray start and end
+        start_pos = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
+        to_pos = [start_pos[0] + (ray_dir[0]*-ray_length), start_pos[1] + (ray_dir[1]*-ray_length), start_pos[2] + (ray_dir[2]*-ray_length)]
+        result = p.rayTest(start_pos, to_pos)
+
+        # RAY 2
+        dist = 0.075 # how far from the hand should the ray start
+        end = [ee_pos[0] + (ray_dir[0]*dist), ee_pos[1] + (ray_dir[1]*dist), ee_pos[2] + (ray_dir[2]*dist)]
+        # ray start and end
+        start_pos_b = [(ee_pos[0] + end[0])/2, (ee_pos[1] + end[1])/2, (ee_pos[2] + end[2])/2]
+        to_pos_b= [start_pos[0] + (ray_dir[0]*ray_length), start_pos[1] + (ray_dir[1]*ray_length), start_pos[2] + (ray_dir[2]*ray_length)]
+        result_b = p.rayTest(start_pos_b, to_pos_b)
+
+        # visualize the ray from 'from_pos' to 'to_pos'
+        p.addUserDebugLine(start_pos, to_pos, [0, 0, 1])  # the ray is blue
+        p.addUserDebugLine(start_pos_b, to_pos_b, [0, 0, 1])  # the ray is blue
+        res_id = result[0][0]
+        res_id_b = result_b[0][0]
+        p.removeAllUserDebugItems() # remove all rays
+        return res_id + res_id_b > -2
+
+    def check_collision_radius(self, end_effector="right_hand", distance=0.05):
+        human_dict = HumanUrdfDict()
+        link = human_dict.get_dammy_joint_id(end_effector)
+        out = p.getClosestPoints(self.body, self.body, distance, linkIndexA=link)
+        print("out: ", out, "\n len(out) > 5: ", len(out) > 5)
+        return len(out) > 0
 
     def ray_cast_perpendicular(self, end_effector: str, ray_length=0.17):
         ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
@@ -552,13 +576,53 @@ class HumanUrdf(Agent):
         return len(out) > 0
 
     def get_ee_pos_orient(self, end_effector):
-        ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector))[:2]
+        ee_pos, ee_orient = p.getLinkState(self.body, self.human_dict.get_dammy_joint_id(end_effector),  computeForwardKinematics=True, physicsClientId=self.id)[0:2]
         return ee_pos, ee_orient
+
+    def get_ee_bb_dimension(self, end_effector, draw_bb=False):
+        """
+        Return the AABB bounding box dimensions of the end effector
+        :param end_effector:
+        :return:
+        """
+        link_idx = self.human_dict.get_dammy_joint_id(end_effector)
+        min_pos, max_pos = p.getAABB(self.body, link_idx, physicsClientId=self.id)
+        # compute box lengths
+        box_dims = [max_pos[i] - min_pos[i] for i in range(3)]
+        if draw_bb: # fopr debugging
+            # compute box position (which is the center of the AABB)
+            box_pos, box_orient = p.getLinkState(self.body, link_idx, physicsClientId=self.id)[:2]
+
+            # set the box halfExtents
+            half_extends= [length/ 2 for length in box_dims]
+            collision_shape_id = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=half_extends)
+            visual_shape_id = p.createVisualShape(shapeType=p.GEOM_BOX, rgbaColor=[1, 0, 0, 0.7], halfExtents=half_extends)
+
+            # create a multi-body with baseMass=0 (making it static)
+            box_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collision_shape_id,
+                                      baseVisualShapeIndex=visual_shape_id, basePosition=box_pos,
+                                          baseOrientation=[0, 0, 0, 1], physicsClientId=self.id)
+
+        return np.array(box_dims)
+
+    def get_ee_collision_shape_pos_orient(self, end_effector, collision_shape_radius=0.05):
+        """
+        Return the position and orientation of the collision shape based on end effector position and orientation
+        Note that for now, we try to move the collision shape to one side of the end effector, along the normal vector
+        :param end_effector:
+        :param collision_shape_radius:
+        :return:
+        """
+        ee_pos, ee_orient = self.get_ee_pos_orient(end_effector)
+        ee_rot_matrix = np.array(p.getMatrixFromQuaternion(ee_orient)).reshape(3, 3)
+        ee_norm_vec = -ee_rot_matrix[:, 1]  # perpendicular to the palm, pointing from palm outward
+        pos_offset = ee_norm_vec / np.linalg.norm(ee_norm_vec) * collision_shape_radius # create a displacement along the normal vector, and scale it by the radius
+        return np.array(ee_pos) + pos_offset, ee_orient
 
     def _print_joint_indices(self):
         """
         Getting the joint index for debugging purpose
-        TODO: refactor for programmatically generate the joint ind
+        TODO: refactor for programmatically generate the joint index
         :return:
         """
         print(self._get_controllable_joints())
