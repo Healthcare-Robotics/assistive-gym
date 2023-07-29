@@ -305,7 +305,7 @@ class Robot(Agent):
         iteration = 0
         # Save human joint states for later restoring
         human_angles = human.get_joint_angles(human.controllable_joint_indices)
-        while iteration < attempts or best_position is None:
+        while iteration < attempts:
             iteration += 1
             # Randomize base position and orientation
             random_pos = np.array(
@@ -400,6 +400,8 @@ class Robot(Agent):
 
             human.set_joint_angles(human.controllable_joint_indices, human_angles)
 
+        if best_position is None:
+            return None, None, None
         # Reset state in case anything was perturbed
         human.set_joint_angles(human.controllable_joint_indices, human_angles)
 
