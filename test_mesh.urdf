@@ -16,7 +16,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./assistive_gym/envs/assets/human/meshes/Pelvis.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././assistive_gym/envs/assets/human/meshes/Pelvis.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_0_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -25,7 +25,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./assistive_gym/envs/assets/human/meshes/Pelvis.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././assistive_gym/envs/assets/human/meshes/Pelvis.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -104,7 +104,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Hip.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Hip.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_4_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -113,7 +113,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Hip.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Hip.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -192,7 +192,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Knee.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Knee.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_8_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -201,7 +201,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Knee.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Knee.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -280,7 +280,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_12_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -289,7 +289,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -368,7 +368,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Foot.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Foot.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_16_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -377,7 +377,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Foot.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Foot.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -456,7 +456,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Hip.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Hip.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_20_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -465,7 +465,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Hip.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Hip.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -544,7 +544,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Knee.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Knee.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_24_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -553,7 +553,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Knee.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Knee.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -632,7 +632,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_28_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -641,7 +641,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Ankle.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -720,7 +720,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Foot.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Foot.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_32_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -729,7 +729,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Foot.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Foot.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -808,7 +808,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Spine1.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Spine1.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_36_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -817,7 +817,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Spine1.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Spine1.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -896,7 +896,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Spine2.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Spine2.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_40_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -905,7 +905,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Spine2.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Spine2.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -984,7 +984,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Spine3.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Spine3.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_44_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -993,7 +993,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Spine3.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Spine3.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1072,7 +1072,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Neck.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Neck.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_48_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1081,7 +1081,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Neck.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Neck.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1160,7 +1160,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Head.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Head.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_52_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1169,7 +1169,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/Head.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/Head.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1248,7 +1248,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Collar.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Collar.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_56_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1257,7 +1257,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Collar.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Collar.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1336,7 +1336,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_60_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1345,7 +1345,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1424,7 +1424,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_64_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1433,7 +1433,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1512,7 +1512,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_68_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1521,7 +1521,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1600,7 +1600,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Hand.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Hand.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_72_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1609,7 +1609,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/L_Hand.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/L_Hand.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1688,7 +1688,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Collar.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Collar.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_76_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1697,7 +1697,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Collar.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Collar.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1776,7 +1776,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_80_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1785,7 +1785,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Shoulder.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1864,7 +1864,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_84_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1873,7 +1873,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Elbow.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -1952,7 +1952,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_88_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -1961,7 +1961,7 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Wrist.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
@@ -2040,7 +2040,7 @@
 		<visual>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Hand.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Hand.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="mat_92_0">
 				<color rgba="0.71879 0.53909 0.35939 1.00000" />
@@ -2049,727 +2049,727 @@
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 			<geometry>
-				<mesh filename="./././assistive_gym/envs/assets/human/meshes/R_Hand.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="././././assistive_gym/envs/assets/human/meshes/R_Hand.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 		</collision>
 	</link>
 	<joint name="pelvis" type="fixed">
 		<parent link="base"/>
 		<child link="pelvis_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_hip_rx" type="revolute">
 		<parent link="pelvis_limb"/>
 		<child link="left_hip_rx"/>
-		<limit effort="1000.00000" lower="-1.57080" upper="0.31067" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.06231 -0.08478 -0.01632"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_hip_ry" type="revolute">
 		<parent link="left_hip_rx"/>
 		<child link="left_hip_ry"/>
-		<limit effort="1000.00000" lower="-0.58818" upper="0.56898" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_hip_rz" type="revolute">
 		<parent link="left_hip_ry"/>
 		<child link="left_hip_rz"/>
-		<limit effort="1000.00000" lower="-0.53233" upper="0.67370" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_hip_rzdammy" type="fixed">
 		<parent link="left_hip_rz"/>
 		<child link="left_hip_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_knee_rx" type="revolute">
 		<parent link="left_hip_limb"/>
 		<child link="left_knee_rx"/>
-		<limit effort="1000.00000" lower="-0.02269" upper="2.44172" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.04098 -0.37890 0.00622"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_knee_ry" type="revolute">
 		<parent link="left_knee_rx"/>
 		<child link="left_knee_ry"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_knee_rz" type="revolute">
 		<parent link="left_knee_ry"/>
 		<child link="left_knee_rz"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_knee_rzdammy" type="fixed">
 		<parent link="left_knee_rz"/>
 		<child link="left_knee_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_ankle_rx" type="revolute">
 		<parent link="left_knee_limb"/>
 		<child link="left_ankle_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.01575 -0.42194 -0.03980"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_ankle_ry" type="revolute">
 		<parent link="left_ankle_rx"/>
 		<child link="left_ankle_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_ankle_rz" type="revolute">
 		<parent link="left_ankle_ry"/>
 		<child link="left_ankle_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_ankle_rzdammy" type="fixed">
 		<parent link="left_ankle_rz"/>
 		<child link="left_ankle_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_foot_rx" type="revolute">
 		<parent link="left_ankle_limb"/>
 		<child link="left_foot_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.03813 -0.05994 0.12314"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_foot_ry" type="revolute">
 		<parent link="left_foot_rx"/>
 		<child link="left_foot_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_foot_rz" type="revolute">
 		<parent link="left_foot_ry"/>
 		<child link="left_foot_rz"/>
-		<limit effort="0.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="0.00000" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_foot_rzdammy" type="fixed">
 		<parent link="left_foot_rz"/>
 		<child link="left_foot_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_hip_rx" type="revolute">
 		<parent link="pelvis_limb"/>
 		<child link="right_hip_rx"/>
-		<limit effort="1000.00000" lower="-1.57080" upper="0.31067" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.06426 -0.09295 -0.01172"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_hip_ry" type="revolute">
 		<parent link="right_hip_rx"/>
 		<child link="right_hip_ry"/>
-		<limit effort="1000.00000" lower="-0.56898" upper="0.58818" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_hip_rz" type="revolute">
 		<parent link="right_hip_ry"/>
 		<child link="right_hip_rz"/>
-		<limit effort="1000.00000" lower="-0.67370" upper="0.53233" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_hip_rzdammy" type="fixed">
 		<parent link="right_hip_rz"/>
 		<child link="right_hip_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_knee_rx" type="revolute">
 		<parent link="right_hip_limb"/>
 		<child link="right_knee_rx"/>
-		<limit effort="1000.00000" lower="-0.02269" upper="2.44172" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.04112 -0.37826 -0.00642"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_knee_ry" type="revolute">
 		<parent link="right_knee_rx"/>
 		<child link="right_knee_ry"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_knee_rz" type="revolute">
 		<parent link="right_knee_ry"/>
 		<child link="right_knee_rz"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_knee_rzdammy" type="fixed">
 		<parent link="right_knee_rz"/>
 		<child link="right_knee_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_ankle_rx" type="revolute">
 		<parent link="right_knee_limb"/>
 		<child link="right_ankle_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.01945 -0.41561 -0.03688"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_ankle_ry" type="revolute">
 		<parent link="right_ankle_rx"/>
 		<child link="right_ankle_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_ankle_rz" type="revolute">
 		<parent link="right_ankle_ry"/>
 		<child link="right_ankle_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_ankle_rzdammy" type="fixed">
 		<parent link="right_ankle_rz"/>
 		<child link="right_ankle_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_foot_rx" type="revolute">
 		<parent link="right_ankle_limb"/>
 		<child link="right_foot_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.03638 -0.06116 0.13115"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_foot_ry" type="revolute">
 		<parent link="right_foot_rx"/>
 		<child link="right_foot_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_foot_rz" type="revolute">
 		<parent link="right_foot_ry"/>
 		<child link="right_foot_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_foot_rzdammy" type="fixed">
 		<parent link="right_foot_rz"/>
 		<child link="right_foot_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="spine_2_rx" type="revolute">
 		<parent link="pelvis_limb"/>
 		<child link="spine_2_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00444 0.12916 -0.04297"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="spine_2_ry" type="revolute">
 		<parent link="spine_2_rx"/>
 		<child link="spine_2_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="spine_2_rz" type="revolute">
 		<parent link="spine_2_ry"/>
 		<child link="spine_2_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="spine_2_rzdammy" type="fixed">
 		<parent link="spine_2_rz"/>
 		<child link="spine_2_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="spine_3_rx" type="revolute">
 		<parent link="spine_2_limb"/>
 		<child link="spine_3_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00482 0.14331 0.02729"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="spine_3_ry" type="revolute">
 		<parent link="spine_3_rx"/>
 		<child link="spine_3_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="spine_3_rz" type="revolute">
 		<parent link="spine_3_ry"/>
 		<child link="spine_3_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="spine_3_rzdammy" type="fixed">
 		<parent link="spine_3_rz"/>
 		<child link="spine_3_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="spine_4_rx" type="revolute">
 		<parent link="spine_3_limb"/>
 		<child link="spine_4_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.00247 0.05844 0.00433"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="spine_4_ry" type="revolute">
 		<parent link="spine_4_rx"/>
 		<child link="spine_4_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="spine_4_rz" type="revolute">
 		<parent link="spine_4_ry"/>
 		<child link="spine_4_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="spine_4_rzdammy" type="fixed">
 		<parent link="spine_4_rz"/>
 		<child link="spine_4_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="neck_rx" type="revolute">
 		<parent link="spine_4_limb"/>
 		<child link="neck_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.01322 0.21753 -0.03787"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="neck_ry" type="revolute">
 		<parent link="neck_rx"/>
 		<child link="neck_ry"/>
-		<limit effort="1000.00000" lower="-0.08727" upper="0.08727" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="neck_rz" type="revolute">
 		<parent link="neck_ry"/>
 		<child link="neck_rz"/>
-		<limit effort="1000.00000" lower="-0.08727" upper="0.08727" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="neck_rzdammy" type="fixed">
 		<parent link="neck_rz"/>
 		<child link="neck_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="head_rx" type="revolute">
 		<parent link="neck_limb"/>
 		<child link="head_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.01030 0.08824 0.05158"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="head_ry" type="revolute">
 		<parent link="head_rx"/>
 		<child link="head_ry"/>
-		<limit effort="1000.00000" lower="-0.08727" upper="0.08727" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="head_rz" type="revolute">
 		<parent link="head_ry"/>
 		<child link="head_rz"/>
-		<limit effort="1000.00000" lower="-0.08727" upper="0.08727" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="head_rzdammy" type="fixed">
 		<parent link="head_rz"/>
 		<child link="head_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_clavicle_rx" type="revolute">
 		<parent link="spine_4_limb"/>
 		<child link="left_clavicle_rx"/>
-		<limit effort="1000.00000" lower="-0.51720" upper="0.47357" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.07379 0.11698 -0.01947"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_clavicle_ry" type="revolute">
 		<parent link="left_clavicle_rx"/>
 		<child link="left_clavicle_ry"/>
-		<limit effort="1000.00000" lower="-0.81856" upper="0.25424" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_clavicle_rz" type="revolute">
 		<parent link="left_clavicle_ry"/>
 		<child link="left_clavicle_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.46775" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_clavicle_rzdammy" type="fixed">
 		<parent link="left_clavicle_rz"/>
 		<child link="left_clavicle_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_shoulder_rx" type="revolute">
 		<parent link="left_clavicle_limb"/>
 		<child link="left_shoulder_rx"/>
-		<limit effort="1000.00000" lower="-1.03440" upper="0.94713" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.12634 0.04464 -0.02146"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_shoulder_ry" type="revolute">
 		<parent link="left_shoulder_rx"/>
 		<child link="left_shoulder_ry"/>
-		<limit effort="1000.00000" lower="-1.63712" upper="0.50847" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_shoulder_rz" type="revolute">
 		<parent link="left_shoulder_ry"/>
 		<child link="left_shoulder_rz"/>
-		<limit effort="1000.00000" lower="-1.04720" upper="0.93550" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_shoulder_rzdammy" type="fixed">
 		<parent link="left_shoulder_rz"/>
 		<child link="left_shoulder_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_elbow_rx" type="revolute">
 		<parent link="left_shoulder_limb"/>
 		<child link="left_elbow_rx"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.25051 -0.01453 -0.02443"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_elbow_ry" type="revolute">
 		<parent link="left_elbow_rx"/>
 		<child link="left_elbow_ry"/>
-		<limit effort="1000.00000" lower="-2.57087" upper="0.04887" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_elbow_rz" type="revolute">
 		<parent link="left_elbow_ry"/>
 		<child link="left_elbow_rz"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_elbow_rzdammy" type="fixed">
 		<parent link="left_elbow_rz"/>
 		<child link="left_elbow_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_lowarm_rx" type="revolute">
 		<parent link="left_elbow_limb"/>
 		<child link="left_lowarm_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.26348 0.01330 -0.00622"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_lowarm_ry" type="revolute">
 		<parent link="left_lowarm_rx"/>
 		<child link="left_lowarm_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_lowarm_rz" type="revolute">
 		<parent link="left_lowarm_ry"/>
 		<child link="left_lowarm_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_lowarm_rzdammy" type="fixed">
 		<parent link="left_lowarm_rz"/>
 		<child link="left_lowarm_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_hand_rx" type="revolute">
 		<parent link="left_lowarm_limb"/>
 		<child link="left_hand_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.08704 -0.01083 -0.01551"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="left_hand_ry" type="revolute">
 		<parent link="left_hand_rx"/>
 		<child link="left_hand_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="left_hand_rz" type="revolute">
 		<parent link="left_hand_ry"/>
 		<child link="left_hand_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="left_hand_rzdammy" type="fixed">
 		<parent link="left_hand_rz"/>
 		<child link="left_hand_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_clavicle_rx" type="revolute">
 		<parent link="spine_4_limb"/>
 		<child link="right_clavicle_rx"/>
-		<limit effort="1000.00000" lower="-0.51720" upper="0.47357" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.08499 0.11515 -0.02500"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_clavicle_ry" type="revolute">
 		<parent link="right_clavicle_rx"/>
 		<child link="right_clavicle_ry"/>
-		<limit effort="1000.00000" lower="-0.25424" upper="0.81856" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_clavicle_rz" type="revolute">
 		<parent link="right_clavicle_ry"/>
 		<child link="right_clavicle_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.46775" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_clavicle_rzdammy" type="fixed">
 		<parent link="right_clavicle_rz"/>
 		<child link="right_clavicle_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_shoulder_rx" type="revolute">
 		<parent link="right_clavicle_limb"/>
 		<child link="right_shoulder_rx"/>
-		<limit effort="1000.00000" lower="-1.03440" upper="0.94713" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.11654 0.04630 -0.01035"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_shoulder_ry" type="revolute">
 		<parent link="right_shoulder_rx"/>
 		<child link="right_shoulder_ry"/>
-		<limit effort="1000.00000" lower="-0.50847" upper="1.63712" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_shoulder_rz" type="revolute">
 		<parent link="right_shoulder_ry"/>
 		<child link="right_shoulder_rz"/>
-		<limit effort="1000.00000" lower="-1.04720" upper="0.93550" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_shoulder_rzdammy" type="fixed">
 		<parent link="right_shoulder_rz"/>
 		<child link="right_shoulder_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_elbow_rx" type="revolute">
 		<parent link="right_shoulder_limb"/>
 		<child link="right_elbow_rx"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.25664 -0.01184 -0.03424"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_elbow_ry" type="revolute">
 		<parent link="right_elbow_rx"/>
 		<child link="right_elbow_ry"/>
-		<limit effort="1000.00000" lower="-0.04887" upper="2.57087" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_elbow_rz" type="revolute">
 		<parent link="right_elbow_ry"/>
 		<child link="right_elbow_rz"/>
-		<limit effort="1000.00000" lower="0.00000" upper="0.00000" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_elbow_rzdammy" type="fixed">
 		<parent link="right_elbow_rz"/>
 		<child link="right_elbow_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_lowarm_rx" type="revolute">
 		<parent link="right_elbow_limb"/>
 		<child link="right_lowarm_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.26554 0.00531 -0.00574"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_lowarm_ry" type="revolute">
 		<parent link="right_lowarm_rx"/>
 		<child link="right_lowarm_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_lowarm_rz" type="revolute">
 		<parent link="right_lowarm_ry"/>
 		<child link="right_lowarm_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_lowarm_rzdammy" type="fixed">
 		<parent link="right_lowarm_rz"/>
 		<child link="right_lowarm_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_hand_rx" type="revolute">
 		<parent link="right_lowarm_limb"/>
 		<child link="right_hand_rx"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="-0.08935 -0.00882 -0.00999"/>
 		<axis xyz="1.00000 0.00000 0.00000"/>
 	</joint>
 	<joint name="right_hand_ry" type="revolute">
 		<parent link="right_hand_rx"/>
 		<child link="right_hand_ry"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 1.00000 0.00000"/>
 	</joint>
 	<joint name="right_hand_rz" type="revolute">
 		<parent link="right_hand_ry"/>
 		<child link="right_hand_rz"/>
-		<limit effort="1000.00000" lower="-0.52360" upper="0.52360" velocity="0.00000"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<limit effort="100.0" lower="-3.14000" upper="3.14000" velocity="1.00000"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="right_hand_rzdammy" type="fixed">
 		<parent link="right_hand_rz"/>
 		<child link="right_hand_limb"/>
-		<dynamics damping="1.0" friction="0.0001"/>
+		<dynamics damping="0.0" friction="0.0001"/>
 		<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 0.00000"/>
 	</joint>

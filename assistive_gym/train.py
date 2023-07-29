@@ -59,6 +59,7 @@ objectTaskMapping = {
         HandoverObject.CANE: "comfort_standing_up"
 }
 
+
 class HandoverObjectConfig:
     def __init__(self, object_type: HandoverObject, weights: list, limits: list, end_effector: Optional[str]):
         self.object_type = object_type
@@ -623,6 +624,20 @@ def get_task_from_handover_object(object_name):
     task = objectTaskMapping[object_type]
     return task
 
+def get_handover_object_config(object_name, human) -> Optional[HandoverObjectConfig]:
+    if object_name == None: # case: no handover object
+        return None
+    if object_name == "pill":
+        ee = choose_upward_hand(human)
+        return HandoverObjectConfig(HandoverObject.PILL, weights=[6], limits=[0.27], end_effector=ee)
+    elif object_name == "cup":
+        ee = choose_upper_hand(human)
+        return HandoverObjectConfig(HandoverObject.CUP, weights=[6], limits=[0.23], end_effector=ee)
+    elif object_name == "cane":
+        return HandoverObjectConfig(HandoverObject.CANE, weights=[6], limits=[0.23], end_effector=None)
+    else:
+        raise ValueError("Object name not recognized")
+
 
 def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
           end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False, handover_obj=None):
@@ -639,6 +654,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
 
     handover_obj_config = get_handover_object_config(handover_obj, human)
     end_effector = handover_obj_config.end_effector
+
     if handover_obj_config and handover_obj_config.end_effector: # reset the end effector based on the object
         human.reset_controllable_joints(handover_obj_config.end_effector)
 
@@ -717,6 +733,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                 cost, m, dist, energy, torque, reba = cost_fn(human, end_effector, s, original_ee_pos, original_info,
                                                         max_dynamics, has_self_collision, has_env_collision, has_valid_robot_ik, 
                                                         0, handover_obj_config, robot_ik_mode=robot_ik)
+
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_joint_angles)
 
