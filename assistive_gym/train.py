@@ -329,13 +329,13 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
                 cost += 100 * cup_wr_offset > object_config.limits[0]
                 cost += 100 * human.ray_cast_perpendicular(end_effector=ee_name, ray_length=0.1)
                 if object_config.object_type == HandoverObject.CANE:
-                    cost += 100 * human.ray_cast_parallel(end_effector=ee_name)
+                    mult = human.ray_cast_down(end_effector=ee_name)
+                    cost += 100 * mult
 
     if new_self_collision:
         cost += 1000 * new_self_collision
     if new_env_collision:
         cost += 1000 * new_env_collision
-
     if robot_ik_mode:
         if not has_valid_robot_ik:
             cost += 1000
@@ -585,12 +585,10 @@ def choose_upper_hand(human):
     left_shoulder_z = left_pos[1][2]
     print("right_shoulder_z: ", right_shoulder_z, "\nleft_shoudler_z: ", left_shoulder_z)
     diff = right_shoulder_z - left_shoulder_z
-    if diff > 0.1:
-        return "right_hand"
-    elif diff < -0.1:
+    if diff < -0.1:
         return "left_hand"
     else:
-        return None
+        return "right_hand"
 
 
 def get_bedside_hand(human, margin=0):
@@ -688,7 +686,6 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
 
     # choose end effector
     handover_obj_config = get_handover_object_config(handover_obj, human)
-    end_effector = handover_obj_config.end_effector
 
     if handover_obj_config and handover_obj_config.end_effector: # reset the end effector based on the object
         human.reset_controllable_joints(handover_obj_config.end_effector)
