@@ -184,14 +184,33 @@ numpy-stl
 vtk
 ```
 
-# Train human comfort 
-## Command 
+# Train human comfort
+## Flag meaning
+- Supported train/ render mode: 
+  - train with gui: `--render-gui --train`
+  - train without gui: `--train`
+  - render train result: `--render`
 
+- Supported handover object: 
+    - single object: `--handover-object "cup"/ "cane"/ "pill"`
+    - train all objects: `--handover-obj 'all'`
+  
+- Supported train mode:
+  - with robot ik and real handover object in loop: `--robot-ik`
+  - without robot ik and simulated collision object on end-effector (default): omit `--robot-ik` flag
+  
+## Command
 ```bash
 # pyenv eval "$(pyenv init -)" -> python 3.7.10
 cd assistive-gym/
 # train
-python3 -m assistive_gym.train --env "HumanComfort-v1" --num-points 50 --smpl-file "examples/data/smpl_bp_ros_smpl_8.pkl" --save-dir "trained_models" --render-gui --train
+python3 -m assistive_gym.train --env "HumanComfort-v1" --smpl-file "examples/data/smpl_bp_ros_smpl_4.pkl" --save-dir "trained_models" --train --render-gui --robot-ik --handover-obj 'cane'
+
 # render
-python3 -m assistive_gym.train --env "HumanComfort-v1" --smpl-file "examples/data/smpl_bp_ros_smpl_8.pkl" --save-dir "trained_models" --render
+python3 -m assistive_gym.train --env "HumanComfort-v1" --smpl-file "examples/data/smpl_bp_ros_smpl_4.pkl" --save-dir "trained_models" --render --handover-obj 'cane'
+```
+## Batch training 
+Modify train.sh script and run 
+```bash
+./train.sh
 ```
