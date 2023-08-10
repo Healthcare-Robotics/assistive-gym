@@ -1,6 +1,7 @@
 import os, sys, multiprocessing, gym, ray, shutil, argparse, importlib, glob
 import pickle
 import time
+from datetime import datetime
 from enum import Enum
 
 from torch.utils.hipify.hipify_python import bcolors
@@ -59,6 +60,17 @@ objectTaskMapping = {
         HandoverObject.CANE: "comfort_standing_up"
 }
 
+
+COLLISION_PENETRATION_THRESHOLD = {
+    "self_collision": {
+        "old": 0.015,   # 1.5cm
+        "new": 0.005
+    },
+    "env_collision": {
+        "old": 0.005,   # 1.5cm
+        "new": 0.005
+    }
+}
 
 class HandoverObjectConfig:
     def __init__(self, object_type: HandoverObject, weights: list, limits: list, end_effector: Optional[str]):
@@ -215,8 +227,8 @@ def step_forward(env, x0, env_object_ids, end_effector="right_hand"):
         # print ("cur_joint_angles: ", cur_joint_angles)
         angle_dist = cal_angle_diff(cur_joint_angles, x0)
         count += 1
-        if count_new_collision(original_self_collisions, self_collision, end_effector) or count_new_collision(original_env_collisions,
-                                                                                                              env_collision, human, end_effector):
+        if count_new_collision(original_self_collisions, self_collision, human, end_effector, COLLISION_PENETRATION_THRESHOLD["self_collision"]) or count_new_collision(original_env_collisions,
+                                                                                                              env_collision, human, end_effector, COLLISION_PENETRATION_THRESHOLD["env_collision"]):
             LOG.info(f"{bcolors.FAIL}sim step: {count}, collision{bcolors.ENDC}")
             return angle_dist, self_collision, env_collision, True
 
@@ -236,7 +248,7 @@ def cal_angle_diff(cur, target):
 def cal_mid_angle(lower_bounds, upper_bounds):
     return (np.array(lower_bounds) + np.array(upper_bounds)) / 2
 
-def count_new_collision(old_collisions: Set, new_collisions: Set, human, end_effector="right_hand") -> int:
+def count_new_collision(old_collisions: Set, new_collisions: Set, human, end_effector, penetration_threshold) -> int:
     # TODO: remove magic number (might need to check why self colllision happen in such case)
     # TODO: return number of collisions instead and use that to scale the cost
     link_ids = set(human.human_dict.get_real_link_indices(end_effector))
@@ -253,14 +265,13 @@ def count_new_collision(old_collisions: Set, new_collisions: Set, human, end_eff
             continue # not end effector chain collision, skip
         # TODO: fix it, since link1 and link2 in collision from different object, so there is a slim chance of collision
         if (collision[0], collision[1]) not in collisions or (collision[1], collision[0]) not in collisions: #new collision:
-            if abs(collision[2]) > 0.005:  # magic number. we have penetration between spine4 and shoulder in pose 5
+            if abs(collision[2]) > penetration_threshold["new"]:  # magic number. we have penetration between spine4 and shoulder in pose 5
                 print ("new collision: ", collision)
                 collision_set.add((collision[0], collision[1]))
         else:
             # collision in old collision
             link1, link2, penetration = collision
-            print("old collision with deep: ", collision)
-            if abs(penetration) > 0.015: # magic number. we have penetration between spine4 and shoulder in pose 5
+            if abs(penetration) > penetration_threshold["old"]: # magic number. we have penetration between spine4 and shoulder in pose 5
                 print ("old collision with deep penetration: ", collision)
                 collision_set.add((collision[0], collision[1]))
 
@@ -294,14 +305,20 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     reba = human.get_reba_score(end_effector=ee_name)
     max_reba = 9.0
 
-    w = [1, 1, 4, 1, 1, 2]
+    # cal center offset (favor bedside)
+    # center = human.get_center_dist(end_effector=ee_name)
+    # max_center = 2.0
+
+
+    w = [1, 1, 4, 1, 1, 1]
     cost = None
 
     if not object_config: # no object handover case
         cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[
             2] * energy_final / max_dynamics.energy \
-                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[
-                    5] * reba / max_reba) / np.sum(w)
+                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + 
+                # w[5] * 1 / (center / max_center)) / np.sum(w)
+                w[5] * reba / max_reba) / np.sum(w)
     else:
         if object_config.object_type == HandoverObject.PILL:
             # cal wrist orient (pill)
@@ -310,7 +327,7 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
             w = w + object_config.weights
             # cal cost
             cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba
+                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba # w[5] * 1 / (center / max_center)
                 + w[6] * wr_offset/max_wr_offset) / np.sum(w)
             # check angle
             cost += 100 * (wr_offset > object_config.limits[0])
@@ -322,7 +339,7 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
             w = w + object_config.weights
             # cal cost
             cost = (w[0] * dist + w[1] * 1 / (manipulibility / max_dynamics.manipulibility) + w[2] * energy_final / max_dynamics.energy \
-                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba
+                + w[3] * torque / max_dynamics.torque + w[4] * mid_angle_displacement + w[5] * reba/max_reba # w[5] * 1 / (center / max_center) 
                 + w[6] * cup_wr_offset/max_cup) / np.sum(w)
             if not robot_ik_mode: # using raycast to calculate cost
                 # check angles and raycasts
@@ -343,9 +360,13 @@ def cost_fn(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.nda
     return cost, manipulibility, dist, energy_final, torque, reba
 
 
-def get_save_dir(save_dir, env_name, smpl_file):
+def get_save_dir(save_dir, env_name, smpl_file, timestamp=False):
     smpl_name = smpl_file.split('/')[-1].split('.')[0]
-    return os.path.join(save_dir, env_name, smpl_name)
+    time= datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    if timestamp:
+        return os.path.join(save_dir, env_name, smpl_name, time)
+    else:
+        return os.path.join(save_dir, env_name, smpl_name)
 
 
 def get_valid_points(env, points):
@@ -418,8 +439,8 @@ def max_energy_cost_fn(human, end_effector, original_link_positions):
 
 def detect_collisions(original_info: OriginalHumanInfo, self_collisions, env_collisions, human, end_effector):
     # check collision
-    new_self_collision = count_new_collision(original_info.self_collisions, self_collisions, human, end_effector)
-    new_env_collision = count_new_collision(original_info.env_collisions, env_collisions, human, end_effector)
+    new_self_collision = count_new_collision(original_info.self_collisions, self_collisions, human, end_effector, COLLISION_PENETRATION_THRESHOLD["self_collision"])
+    new_env_collision = count_new_collision(original_info.env_collisions, env_collisions, human, end_effector, COLLISION_PENETRATION_THRESHOLD["env_collision"])
     LOG.debug(f"self collision: {new_self_collision}, env collision: {new_env_collision}")
 
     return new_self_collision, new_env_collision
@@ -522,7 +543,7 @@ def find_robot_ik_solution(env, end_effector:str, human_link_robot_collision, to
 
     human, robot, furniture, tool = env.human, env.robot, env.furniture, env.tool
 
-    robot_base_pos, robot_base_orient, side = find_robot_start_pos_orient(env)
+    robot_base_pos, robot_base_orient, side = find_robot_start_pos_orient(env, end_effector)
 
     ee_pos, ee_orient = human.get_ee_pos_orient(end_effector)
     ee_norm_vec = human.get_ee_normal_vector(end_effector)
@@ -601,6 +622,17 @@ def get_bedside_hand(human, margin=0):
         return "left_hand"
     else:
         return "right_hand"
+
+def get_bedside_shoulder(human, margin=0):
+    right_pos = human.get_link_positions(True, end_effector_name="right_hand")
+    left_pos = human.get_link_positions(True, end_effector_name="left_hand")
+    right_hand_x = abs(right_pos[4][0])
+    left_hand_x = abs(left_pos[4][0])
+    diff = left_hand_x - right_hand_x
+    if diff > margin:
+        return "left_hand"
+    else:
+        return "right_hand"
     
 
 def get_handover_object_config(object_name, human) -> Optional[HandoverObjectConfig]:
@@ -616,7 +648,8 @@ def get_handover_object_config(object_name, human) -> Optional[HandoverObjectCon
         ee = get_bedside_hand(human)
         return HandoverObjectConfig(object_type, weights=[6], limits=[0.23], end_effector=ee)
     elif object_name == "cane":
-        ee = get_bedside_hand(human)
+        # ee = get_bedside_hand(human)
+        ee = get_bedside_shoulder(human)
         return HandoverObjectConfig(object_type, weights=[6], limits=[0.23], end_effector=None)
 
 
@@ -672,6 +705,10 @@ def get_task_from_handover_object(object_name):
     return task
 
 
+def get_actions_dict_key(handover_obj, robot_ik):
+    return handover_obj + "_robot_ik" if robot_ik else handover_obj + "_no_robot_ik"
+
+
 def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
           end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_collision=False, robot_ik=False, handover_obj=None):
     start_time = time.time()
@@ -705,7 +742,6 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
 
     timestep = 0
     mean_cost, mean_dist, mean_m, mean_energy, mean_torque, mean_evolution, mean_reba = [], [], [], [], [], [], []
-    actions = []
 
     # init optimizer
     x0 = np.array(original_info.angles)
@@ -748,19 +784,15 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
                     p.resetBasePositionAndOrientation(ee_collision_body, ee_collision_body_pos, ee_collision_body_orient, physicsClientId=env.id)
                     has_valid_robot_ik = True
 
-
                 cost, m, dist, energy, torque, reba = cost_fn(human, end_effector, s, original_ee_pos, original_info,
                                                         max_dynamics, new_self_collision, new_env_collision, has_valid_robot_ik,
                                                         0, handover_obj_config, robot_ik_mode=robot_ik)
 
                 # restore joint angle
                 human.set_joint_angles(human.controllable_joint_indices, original_info.angles)
-
-
                 LOG.info(
                     f"{bcolors.OKGREEN}timestep: {timestep}, cost: {cost}, dist: {dist}, manipulibility: {m}, energy: {energy}, torque: {torque}{bcolors.ENDC}")
-            # for ray_id in ray_ids:
-            #     p.removeUserDebugItem(ray_id)
+
             fitness_values.append(cost)
             dists.append(dist)
             manipus.append(m)
@@ -802,6 +834,7 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
     action = {
         "solution": optimizer.best.x,
         "cost": cost,
+        "end_effector": end_effector,
         "m": m,
         "dist": dist,
         "mean_energy": mean_energy,
@@ -813,7 +846,10 @@ def train(env_name, seed=0, num_points=50, smpl_file='examples/data/smpl_bp_ros_
         "mean_torque": mean_torque,
         "mean_reba": mean_reba
     }
-    actions.append(action)
+
+    actions = {}
+    key = get_actions_dict_key(handover_obj, robot_ik)
+    actions[key] = action
     # plot_cmaes_metrics(mean_cost, mean_dist, mean_m, mean_energy, mean_torque)
     # plot_mean_evolution(mean_evolution)
 
@@ -868,28 +904,27 @@ def init_optimizer2(x0, sigma, lower_bounds, upper_bounds): # for cma library
     return es
 
 
-def render(env_name, smpl_file, save_dir, end_effector, object):
+def render(env_name, smpl_file, save_dir, handover_obj, robot_ik:bool):
     save_dir = get_save_dir(save_dir, env_name, smpl_file)
     actions = pickle.load(open(os.path.join(save_dir, "actions.pkl"), "rb"))
-    env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=object)
+    env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj)
     env.render()  # need to call reset after render
     env.reset()
-    best_idx = 0
 
-    env.human.reset_controllable_joints(end_effector)
-    for (idx, action) in enumerate(actions):
-        env.human.set_joint_angles(env.human.controllable_joint_indices, action["solution"])
-        human_link_robot_collision = get_human_link_robot_collision(env.human, end_effector)
-        # find_robot_ik_solution(env, "right_hand", human_link_robot_collision)
-        time.sleep(2)
+    key = get_actions_dict_key(handover_obj, robot_ik)
 
-        if idx == best_idx:
-            plot_cmaes_metrics(action['mean_cost'], action['mean_dist'], action['mean_m'], action['mean_energy'],
-                               action['mean_torque'])
-            plot_mean_evolution(action['mean_evolution'])
-    # for i in range (1000):
-    #     p.stepSimulation(env.id)
-    # time.sleep(100)
+    if key not in actions:
+        raise Exception("no action found for ", key)
+
+    action = actions[key]
+    env.human.reset_controllable_joints(action["end_effector"])
+    env.human.set_joint_angles(env.human.controllable_joint_indices, action["solution"])
+    if robot_ik:
+        find_robot_ik_solution(env, action["end_effector"], get_human_link_robot_collision(env.human, action["end_effector"]))
+
+    plot_cmaes_metrics(action['mean_cost'], action['mean_dist'], action['mean_m'], action['mean_energy'],
+                       action['mean_torque'])
+    plot_mean_evolution(action['mean_evolution'])
 
 
 if __name__ == '__main__':
@@ -930,8 +965,14 @@ if __name__ == '__main__':
     checkpoint_path = None
 
     if args.train:
-        _, actions = train(args.env, args.seed, args.num_points, args.smpl_file, args.end_effector, args.save_dir,
-                           args.render_gui, args.simulate_collision, args.robot_ik, args.handover_obj)
+        if args.handover_obj == 'all': # train all at once
+            handover_objs = ['pill', 'cup', 'cane']
+            for handover_obj in handover_objs:
+                train(args.env, args.seed, args.num_points, args.smpl_file, args.end_effector, args.save_dir,
+                    args.render_gui, args.simulate_collision, args.robot_ik, handover_obj)
+        else:
+            _, actions = train(args.env, args.seed, args.num_points, args.smpl_file, args.end_effector, args.save_dir,
+                               args.render_gui, args.simulate_collision, args.robot_ik, args.handover_obj)
 
     if args.render:
-        render(args.env, args.smpl_file, args.save_dir, args.end_effector, args.handover_obj)
+        render(args.env, args.smpl_file, args.save_dir,  args.handover_obj, args.robot_ik)
