@@ -121,3 +121,10 @@ assistive_gym/envs/assets/human/meshes/
 
 # trained_models
 trained_models/
+
+
+# data 
+examples/data/slp3d/
+
+# urdf 
+experimental/urdf

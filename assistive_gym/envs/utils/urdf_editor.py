@@ -504,8 +504,8 @@ class UrdfEditor(object):
                 radii=baseRadiusArray,
                 halfExtents=baseHalfExtentsArray,
                 lengths=lengthsArray,
-                fileNames = [],
-                # fileNames=fileNameArray,
+                # fileNames = [],
+                fileNames=fileNameArray,
                 meshScales=meshScaleArray,
                 collisionFramePositions=basePositionsArray,
                 collisionFrameOrientations=baseOrientationsArray,
@@ -517,7 +517,7 @@ class UrdfEditor(object):
         halfExtents = [[ext * 0.5 for ext in v.geom_extents] for v in urdfVisuals]
         radii = [v.geom_radius for v in urdfVisuals]
         lengths = [v.geom_length for v in urdfVisuals]
-        # fileNames = [v.geom_meshfilename for v in urdfVisuals]
+        fileNames = [v.geom_meshfilename for v in urdfVisuals]
         meshScales = [v.geom_meshscale for v in urdfVisuals]
         rgbaColors = [v.material_rgba for v in urdfVisuals]
         visualFramePositions = [v.origin_xyz for v in urdfVisuals]
@@ -540,8 +540,8 @@ class UrdfEditor(object):
                 halfExtents=halfExtents,
                 radii=radii,
                 lengths=lengths,
-                fileNames=[],
-                # fileNames=fileNames,
+                # fileNames=[],
+                fileNames=fileNames,
                 meshScales=meshScales,
                 rgbaColors=rgbaColors,
                 visualFramePositions=visualFramePositions,

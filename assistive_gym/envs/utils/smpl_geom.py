@@ -28,7 +28,7 @@ def generate_body_hull(jname, vert, outdir, joint_pos=(0, 0, 0)):
 
     p_cloud = trimesh.PointCloud(vert)
     p_hull = p_cloud.convex_hull
-    p_hull = simplify_mesh(p_hull, 4)
+    # p_hull = simplify_mesh(p_hull, 4)
     # p_hull = smooth_mesh(p_hull)
     # p_hull.show()
     p_hull.density = DENSITY
@@ -49,14 +49,19 @@ def generate_body_hull(jname, vert, outdir, joint_pos=(0, 0, 0)):
     }
 
 
-def generate_geom(model_path, smpl_data = None):
-    smpl_parser = SMPL_Parser(model_path)
-    pose = torch.zeros((1, 72)) # reset the model to default pose
+def generate_geom(default_model_path, smpl_data= None, outdir=None):
+    smpl_parser = SMPL_Parser(default_model_path)
+    # pose = torch.zeros((1, 72)) # reset the model to default pose
 
+    pose = torch.Tensor(smpl_data.body_pose).unsqueeze(0)
+    transl = None
     if smpl_data is not None:
         betas = torch.Tensor(np.array(smpl_data.betas).reshape(1, 10))
+        if smpl_data.transl is not None:
+            transl = torch.Tensor(smpl_data.transl).unsqueeze(0)
     else:
         betas = BETAS
+
     (
         smpl_verts,
         smpl_jts,
@@ -69,15 +74,18 @@ def generate_geom(model_path, smpl_data = None):
         joint_range,
         contype,
         conaffinity,
-    ) = smpl_parser.get_mesh_offsets(pose, betas=betas)
+    ) = smpl_parser.get_mesh_offsets(pose, betas=betas, transl=transl)
 
     vert_to_joint = skin_weights.argmax(axis=1)
     hull_dict = {}
-
+    scale_dict = {
+        # "Spine3": 0.9,
+    }
     # create joint geometries
-    print("need to change geom_dir in smpl_geom.py line 79")
-    geom_dir = "/home/hrl5/assistive-gym/assistive_gym/envs/assets/human/meshes/"
-    os.makedirs(geom_dir, exist_ok=True)
+    # print("need to change geom_dir in smpl_geom.py line 79")
+    # geom_dir = "/home/hrl5/assistive-gym/assistive_gym/envs/assets/human/meshes/"
+    # geom_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../assets/human/meshes/")
+    os.makedirs(outdir, exist_ok=True)
     joint_pos_dict = {}
     total_mass = 0
     for jind, jname in enumerate(joint_names):
@@ -85,9 +93,9 @@ def generate_geom(model_path, smpl_data = None):
         if len(vind) == 0:
             print(f"{jname} has no vertices!")
             continue
-        # vert = (smpl_verts[vind] - smpl_jts[jind]) * scale_dict.get(jname, 1) + smpl_jts[jind]
-        vert = (smpl_verts[vind] - smpl_jts[jind]) + smpl_jts[jind]
-        r = generate_body_hull(jname, vert, geom_dir, joint_pos=smpl_jts[jind])
+        vert = (smpl_verts[vind] - smpl_jts[jind]) * scale_dict.get(jname, 1) + smpl_jts[jind]
+        # vert = (smpl_verts[vind] - smpl_jts[jind]) + smpl_jts[jind]
+        r = generate_body_hull(jname, vert, outdir, joint_pos=smpl_jts[jind])
         joint_pos_dict[jname] = smpl_jts[jind]
 
         hull_dict[jname] = HullWrapper(r["hull"], r["filename"])

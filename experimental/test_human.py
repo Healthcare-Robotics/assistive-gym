@@ -18,10 +18,10 @@ from assistive_gym.envs.utils.human_utils import set_joint_angles, set_self_coll
     check_collision, set_global_orientation
 from assistive_gym.envs.utils.smpl_dict import SMPLDict
 
-from assistive_gym.envs.utils.smpl_geom import generate_geom
 from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf
 
-SMPL_PATH = os.path.join(os.getcwd(), "examples/data/smpl_bp_neutral.pkl")
+SMPL_PATH = os.path.join(os.getcwd(), "examples/data/slp3d/p002/s24.pkl")
+URDF_PATH = os.path.join(os.getcwd(), "experimental/urdf/p002/human.urdf")
 class HumanUrdfTest(Agent):
     def __init__(self):
         super(HumanUrdfTest, self).__init__()
@@ -36,7 +36,7 @@ class HumanUrdfTest(Agent):
         # TODO: no hard coding
         # self.human_id = p.loadURDF("assistive_gym/envs/assets/human/human_pip.urdf")
         self.id= id
-        self.human_id = p.loadURDF("test_mesh.urdf", [0, 0, 0.2], flags = p.URDF_USE_SELF_COLLISION, useFixedBase=False)
+        self.human_id = p.loadURDF(URDF_PATH, [0, 0, 0.2], flags = p.URDF_USE_SELF_COLLISION, useFixedBase=False)
         change_dynamic_properties(human.human_id, list(range(0, 93)))
         super(HumanUrdfTest, self).init(self.human_id, id, np_random)
 
@@ -95,8 +95,11 @@ if __name__ == "__main__":
     # Set the simulation parameters
     smpl_path = os.path.join(os.getcwd(), SMPL_PATH)
     smpl_data = load_smpl(smpl_path)
-    set_joint_angles(human.human_id, smpl_data.body_pose)
-    set_global_orientation(human.human_id, smpl_data.global_orient, [0, 0, 0.2])
+    body_pose = np.array(smpl_data.body_pose) * 1
+    print ("body_pose: ", body_pose)
+    # set_joint_angles(human.human_id, body_pose)
+    # set_global_orientation(human.human_id, np.array(smpl_data.global_orient), [0, 0, 1])
+    p.resetBasePositionAndOrientation(human.human_id, [0, 0, 1], [0, 0, 0, 1])
 
     # Set the camera view
     cameraDistance = 3
@@ -130,22 +133,24 @@ if __name__ == "__main__":
     # human.set_joint_angles([85,86,87], [np.pi/2, 0, 0]) # wrist edit
     init_angle = 0
     stop = False
-    for i in range(1000):
-        if stop:
-            break
-        init_angle += 0.1
-        # print("### angle: ", init_angle)
-        orn = p.getQuaternionFromEuler([0, init_angle, 0])
-        p.resetBasePositionAndOrientation(human.human_id, [0, 0, 2], orn)
-        print(human.get_parallel_wrist_orientation(end_effector="left_hand"))
-        stop = "n"==input("continue? ###")
+    # for i in range(1000):
+    #     if stop:
+    #         break
+    #     init_angle += 0.1
+    #     # print("### angle: ", init_angle)
+    #     orn = p.getQuaternionFromEuler([0, init_angle, 0])
+    #     p.resetBasePositionAndOrientation(human.human_id, [0, 0, 2], orn)
+    #     print(human.get_parallel_wrist_orientation(end_effector="left_hand"))
+    #     stop = "n"==input("continue? ###")
+    #
+    # human.set_joint_angles(human.controllable_joint_indices, [np.pi/2] * len(human.controllable_joint_indices), use_limits=True)
+    # time.sleep(100)
 
-    human.set_joint_angles(human.controllable_joint_indices, [np.pi/2] * len(human.controllable_joint_indices), use_limits=True)
-    time.sleep(100)
-
-    # while True:
-        # p.stepSimulation()
-        # check_collision(human.human_id, human.human_id)
+    while True:
+        p.stepSimulation()
+        collisions = check_collision(human.human_id, human.human_id)
+        print ("collisions: ", collisions)
         # human.step_forward()
     # Disconnect from the simulation
+
     p.disconnect()

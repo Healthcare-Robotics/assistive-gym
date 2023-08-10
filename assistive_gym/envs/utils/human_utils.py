@@ -58,7 +58,7 @@ def set_joint_angle(human_id, pose, smpl_joint_name, robot_joint_name):
 def set_joint_angles(human_id, pose):
     r"""
       Set the joint angles of the robot.
-      :param pose: 75 dimensional vector of joint angles. (0:3 - root, 3:75 - joint angles)
+      :param pose: 72 dimensional vector of joint angles. (0:3 - root, 3:72 - joint angles)
       :return:
       """
 
@@ -91,6 +91,35 @@ def set_joint_angles(human_id, pose):
     set_joint_angle(human_id, pose, "Neck", "neck")
     set_joint_angle(human_id, pose, "Head", "head")
 
+def set_joint_angles_2(human_id, pose):
+    # set_joint_angle(human_id, pose, "Spine1", "spine_2")
+    # set_joint_angle(human_id, pose, "Spine2", "spine_3")
+    # set_joint_angle(human_id, pose, "Spine3", "spine_4")
+
+    # set_joint_angle(human_id, pose, "L_Hip", "left_hip")
+    # set_joint_angle(human_id, pose, "L_Knee", "left_knee")
+    # set_joint_angle(human_id, pose, "L_Ankle", "left_ankle")
+    # set_joint_angle(human_id, pose, "L_Foot", "left_foot")
+    #
+    # set_joint_angle(human_id, pose, "R_Hip", "right_hip")
+    # set_joint_angle(human_id, pose, "R_Knee", "right_knee")
+    # set_joint_angle(human_id, pose, "R_Ankle", "right_ankle")
+    # set_joint_angle(human_id, pose, "R_Foot", "right_foot")
+
+    set_joint_angle(human_id, pose, "R_Collar", "right_clavicle")
+    set_joint_angle(human_id, pose, "R_Shoulder", "right_shoulder")
+    set_joint_angle(human_id, pose, "R_Elbow", "right_elbow")
+    set_joint_angle(human_id, pose, "R_Wrist", "right_lowarm")
+    set_joint_angle(human_id, pose, "R_Hand", "right_hand")
+
+    set_joint_angle(human_id, pose, "L_Collar", "left_clavicle")
+    set_joint_angle(human_id, pose, "L_Shoulder", "left_shoulder")
+    set_joint_angle(human_id, pose, "L_Elbow", "left_elbow")
+    set_joint_angle(human_id, pose, "L_Wrist", "left_lowarm")
+    set_joint_angle(human_id, pose, "L_Hand", "left_hand")
+
+    set_joint_angle(human_id, pose, "Neck", "neck")
+    set_joint_angle(human_id, pose, "Head", "head")
 # TODO: review the parameters
 def change_dynamic_properties(human_id, link_ids):
     for link_id in link_ids:
@@ -183,10 +212,9 @@ def set_self_collision2(human_id, physic_client_id, joint_chain, joint_to_ignore
         for j_name in joint_to_ignore:
             if j_name == "pelvis":
                 ignore_ids.append(human_dict.get_fixed_joint_id(j_name))
-            # else:
-            #     if joint_name ==
-            #     ignore_ids.append(human_dict.get_dammy_joint_id(j_name))
 
+        if joint_name == "right_shoulder" or joint_name == "left_shoulder": # TODO: remove this hack
+            ignore_ids.append(human_dict.get_dammy_joint_id("spine_4"))
         # print (f"ignore_ids: {ignore_ids}")
         for j in all_real_limb_ids:
             if j not in ignore_ids:
@@ -206,7 +234,7 @@ def set_self_collisions(human_id, physic_client_id):
 
     disable_self_collisions(human_id, num_joints, physic_client_id)
 
-    # # only enable self collision for arms and legs with the rest of the body
+    # # # only enable self collision for arms and legs with the rest of the body
     set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["right_hand"],
                         human_dict.joint_collision_ignore_dict["right_hand"])
     set_self_collision2(human_id, physic_client_id, human_dict.joint_chain_dict["left_hand"],

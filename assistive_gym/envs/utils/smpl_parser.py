@@ -134,13 +134,13 @@ class SMPL_Parser(_SMPL):
         # joints = smpl_output.joints[:,JOINST_TO_USE]
         return vertices, joints
 
-    def get_mesh_offsets(self, pose, betas=torch.zeros(1, 10), flatfoot=False):
+    def get_mesh_offsets(self, pose, betas=torch.zeros(1, 10), flatfoot=False, transl=None):
         with torch.no_grad():
             joint_names = self.joint_names
             if pose is not None:
-                verts, Jtr = self.get_joints_verts(pose, th_betas=betas)
+                verts, Jtr = self.get_joints_verts(pose, th_betas=betas, th_trans=transl)
             else:
-                verts, Jtr = self.get_joints_verts(self.zero_pose, th_betas=betas)
+                verts, Jtr = self.get_joints_verts(self.zero_pose, th_betas=betas, th_trans=transl)
 
             verts_np = verts.detach().cpu().numpy()
             verts = verts_np[0]
