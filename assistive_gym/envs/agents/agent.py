@@ -1,6 +1,7 @@
 import numpy as np
 import pybullet as p
 
+
 class Agent:
     def __init__(self):
         self.base = -1
@@ -19,6 +20,7 @@ class Agent:
         self.id = id
         self.np_random = np_random
         self.all_joint_indices = list(range(p.getNumJoints(body, physicsClientId=id)))
+        # print ("body: ", body,  " all_joint_indices: ", self.all_joint_indices)
         if indices != -1:
             self.update_joint_limits()
             self.enforce_joint_limits(indices)
@@ -37,6 +39,7 @@ class Agent:
             indices = self.all_joint_indices
         elif not indices:
             return []
+        # print(self.body, " indices: ", indices)
         robot_joint_states = p.getJointStates(self.body, jointIndices=indices, physicsClientId=self.id)
         return np.array([x[0] for x in robot_joint_states])
 
@@ -116,7 +119,10 @@ class Agent:
         return linkA, linkB, posA, posB, force
 
     def get_closest_points(self, agentB, distance=4.0, linkA=None, linkB=None):
-        args = dict(bodyA=self.body, bodyB=agentB.body, distance=distance, physicsClientId=self.id)
+        return self.get_closest_points_with_body_id(agentB.body, distance, linkA, linkB)
+
+    def get_closest_points_with_body_id(self, bodyB, distance=4.0, linkA=None, linkB=None):
+        args = dict(bodyA=self.body, bodyB=bodyB, distance=distance, physicsClientId=self.id)
         if linkA is not None:
             args['linkIndexA'] = linkA
         if linkB is not None:
@@ -153,6 +159,7 @@ class Agent:
 
     def set_joint_angles(self, indices, angles, use_limits=True, velocities=0):
         for i, (j, a) in enumerate(zip(indices, angles)):
+            # print ("j: ", self.lower_limits[j], self.upper_limits[j])
             p.resetJointState(self.body, jointIndex=j, targetValue=min(max(a, self.lower_limits[j]), self.upper_limits[j]) if use_limits else a, targetVelocity=velocities if type(velocities) in [int, float] else velocities[i], physicsClientId=self.id)
 
     def set_on_ground(self, base_height=None):
@@ -194,7 +201,8 @@ class Agent:
         # p.changeDynamics(self.body, joint, contactStiffness=stiffness, contactDamping=stiffness, physicsClientId=self.id)
 
     def set_gravity(self, ax=0.0, ay=0.0, az=-9.81):
-        p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
+        # p.setGravity(ax, ay, az, body=self.body, physicsClientId=self.id)
+        p.setGravity(ax, ay, az, physicsClientId=self.id)
 
     def enable_force_torque_sensor(self, joint):
         p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)
@@ -282,3 +290,40 @@ class Agent:
                 joint_names.append((j, info[1]))
         print(joint_names)
 
+    def add_collision_object_around_link(self, link_idx, radius=0.05):
+        """
+        Adds a collision object around a link for end effector clearance check
+        :param link_idx:
+        :param radius:
+        :return:
+        """
+        def create_sphere(radius=0, position_offset=[0, 0, 0], orientation=[0, 0, 0, 1]):
+            visual_shape = p.createVisualShape(p.GEOM_SPHERE, radius=radius,
+                                               visualFramePosition=position_offset,
+                                               rgbaColor=[1, 0, 0, 0.5],
+                                               visualFrameOrientation=orientation, physicsClientId=self.id)
+            collision_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=radius,
+                                                     collisionFramePosition=position_offset,
+                                                     collisionFrameOrientation=orientation, physicsClientId=self.id)
+            return visual_shape, collision_shape
+
+        link_pos, link_orient = p.getLinkState(self.body, link_idx, physicsClientId=self.id)[:2]
+
+        shape_visual, shape_collision = create_sphere(radius=radius, position_offset=[0, 0, 0.0],
+                                                       orientation=p.getQuaternionFromEuler([0, 0, 0]))
+        collision_body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=shape_collision,
+                                 baseVisualShapeIndex=shape_visual, basePosition=link_pos,useMaximalCoordinates=False,
+                                 baseOrientation=link_orient, physicsClientId=self.id)
+
+        # create fake link constraint
+        pos_offset = [0, 0, 0]
+        orient_offset = [0, 0, 0, 1]
+        constraint = p.createConstraint(self.body, link_idx,
+                                        collision_body, -1, p.JOINT_FIXED, [0, 0, 0], parentFramePosition=pos_offset,
+                                        childFramePosition=[0, 0, 0], parentFrameOrientation=orient_offset,
+                                        childFrameOrientation=[0, 0, 0, 1], physicsClientId=self.id)
+        p.changeConstraint(constraint, maxForce=500000, physicsClientId=self.id)
+
+        # ignore the collision between the collision body and the robot
+        p.setCollisionFilterPair(self.body, collision_body, link_idx, -1, 0, physicsClientId=self.id)
+        return collision_body

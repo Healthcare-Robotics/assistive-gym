@@ -5,8 +5,8 @@ from .robot import Robot
 
 class Stretch(Robot):
     def __init__(self, controllable_joints='right'):
-        # right_arm_joint_indices = [0, 1, 3, 5, 6, 7, 8, 9] # Controllable arm joints
-        right_arm_joint_indices = [3, 5, 9] # Controllable arm joints
+        right_arm_joint_indices = [0, 1, 3, 5, 6, 7, 8, 9] # Controllable arm joints
+        # right_arm_joint_indices = [3, 5, 9] # Controllable arm joints
         left_arm_joint_indices = right_arm_joint_indices # Controllable arm joints
         wheel_joint_indices = [0, 1] # Controllable wheel joints
         right_end_effector = 15 # Used to get the pose of the end effector
@@ -23,29 +23,47 @@ class Stretch(Robot):
                        'drinking': [0.2, 0.2],
                        'bed_bathing': [0.1, 0.1],
                        'dressing': [0, 0],
-                       'arm_manipulation': [0.1, 0.1]}
+                       'arm_manipulation': [0.1, 0.1],
+                       'comfort_standing_up': [0.0, 0.0],
+                       'comfort_drinking': [0.1, 0.1],
+                       'comfort_taking_medicine': [0.1, 0.1],
+                       }
         tool_pos_offset = {'scratch_itch': [0, 0, 0], # Position offset between tool and robot tool joint
                            'feeding': [0.1, 0, -0.02],
                            'drinking': [0, 0, -0.05],
                            'bed_bathing': [0, 0, 0],
-                           'arm_manipulation': [0.11, 0, -0.07]}
+                           'arm_manipulation': [0.11, 0, -0.07],
+                           'comfort_standing_up':[0, 0, -0.1],
+                           'comfort_drinking':[0, 0, 0],
+                           'comfort_taking_medicine':[0, 0, 0]}
         tool_orient_offset = {'scratch_itch': [0, 0, 0], # RPY orientation offset between tool and robot tool joint
                               'feeding': [np.pi/2.0-0.1, 0, -np.pi/2.0],
                               'drinking': [np.pi/2.0, 0, 0],
                               'bed_bathing': [0, 0, 0],
-                              'arm_manipulation': [np.pi/2.0, 0, 0]}
+                              'arm_manipulation': [np.pi/2.0, 0, 0],
+                              'comfort_standing_up':[0, 0, np.pi/2.0],
+                              'comfort_drinking': [np.pi/2, 0, 0],
+                              'comfort_taking_medicine': [0, 0, 0]}
         toc_base_pos_offset = {'scratch_itch': [-1.0, -0.1, 0.09], # Robot base offset before TOC base pose optimization
                                'feeding': [-0.9, -0.3, 0.09],
                                'drinking': [-0.9, -0.3, 0.09],
                                'bed_bathing': [-1.1, -0.1, 0.09],
                                'dressing': [0.75, -0.4, 0.09],
-                               'arm_manipulation': [-1.3, 0.1, 0.09]}
+                               'arm_manipulation': [-1.3, 0.1, 0.09],
+                               'comfort_standing_up': [0, 0, 0],
+                               'comfort_drinking': [0, 0, 0],
+                               'comfort_taking_medicine': [0 ,0 ,0]
+                               }
         toc_ee_orient_rpy = {'scratch_itch': [0, 0, np.pi/2.0], # Initial end effector orientation
                              'feeding': [0, 0, np.pi/2.0],
                              'drinking': [0, 0, np.pi/2.0],
                              'bed_bathing': [0, 0, np.pi/2.0],
                              'dressing': [[0, 0, -np.pi/2.0]],
-                             'arm_manipulation': [0, 0, np.pi/2.0]}
+                             'arm_manipulation': [0, 0, np.pi/2.0],
+                             'comfort_standing_up': [0, 0, 0],
+                             'comfort_drinking': [0, 0, 0],
+                             'comfort_taking_medicine': [0, 0, 0]
+                             }
         wheelchair_mounted = False
 
         self.gains = [0.1]*2 + [0.01] + [0.025]*5

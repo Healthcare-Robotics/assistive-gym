@@ -31,3 +31,23 @@ register(
     max_episode_steps=200,
 )
 
+# Just added
+register(
+    id='HumanResting-v1',
+    entry_point='assistive_gym.envs:HumanRestingEnv',
+    max_episode_steps=200,
+)
+
+
+register(
+    id='HumanLying-v1',
+    entry_point='assistive_gym.envs:HumanLyingEnv',
+    max_episode_steps=200,
+)
+
+
+register(
+    id='HumanComfort-v1',
+    entry_point='assistive_gym.envs:HumanComfortEnv',
+    max_episode_steps=200,
+)
