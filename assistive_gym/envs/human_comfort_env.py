@@ -108,11 +108,15 @@ class HumanComfortEnv(AssistiveEnv):
         min_pos, max_pos = p.getAABB(self.furniture.body, physicsClientId=self.id)
         print("bed height ", bed_height, bed_base_height, "bed pos ", min_pos, max_pos)
         # reset human pose
+        # disable self collision before dropping on bed
+        num_joints = p.getNumJoints(self.human.body, physicsClientId=self.id)
+        disable_self_collisions(self.human.body, num_joints, self.id)
         smpl_data = load_smpl(self.smpl_file)
         self.human.set_joint_angles_with_smpl(smpl_data)
         height, base_height = self.human.get_heights()
         print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
-        self.human.set_global_orientation(smpl_data, [0, 0,  bed_height+0.2])
+        self.human.set_global_orientation(smpl_data, [0, 0,  bed_height])
+        # p.resetBasePositionAndOrientation(self.human.body, [0, 0,  bed_height] , [0, 0, 0, 1], physicsClientId=self.id)
 
         self.robot.set_gravity(0, 0, -9.81)
         self.human.set_gravity(0, 0, -9.81)
@@ -139,10 +143,6 @@ class HumanComfortEnv(AssistiveEnv):
 
         # p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
         p.setTimeStep(1/240., physicsClientId=self.id)
-
-        # disable self collision before dropping on bed
-        num_joints = p.getNumJoints(self.human.body, physicsClientId=self.id)
-        disable_self_collisions(self.human.body, num_joints, self.id)
 
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)

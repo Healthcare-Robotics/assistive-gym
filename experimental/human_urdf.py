@@ -77,12 +77,48 @@ class HumanUrdf(Agent):
         return ik_indices
 
     def set_joint_angles_with_smpl(self, smpl_data: SMPLData):
-        set_joint_angles(self.body, smpl_data.body_pose)
+        # set_joint_angles(self.body, smpl_data.body_pose)
         # self.initial_self_collisions = self.check_self_collision()  # collision due to initial pose
+        pose = smpl_data.body_pose
+        self.set_joint_angle_with_limit(pose, "Spine1", "spine_2")
+        self.set_joint_angle_with_limit( pose, "Spine2", "spine_3")
+        self.set_joint_angle_with_limit( pose, "Spine3", "spine_4")
+
+        self.set_joint_angle_with_limit( pose, "L_Hip", "left_hip")
+        self.set_joint_angle_with_limit( pose, "L_Knee", "left_knee")
+        self.set_joint_angle_with_limit( pose, "L_Ankle", "left_ankle")
+        self.set_joint_angle_with_limit( pose, "L_Foot", "left_foot")
+
+        self.set_joint_angle_with_limit( pose, "R_Hip", "right_hip")
+        self.set_joint_angle_with_limit( pose, "R_Knee", "right_knee")
+        self.set_joint_angle_with_limit( pose, "R_Ankle", "right_ankle")
+        self.set_joint_angle_with_limit( pose, "R_Foot", "right_foot")
+
+        self.set_joint_angle_with_limit( pose, "R_Collar", "right_clavicle")
+        self.set_joint_angle_with_limit( pose, "R_Shoulder", "right_shoulder")
+        self.set_joint_angle_with_limit( pose, "R_Elbow", "right_elbow")
+        self.set_joint_angle_with_limit( pose, "R_Wrist", "right_lowarm")
+        self.set_joint_angle_with_limit( pose, "R_Hand", "right_hand")
+
+        self.set_joint_angle_with_limit( pose, "L_Collar", "left_clavicle")
+        self.set_joint_angle_with_limit( pose, "L_Shoulder", "left_shoulder")
+        self.set_joint_angle_with_limit( pose, "L_Elbow", "left_elbow")
+        self.set_joint_angle_with_limit( pose, "L_Wrist", "left_lowarm")
+        self.set_joint_angle_with_limit( pose, "L_Hand", "left_hand")
+
+        self.set_joint_angle_with_limit( pose, "Neck", "neck")
+        self.set_joint_angle_with_limit( pose, "Head", "head")
 
     def set_joint_angles_with_smpl2(self, smpl_data: SMPLData):
         set_joint_angles_2(self.body, smpl_data.body_pose)
         # self.initial_self_collisions = self.check_self_collision()  # collision due to initial pose
+    def set_joint_angle_with_limit(self, pose, smpl_joint_name, robot_joint_name):
+        smpl_dict = SMPLDict()
+        smpl_angles, _ = convert_aa_to_euler_quat(pose[smpl_dict.get_pose_ids(smpl_joint_name)])
+
+        robot_joints = self.human_dict.get_joint_ids(robot_joint_name)
+        print ("joint name: ", smpl_joint_name, " angles: ", smpl_angles*180/np.pi)
+        self.set_joint_angles(robot_joints, smpl_angles)
 
     def set_global_orientation(self, smpl_data: SMPLData, pos):
         set_global_orientation(self.body, smpl_data.global_orient, pos)

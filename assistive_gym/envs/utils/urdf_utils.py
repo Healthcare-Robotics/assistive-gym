@@ -54,7 +54,7 @@ JOINT_SETTING = {
         "joint_stiffness": 0.0,
     },
     "left_hip": {
-        "joint_limits": [[-90.0, 17.8], [-33.7, 32.6], [-30.5, 38.6]],
+        "joint_limits": [[-90.0, 30], [-70, 70], [-70, 70]],
         "joint_damping": [15 * 10.0] * 3,
         "joint_stiffness": [10.0] * 3
     },
@@ -74,7 +74,8 @@ JOINT_SETTING = {
     },
     "right_hip":
         {
-            "joint_limits": [[-90.0, 17.8], [-32.6, 33.7], [-38.6, 30.5]],
+            # "joint_limits": [[-90.0, 17.8], [-32.6, 33.7], [-38.6, 30.5]],
+            "joint_limits": [[-90.0, 30], [-70, 70], [-70, 70]],
             "joint_damping": [15 * 10.0] * 3,
             "joint_stiffness": [10.0] * 3
         },

@@ -51,7 +51,11 @@ def set_joint_angle(human_id, pose, smpl_joint_name, robot_joint_name):
     # print ("joint name: ", robot_joint_name, np.array(smpl_angles)*180.0/np.pi)
     # smpl_angles = pose[smpl_dict.get_pose_ids(smpl_joint_name)]
     robot_joints = human_dict.get_joint_ids(robot_joint_name)
+    print ("smpl_joint_name: ", smpl_joint_name, smpl_angles*180.0/np.pi)
     for i in range(0, 3):
+        # p.resetJointState(human_id, robot_joints[i], -smpl_angles[i])
+        if smpl_joint_name == 'L_Elbow':
+            smpl_angles = [0, smpl_angles[1], 0]
         p.resetJointState(human_id, robot_joints[i], smpl_angles[i])
 
 
@@ -92,19 +96,19 @@ def set_joint_angles(human_id, pose):
     set_joint_angle(human_id, pose, "Head", "head")
 
 def set_joint_angles_2(human_id, pose):
-    # set_joint_angle(human_id, pose, "Spine1", "spine_2")
-    # set_joint_angle(human_id, pose, "Spine2", "spine_3")
-    # set_joint_angle(human_id, pose, "Spine3", "spine_4")
+    set_joint_angle(human_id, pose, "Spine1", "spine_2")
+    set_joint_angle(human_id, pose, "Spine2", "spine_3")
+    set_joint_angle(human_id, pose, "Spine3", "spine_4")
 
-    # set_joint_angle(human_id, pose, "L_Hip", "left_hip")
-    # set_joint_angle(human_id, pose, "L_Knee", "left_knee")
-    # set_joint_angle(human_id, pose, "L_Ankle", "left_ankle")
-    # set_joint_angle(human_id, pose, "L_Foot", "left_foot")
-    #
-    # set_joint_angle(human_id, pose, "R_Hip", "right_hip")
-    # set_joint_angle(human_id, pose, "R_Knee", "right_knee")
-    # set_joint_angle(human_id, pose, "R_Ankle", "right_ankle")
-    # set_joint_angle(human_id, pose, "R_Foot", "right_foot")
+    set_joint_angle(human_id, pose, "L_Hip", "left_hip")
+    set_joint_angle(human_id, pose, "L_Knee", "left_knee")
+    set_joint_angle(human_id, pose, "L_Ankle", "left_ankle")
+    set_joint_angle(human_id, pose, "L_Foot", "left_foot")
+
+    set_joint_angle(human_id, pose, "R_Hip", "right_hip")
+    set_joint_angle(human_id, pose, "R_Knee", "right_knee")
+    set_joint_angle(human_id, pose, "R_Ankle", "right_ankle")
+    set_joint_angle(human_id, pose, "R_Foot", "right_foot")
 
     set_joint_angle(human_id, pose, "R_Collar", "right_clavicle")
     set_joint_angle(human_id, pose, "R_Shoulder", "right_shoulder")
@@ -124,15 +128,15 @@ def set_joint_angles_2(human_id, pose):
 def change_dynamic_properties(human_id, link_ids):
     for link_id in link_ids:
         p.changeDynamics(human_id, link_id,
-                         lateralFriction=10.0,
-                         spinningFriction=0.1,
-                         rollingFriction=0.1,
-                         restitution=0.9,
-                         linearDamping=0.01,
-                         angularDamping=0.01,
+                         lateralFriction=10,
+                         spinningFriction=10,
+                         rollingFriction=10,
+                         restitution=0.1,
+                         linearDamping=1,
+                         angularDamping=1,
                          contactStiffness=1e3,
                          # contact stiffness need to be large otherwise the body will penetrate the ground
-                         contactDamping=1e6)  # contact damping need to be much larger than contact stiffness so that no bounciness
+                         contactDamping=1e10)  # contact damping need to be much larger than contact stiffness so that no bounciness
 
 
 def check_collision(body_id, other_body_id, include_penetration=True):
@@ -215,6 +219,8 @@ def set_self_collision2(human_id, physic_client_id, joint_chain, joint_to_ignore
 
         if joint_name == "right_shoulder" or joint_name == "left_shoulder": # TODO: remove this hack
             ignore_ids.append(human_dict.get_dammy_joint_id("spine_4"))
+        if joint_name == "neck": # TODO: remove this hack
+            ignore_ids.append(human_dict.get_dammy_joint_id("left_clavicle"), human_dict.get_dammy_joint_id("right_clavicle"))
         # print (f"ignore_ids: {ignore_ids}")
         for j in all_real_limb_ids:
             if j not in ignore_ids:

@@ -131,6 +131,8 @@ class SMPL_Parser(_SMPL):
         )
         vertices = smpl_output.vertices
         joints = smpl_output.joints[:, :24]
+        betas = smpl_output.betas
+        print("betas: ", betas)
         # joints = smpl_output.joints[:,JOINST_TO_USE]
         return vertices, joints
 
@@ -169,6 +171,7 @@ class SMPL_Parser(_SMPL):
             print(self.joint_range)
             # skin_weights = smpl_layer.th_weights.numpy()
             skin_weights = self.lbs_weights.numpy()
+
             return (
                 verts,
                 joint_pos,

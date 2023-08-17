@@ -754,6 +754,9 @@ def train(env_name, seed=0,  smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl',
         ee_collision_radius = COLLISION_OBJECT_RADIUS[handover_obj] # 20cm range
         ee_collision_body = human.add_collision_object_around_link(ee_link_idx, radius=ee_collision_radius) # TODO: ignore collision with hand
 
+    smpl_name = os.path.basename(smpl_file)
+    p.addUserDebugText("person: {}, smpl: {}".format(person_id, smpl_name), [0, 0, 1], textColorRGB=[1, 0, 0])
+
     while not optimizer.stop():
         timestep += 1
         solutions = optimizer.ask()
