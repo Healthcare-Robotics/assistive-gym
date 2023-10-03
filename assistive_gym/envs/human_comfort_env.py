@@ -1,18 +1,12 @@
-import os
-import time
+import numpy as np
+import pybullet as p
 
-from assistive_gym.envs.agents.pr2 import PR2
-from assistive_gym.envs.agents.sawyer import Sawyer
-from assistive_gym.envs.agents.stretch import Stretch
 from assistive_gym.envs.agents.stretch_dex import StretchDex
 from assistive_gym.envs.env import AssistiveEnv
 from assistive_gym.envs.utils.human_utils import set_self_collisions, disable_self_collisions
 from assistive_gym.envs.utils.urdf_utils import load_smpl
-from assistive_gym.envs.utils.human_urdf_dict import HumanUrdfDict
 from experimental.human_urdf import HumanUrdf
-from ergonomics.reba import RebaScore
-import numpy as np
-import pybullet as p
+
 
 class HumanComfortEnv(AssistiveEnv):
     def __init__(self):
@@ -20,7 +14,7 @@ class HumanComfortEnv(AssistiveEnv):
         self.human = HumanUrdf()
 
         super(HumanComfortEnv, self).__init__(robot=self.robot, human=self.human, task='', obs_robot_len=len(self.robot.controllable_joint_indices), 
-                                         obs_human_len=len(self.human.controllable_joint_indices)) #hardcoded
+                                         obs_human_len=len(self.human.controllable_joint_indices), render=False) #hardcoded
         self.target_pos = np.array([0, 0, 0])
         self.smpl_file = None
         self.task = None # task = 'comfort_standing_up', 'comfort_taking_medicine',  'comfort_drinking'
@@ -81,7 +75,7 @@ class HumanComfortEnv(AssistiveEnv):
                 return human_obs
 
             return {'robot': robot_obs, 'human': human_obs}
-        return robot_obs
+        return robot_obsdrinking
 
     def reset_human(self, is_collision):
         if not is_collision:
@@ -91,7 +85,7 @@ class HumanComfortEnv(AssistiveEnv):
             smpl_data = load_smpl(self.smpl_file)
             self.human.set_joint_angles_with_smpl(smpl_data)
             height, base_height = self.human.get_heights()
-            print("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
+            # print("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
             self.human.set_global_orientation(smpl_data, [0, 0, bed_height])
             self.human.set_gravity(0, 0, -9.81)
             p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
@@ -106,7 +100,7 @@ class HumanComfortEnv(AssistiveEnv):
 
         bed_height, bed_base_height = self.furniture.get_heights(set_on_ground=True)
         min_pos, max_pos = p.getAABB(self.furniture.body, physicsClientId=self.id)
-        print("bed height ", bed_height, bed_base_height, "bed pos ", min_pos, max_pos)
+        # print("bed height ", bed_height, bed_base_height, "bed pos ", min_pos, max_pos)
         # reset human pose
         # disable self collision before dropping on bed
         num_joints = p.getNumJoints(self.human.body, physicsClientId=self.id)
@@ -114,7 +108,7 @@ class HumanComfortEnv(AssistiveEnv):
         smpl_data = load_smpl(self.smpl_file)
         self.human.set_joint_angles_with_smpl(smpl_data, False)
         height, base_height = self.human.get_heights()
-        print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
+        # print ("human height ", height, base_height, "bed height ", bed_height, bed_base_height)
         self.human.set_global_orientation(smpl_data, [0, 0,  bed_height+0.2])
         # p.resetBasePositionAndOrientation(self.human.body, [0, 0,  bed_height] , [0, 0, 0, 1], physicsClientId=self.id)
 
@@ -153,7 +147,7 @@ class HumanComfortEnv(AssistiveEnv):
         human_pos = p.getBasePositionAndOrientation(self.human.body, physicsClientId=self.id)[0]
 
         self.human.set_global_orientation(smpl_data, human_pos)
-        self.human.set_joint_angles_with_smpl(smpl_data)
+        self.human.set_joint_angles_with_smpl(smpl_data, False)
 
         set_self_collisions(self.human.body, self.id)
         self.human.initial_self_collisions= self.human.check_self_collision()

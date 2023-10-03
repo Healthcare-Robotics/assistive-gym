@@ -1,0 +1,55 @@
+cane:
+  weights: {
+    'dist': 1, # since hand might need to move away from original position
+    'manipulibility': 2,
+    'energy': 8,
+    'torque': 2,
+    'mid_angle': 0.5,
+    'special_cost': 50,
+    'self_penetration': 100,
+    'env_penetration': 100,
+    'ik_dist': 10,
+    'robot_penetration': 10
+  }
+
+cup:
+  weights: {
+    'dist': 2,
+    'manipulibility': 2,
+    'energy': 10,
+    'torque': 2,
+    'mid_angle': 0.5,
+    'special_cost': 10,
+    'self_penetration': 100,
+    'env_penetration': 100,
+    'ik_dist': 10,
+    'robot_penetration': 10
+  }
+
+pill:
+  weights: {
+    'dist': 2,
+    'manipulibility': 2,
+    'energy': 8,
+    'torque': 2,
+    'mid_angle': 0.5,
+    'special_cost': 0,
+    'self_penetration': 100,
+    'env_penetration': 100,
+    'ik_dist': 10,
+    'robot_penetration': 10
+  }
+
+default:
+  weights: {
+    'dist': 2,
+    'manipulibility': 2,
+    'energy': 8,
+    'torque': 2,
+    'mid_angle': 1,
+    'special_cost': 0,
+    'self_penetration': 100,
+    'env_penetration': 100,
+    'ik_dist': 10,
+    'robot_penetration': 10
+  }

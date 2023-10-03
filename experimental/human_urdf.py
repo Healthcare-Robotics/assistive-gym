@@ -118,7 +118,7 @@ class HumanUrdf(Agent):
         smpl_angles, _ = convert_aa_to_euler_quat(pose[smpl_dict.get_pose_ids(smpl_joint_name)])
 
         robot_joints = self.human_dict.get_joint_ids(robot_joint_name)
-        print ("joint name: ", smpl_joint_name, " angles: ", smpl_angles*180/np.pi)
+        # print ("joint name: ", smpl_joint_name, " angles: ", smpl_angles*180/np.pi)
         self.set_joint_angles(robot_joints, smpl_angles, use_limits=use_limits)
 
     def set_global_orientation(self, smpl_data: SMPLData, pos):
@@ -127,6 +127,7 @@ class HumanUrdf(Agent):
     def reset_controllable_joints(self, end_effector):
         if end_effector not in ['left_hand', 'right_hand']:
             raise ValueError("end_effector must be either 'left_hand' or 'right_hand'")
+        self.end_effector = end_effector
         self.controllable_joint_indices = left_arm_joint_indices if end_effector == 'left_hand' else right_arm_joint_indices
         self.controllable_joint_lower_limits = np.array([self.lower_limits[i] for i in self.controllable_joint_indices])
         self.controllable_joint_upper_limits = np.array([self.upper_limits[i] for i in self.controllable_joint_indices])
@@ -185,6 +186,7 @@ class HumanUrdf(Agent):
 
         # enable force torque sensor
         for i in self.controllable_joint_indices:
+            # print ("enabling force torque sensor for joint: ", i, self.body, physics_id)
             p.enableJointForceTorqueSensor(self.body, i, enableSensor=True, physicsClientId=physics_id)
 
         super(HumanUrdf, self).init(self.body, physics_id, np_random)
@@ -497,8 +499,10 @@ class HumanUrdf(Agent):
                 collision_pairs.update(check_collision(self.body, env_body))
         else:
             joint_indices = self.human_dict.get_real_link_indices(end_effector)
+            # print("joint_indices: ", joint_indices)
             for env_body in body_ids:
                 pairs = check_collision(self.body, env_body)
+                # print ("pairs: ", pairs)
                 for pair in pairs:
                     if  pair[0] in joint_indices or pair[1] in joint_indices:
                         collision_pairs.add( pair)

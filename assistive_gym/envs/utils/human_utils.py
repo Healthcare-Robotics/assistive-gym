@@ -54,8 +54,8 @@ def set_joint_angle(human_id, pose, smpl_joint_name, robot_joint_name):
     print ("smpl_joint_name: ", smpl_joint_name, smpl_angles*180.0/np.pi)
     for i in range(0, 3):
         # p.resetJointState(human_id, robot_joints[i], -smpl_angles[i])
-        if smpl_joint_name == 'L_Elbow':
-            smpl_angles = [0, smpl_angles[1], 0]
+        # if smpl_joint_name == 'L_Elbow':
+        #     smpl_angles = [0, smpl_angles[1], 0]
         p.resetJointState(human_id, robot_joints[i], smpl_angles[i])
 
 
@@ -136,7 +136,7 @@ def change_dynamic_properties(human_id, link_ids):
                          angularDamping=1,
                          contactStiffness=1e3,
                          # contact stiffness need to be large otherwise the body will penetrate the ground
-                         contactDamping=1e10)  # contact damping need to be much larger than contact stiffness so that no bounciness
+                         contactDamping=1e10)  # 1e10contact damping need to be much larger than contact stiffness so that no bounciness
 
 
 def check_collision(body_id, other_body_id, include_penetration=True):

@@ -16,6 +16,7 @@ from .agents.robot import Robot
 from .agents.panda import Panda
 from .agents.tool import Tool
 from .agents.furniture import Furniture
+import pybullet_utils.bullet_client as bc
 
 class AssistiveEnv(gym.Env):
     def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
@@ -32,6 +33,9 @@ class AssistiveEnv(gym.Env):
             self.render()
         else:
             self.id = p.connect(p.DIRECT)
+            # self.id = bc.BulletClient(connection_mode=p.DIRECT)._client
+            print ('direct id', self.id)
+
             self.util = Util(self.id, self.np_random)
 
         self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
@@ -94,6 +98,7 @@ class AssistiveEnv(gym.Env):
             # Reconnect the physics engine to forcefully clear memory when running long training scripts
             self.disconnect()
             self.id = p.connect(p.DIRECT)
+            # self.id = bc.BulletClient(connection_mode=p.DIRECT)._client
             self.util = Util(self.id, self.np_random)
         if self.gpu:
             self.util.enable_gpu()

@@ -38,6 +38,8 @@ def load_smpl(filepath) -> SMPLData:
 
         if len(data["body_pose"]) == 69: # we need to extends the dimension of the smpl_data['pose'] from 69 to 72 to match the urdf
             data["body_pose"] = np.concatenate((np.array([0.0, 0.0, 0.0]), data["body_pose"]))
+    if "transl" not in data:
+        data["transl"] = None
     smpl_data: SMPLData = SMPLData(data["body_pose"], data["betas"], data["global_orient"], data["transl"])
     return smpl_data
 
@@ -199,6 +201,8 @@ def generate_human_mesh(physic_id, gender, ref_urdf_path, out_urdf_folder, smpl_
 
 
     out_geom_folder = get_urdf_mesh_folderpath(out_urdf_folder)
+
+
     template_smpl_path = get_template_smpl_path(gender)
     hull_dict, joint_pos_dict, _ = generate_geom(template_smpl_path, smpl_data, out_geom_folder)
     out_urdf_file = get_urdf_filepath(out_urdf_folder)

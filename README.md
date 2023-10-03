@@ -177,6 +177,15 @@ pip3 install matplotlib
 
 pip3 install chumpy
 pip3 install open3d # for trimesh decimation
+
+pip3 install pytorch3d
+pip3 install cma
+pip3 install cmaes
+pip3 install kinpy
+pip3 install ergonomics-metrics # can remove if we dont need reba score
+pip3 install keyboard
+
+pip install pybullet==3.2.5
 ```
 Added lib for geom 
 ```
