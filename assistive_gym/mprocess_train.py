@@ -13,21 +13,54 @@ NUM_WORKERS = 12
 MAX_ITERATION = 150
 RENDER_UI = True
 
+class EnvConfig:
+    def __init__(self, env_name, person_id, smpl_file, handover_obj, end_effector, coop):
+        self.env_name = env_name
+        self.person_id = person_id
+        self.smpl_file = smpl_file
+        self.handover_obj = handover_obj
+        self.end_effector = end_effector
+        self.coop = coop
 
+class SearchConfig:
+    def __init__(self, robot_ik, env_object_ids, original_info, max_dynamics, handover_obj, handover_obj_config, initial_robot_setting):
+        self.robot_ik = robot_ik
+        self.env_object_ids = env_object_ids # TODO: check
+        self.original_info = original_info
+        self.max_dynamics = max_dynamics
+        self.handover_obj = handover_obj
+        self.handover_obj_config = handover_obj_config
+        self.initial_robot_setting = initial_robot_setting
+
+class InitMainEnvResult:
+    def __init__(self, original_info: OriginalHumanInfo, max_dynamics: MaximumHumanDynamics, env_object_ids, human_link_robot_collision, end_effector, handover_obj_config,
+                joint_lower_limits, joint_upper_limits, robot_setting: InitRobotSetting):
+        self.original_info = original_info
+        self.max_dynamics = max_dynamics
+        self.env_object_ids = env_object_ids
+        self.human_link_robot_collision = human_link_robot_collision
+        self.end_effector = end_effector
+        self.handover_obj_config = handover_obj_config
+        self.joint_lower_limits = joint_lower_limits
+        self.joint_upper_limits = joint_upper_limits
+        self.robot_setting = robot_setting
+
+
+
+# env that run in parallel, in background
 class SubEnvProcess(multiprocessing.Process):
-    def __init__(self, id, task_queue, result_queue, env_config, human_conf):
+    def __init__(self, id, task_queue, result_queue, env_config: EnvConfig, search_config: SearchConfig):
         super().__init__()
         self.task_queue = task_queue
         self.result_queue = result_queue
         self.env_config = env_config
         self.env = None
-        self.human_conf = human_conf
+        self.search_config = search_config
         self.debug_id = id
 
     def run(self):
         while True:
             task = self.task_queue.get()
-
             if task is None:  # Sentinel value to indicate termination
                 break
             result = self.perform_task(task)
@@ -35,25 +68,26 @@ class SubEnvProcess(multiprocessing.Process):
 
     def perform_task(self, joint_angles):
         if not self.env:
-            env_name, person_id, smpl_file, handover_obj, end_effector, coop = self.env_config
-            self.env = make_env(env_name, person_id, smpl_file, handover_obj, end_effector, coop)
+
+            self.env = make_env(self.env_config.env_name, self.env_config.person_id, self.env_config.smpl_file,
+                                self.env_config.handover_obj, self.env_config.end_effector, self.env_config.coop)
             # self.env.render()
             self.env.reset()
         # print ('joint_angles: ', joint_angles)
-        robot_ik, _, original_info, max_dynamics, handover_obj, handover_obj_config, initial_robot_setting = self.human_conf
+        # robot_ik, _, original_info, max_dynamics, handover_obj, handover_obj_config, initial_robot_setting = self.human_conf
         # print (handover_obj_config.end_effector)
-        original_info, max_dynamics = deepcopy(original_info), deepcopy(max_dynamics)
+        original_info, max_dynamics = deepcopy(self.search_config.original_info), deepcopy(self.search_config.max_dynamics)
 
         env_object_ids = [self.env.furniture.body, self.env.plane.body]
         # print ("pid: ", self.debug_id, env_object_ids, 'original info', original_info)
-        conf = (self.env, np.array(joint_angles), robot_ik, env_object_ids, original_info, max_dynamics, handover_obj,
-                handover_obj_config, initial_robot_setting)
+        conf = (self.env, np.array(joint_angles), self.search_config.robot_ik, env_object_ids, original_info, max_dynamics, self.search_config.handover_obj,
+                self.search_config.handover_obj_config, self.search_config.initial_robot_setting)
         cost, m, dist, energy, torque, robot_setting = do_search(conf)
         return (joint_angles, cost, m, dist, energy, torque, robot_setting)
 
 
 class MainEnvProcess(multiprocessing.Process):
-    def __init__(self, task_queue, result_queue, env_config):
+    def __init__(self, task_queue, result_queue, env_config: EnvConfig):
         super().__init__()
         self.task_queue = task_queue
         self.result_queue = result_queue
@@ -70,15 +104,15 @@ class MainEnvProcess(multiprocessing.Process):
             self.result_queue.put(result)
 
     def perform_task(self, task):
-        env_name, person_id, smpl_file, handover_obj, end_effector, coop = self.env_config
         if not self.env:
-            self.env = make_env(env_name, person_id, smpl_file, handover_obj, coop)
+            self.env = make_env(self.env_config.env_name, self.env_config.person_id,
+                                self.env_config.smpl_file, self.env_config.handover_obj, self.env_config.coop)
 
         type, angle, robot_setting, chosen_end_effector = task
 
         if type == 'init':
             print('init main env')
-            return init_main_env(self.env, handover_obj, end_effector)
+            return init_main_env(self.env, self.env_config.handover_obj, self.env_config.end_effector)
         if type == 'render_step':
             # print ('render')
             env, human, robot = self.env, self.env.human, self.env.robot
@@ -99,9 +133,9 @@ class MainEnvProcess(multiprocessing.Process):
             return {
                 'pelvis': human.get_pos_orient(human.human_dict.get_fixed_joint_id("pelvis"), center_of_mass=True),
                 "ee": {
-                    'original': human.get_ee_pos_orient(end_effector),
-                    'transform': translate_wrt_human_pelvis(human, np.array(human.get_ee_pos_orient(end_effector)[0]),
-                                                            np.array(human.get_ee_pos_orient(end_effector)[1])),
+                    'original': human.get_ee_pos_orient(self.env_config.end_effector),
+                    'transform': translate_wrt_human_pelvis(human, np.array(human.get_ee_pos_orient(self.env_config.end_effector)[0]),
+                                                            np.array(human.get_ee_pos_orient(self.env_config.end_effector)[1])),
                 },
                 "ik_target": {
                     'original': [np.array(ik_target_pos), np.array(robot_setting.gripper_orient)],  # [pos, orient
@@ -158,8 +192,8 @@ def init_main_env(env, handover_obj, end_effector):
     draw_point(original_ee_pos, size=0.01, color=[0, 1, 0, 1])
     original_info.original_ee_pos = original_ee_pos  # TODO: refactor
 
-    return original_info, max_dynamics, env_object_ids, human_link_robot_collision, end_effector, handover_obj_config, \
-        human.controllable_joint_lower_limits, human.controllable_joint_upper_limits, robot_setting
+    return InitMainEnvResult(original_info, max_dynamics, env_object_ids, human_link_robot_collision, end_effector, handover_obj_config,
+        human.controllable_joint_lower_limits, human.controllable_joint_upper_limits, robot_setting)
 
 
 def do_search(conf):
@@ -256,26 +290,24 @@ def mp_train(env_name, seed=0, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl
              end_effector='right_hand', save_dir='./trained_models/', render=False, simulate_physics=False,
              robot_ik=False, handover_obj=None):
     start_time = time.time()
-    env_config = (env_name, person_id, smpl_file, handover_obj, end_effector, True)
+    env_config = EnvConfig(env_name, person_id, smpl_file, handover_obj, end_effector, True)
 
     # init main env process
     main_env_process, main_env_task_queue, main_env_result_queue = init_main_env_process(env_config)
     main_env_task_queue.put(('init', None, None, None))
-    init_result = main_env_result_queue.get()
-    original_info, max_dynamics, env_object_ids, human_link_robot_collision, end_effector, handover_obj_config, \
-        controllable_joint_lower_limits, controllable_joint_upper_limits, initial_robot_setting = init_result
+    init_result: InitMainEnvResult= main_env_result_queue.get()
 
     # init sub env processes
-    search_config = (
-    robot_ik, env_object_ids, original_info, max_dynamics, handover_obj, handover_obj_config, initial_robot_setting)
+    search_config = SearchConfig(robot_ik, init_result.env_object_ids, init_result.original_info, init_result.max_dynamics, handover_obj,
+        init_result.handover_obj_config, init_result.robot_setting)
     sub_env_workers, sub_env_task_queue, sub_env_result_queue = init_sub_env_process(env_config, search_config)
 
     timestep = 0
     mean_cost, mean_dist, mean_m, mean_energy, mean_torque, mean_evolution, mean_reba = [], [], [], [], [], [], []
 
     # init optimizer
-    x0 = np.array(original_info.angles)
-    optimizer = init_optimizer(x0, 0.05, controllable_joint_lower_limits, controllable_joint_upper_limits)
+    x0 = np.array(init_result.original_info.angles)
+    optimizer = init_optimizer(x0, 0.05, init_result.joint_lower_limits, init_result.joint_upper_limits)
 
     best_cost, best_angle, best_robot_setting = float('inf'), None, None
     while timestep < MAX_ITERATION and not optimizer.stop():
@@ -336,14 +368,14 @@ def mp_train(env_name, seed=0, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl
         "energy": best_energy,
         "torque": best_torque,
         "mean_energy": mean_energy,
-        "target": original_info.original_ee_pos,
+        "target": init_result.original_info.original_ee_pos,
         "mean_cost": mean_cost,
         "mean_dist": mean_dist,
         "mean_m": mean_m,
         "mean_evolution": mean_evolution,
         "mean_torque": mean_torque,
         "mean_reba": mean_reba,
-        "initial_robot_settings": initial_robot_setting,
+        "initial_robot_settings": init_result.initial_robot_setting,
         "wrt_pelvis": human_robot_info
     }
 
