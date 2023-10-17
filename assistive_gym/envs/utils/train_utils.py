@@ -47,7 +47,7 @@ OBJECT_PALM_OFFSET = {
 
 GRIPPER_Z_ANGLE_LIMIT = {
     "pill": None,
-    "cup": [-10, 10],
+    "cup": [-10, 10], # degree
     "cane": None
 }
 
@@ -64,6 +64,7 @@ objectTaskMapping = {
 }
 
 YAML_FILE= os.path.join(os.getcwd(), 'params/param_1509.yaml')
+
 def load_yaml(yaml_file):
     with open(yaml_file) as f:
         params = yaml.safe_load(f)

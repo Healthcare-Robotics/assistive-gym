@@ -27,7 +27,7 @@ ROBOT_IK = True
 END_EFFECTOR = 'right_hand'
 
 ### DEFINE MULTIPROCESS SETTING ###
-NUM_WORKERS = 4
+NUM_WORKERS = 1
 
 def get_dynamic_configs():
     configs =[]
