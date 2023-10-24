@@ -9,9 +9,9 @@ from assistive_gym.envs.utils.dto import RobotSetting, InitRobotSetting, EnvConf
 from assistive_gym.envs.utils.train_utils import *
 
 LOG = get_logger()
-NUM_WORKERS = 12
-MAX_ITERATION = 150
-RENDER_UI = True
+NUM_WORKERS = 1
+MAX_ITERATION = 500
+RENDER_UI = False
 
 
 # env that run in parallel, in background
@@ -87,10 +87,11 @@ class MainEnvProcess(multiprocessing.Process):
             joint_angle, robot_setting, end_effector = task.joint_angle, task.robot_setting, task.end_effector
             human.set_joint_angles(human.controllable_joint_indices, joint_angle)
             render_robot(env, robot_setting)
-            _, ik_target_pos = find_ee_ik_goal(human, end_effector, handover_obj)
+            _, ik_target_pos = find_ee_ik_goal(human, end_effector, self.env_config.handover_obj)
 
             return {
                 'pelvis': human.get_pos_orient(human.human_dict.get_fixed_joint_id("pelvis"), center_of_mass=True),
+                'joint_angles': joint_angle,
                 "ee": {
                     'original': human.get_ee_pos_orient(self.env_config.end_effector),
                     'transform': translate_wrt_human_pelvis(human, np.array(
@@ -312,9 +313,10 @@ def mp_train(env_name, seed=0, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl
         mean_energy.append(np.mean(energy_changes, axis=0))
         mean_torque.append(np.mean(torques, axis=0))
 
-    # get the kinematic result for best solution
+    # # get the kinematic result for best solution
     sub_env_task_queue.put(best_angle)
-    _, _, best_dist, best_m, best_energy, best_torque, _ = sr
+    sr: SearchResult = sub_env_result_queue.get()
+    best_dist, best_m, best_energy, best_torque = sr.dist, sr.manipulability, sr.energy, sr.torque
     destroy_sub_env_process(sub_env_workers, sub_env_task_queue)
 
 
@@ -335,14 +337,14 @@ def mp_train(env_name, seed=0, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl
         "energy": best_energy,
         "torque": best_torque,
         "mean_energy": mean_energy,
-        "target": init_result.original_info.original_ee_pos,
+        # "target": init_result.original_info.original_ee_pos,
         "mean_cost": mean_cost,
         "mean_dist": mean_dist,
         "mean_m": mean_m,
         "mean_evolution": mean_evolution,
         "mean_torque": mean_torque,
         "mean_reba": mean_reba,
-        "initial_robot_settings": init_result.initial_robot_setting,
+        "initial_robot_settings": init_result.robot_setting,
         "wrt_pelvis": human_robot_info
     }
 
