@@ -3,6 +3,10 @@ import torch
 import os
 from torch.utils.data import Dataset, DataLoader
 
+from deepnn.utils.data_parser import ModelInput, ModelOutput
+
+
+# TODO: split such that you have unseen person for testing
 class CustomDataset(Dataset):
     def __init__(self, directory, transform=None):
         """
@@ -56,34 +60,34 @@ class CustomDataset(Dataset):
         with open(outputfile_path, 'r') as outfile:
             output = json.load(outfile)
 
-        # Assume each JSON file contains an object like {"features": [...], "label": ...}
-        input_data = input['pose']+ input['betas'] # 72 + 10
-        output_data = output['joint_angles'] + output['robot']['original'][0] + output['robot']['original'][1] \
-                      + output['robot_joint_angles']# 15 joints + 3 (robot base pos) + 4 (robot base orient) + 10 (robot joint angles)
-        # print (len(input_data), len(output_data))
-        features = torch.tensor(input_data, dtype=torch.float)
-        label = torch.tensor(output_data, dtype=torch.float)
+        # TODO: cut this parsing to a class
+        model_input = ModelInput(input['pose'], input['betas'])
+        model_output = ModelOutput(output['joint_angles'], output['robot']['original'][0], output['robot']['original'][1], output['robot_joint_angles'])
+
+        features = model_input.to_tensor()
+        label = model_output.to_tensor()
 
         if self.transform:
             features = self.transform(features)
 
         return features, label
 
-# # Path to the directory containing your JSON files
-# directory_path = os.path.join(os.getcwd(), os.path.join('data'))
-#
-# # Define transformations here (if any)
-# transformations = None
-#
-# # Create an instance of your dataset
-# json_dataset = CustomDataset(directory_path, transform=transformations)
-# print ("Number of samples:", len(json_dataset))
-#
-# # Create a data loader
-# data_loader = DataLoader(json_dataset, batch_size=16, shuffle=True)
-#
-# # Iterate over data to see how data is loaded
-# for batch_idx, (features, labels) in enumerate(data_loader):
-#     print("Batch:", batch_idx)
-#     # print("Features:", features)
-#     # print("Labels:", labels)
+if __name__ == '__main__':
+    # Path to the directory containing your JSON files
+    directory_path = os.path.join(os.getcwd(), os.path.join('data'))
+
+    # Define transformations here (if any)
+    transformations = None
+
+    # Create an instance of your dataset
+    json_dataset = CustomDataset(directory_path, transform=transformations)
+    print ("Number of samples:", len(json_dataset))
+
+    # Create a data loader
+    data_loader = DataLoader(json_dataset, batch_size=16, shuffle=True)
+
+    # Iterate over data to see how data is loaded
+    for batch_idx, (features, labels) in enumerate(data_loader):
+        print("Batch:", batch_idx)
+        # print("Features:", features)
+        # print("Labels:", labels)
