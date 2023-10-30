@@ -55,7 +55,10 @@ if __name__ == "__main__":
     parser.add_argument('--mode', default='generate', help='Mode: generate or test')
     args = parser.parse_args()
     if args.mode == 'generate':
-        generate_urdf(args)
+        for i in range(11, 103):
+            args.person_id = f'p{i:03d}'
+            args.smpl_file = f'examples/data/slp3d/{args.person_id}/s01.pkl'
+            generate_urdf(args)
     else:
         raise NotImplementedError()
 

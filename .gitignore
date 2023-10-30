@@ -128,3 +128,12 @@ examples/data/slp3d/
 
 # urdf 
 experimental/urdf
+
+# deep nn data
+deepnn/data/
+
+# deepnn logs
+deepnn/runs
+
+# deepnn checkpoints
+deepnn/checkpoints
