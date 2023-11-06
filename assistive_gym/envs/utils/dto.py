@@ -108,7 +108,6 @@ class MainEnvInitResult:
         self.joint_upper_limits = joint_upper_limits
         self.robot_setting = robot_setting
 
-
 class MainEnvProcessTaskType(Enum):
     INIT = "init"
     RENDER_STEP = "render_step"

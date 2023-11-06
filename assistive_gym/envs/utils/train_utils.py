@@ -252,11 +252,13 @@ def get_eyeline_side(human):
 def get_handover_object_config(object_name, env) -> Optional[HandoverObjectConfig]:
     human = env.human
     eyeline_side = get_eyeline_side(human)
+    default_ee = 'right_hand'
     if eyeline_side == None: # head look upward, undecided. return default
-        ee = 'right_hand'
+        ee = default_ee
     else: # head look left or right
         upper_hand = choose_upper_hand(env.human) # choose the upper hand if it is heavy 1 higher than the other
-        ee = upper_hand if upper_hand is not None else 'right_hand' # fall back to right hand if it is not heavy
+        ee = upper_hand if upper_hand is not None else default_ee # fall back to default if no upper hand
+
     if object_name is None:  # case: no handover object
         return HandoverObjectConfig(None, weights=[0], limits=[0], end_effector=ee)  # original = 6
     # TODO: revise the hand choice
@@ -667,7 +669,7 @@ def get_human_link_robot_collision(human, end_effector):
     # print("human_link: ", human_link_robot_collision)
     return human_link_robot_collision
 
-
+@deprecated
 def choose_upward_hand(human):
     right_offset = abs(-np.pi / 2 - human.get_roll_wrist_orientation(end_effector="right_hand"))
     left_offset = abs(-np.pi / 2 - human.get_roll_wrist_orientation(end_effector="left_hand"))
@@ -695,6 +697,7 @@ def choose_upper_hand(human):
         return None
 
 
+@deprecated
 def choose_closer_bedside_hand(env):
     right_dist = cal_dist_to_bedside(env, "right_hand")
     left_dist = cal_dist_to_bedside(env, "left_hand")
@@ -784,6 +787,8 @@ def render(env_name, person_id, smpl_file, save_dir, handover_obj, robot_ik: boo
             try:
                 robot_pose = action["wrt_pelvis"]["robot"]['original']
                 robot_joint_angles = action["wrt_pelvis"]["robot_joint_angles"]
+
+
             except Exception as e:
                 print("no robot pose found")
 
@@ -799,6 +804,8 @@ def render(env_name, person_id, smpl_file, save_dir, handover_obj, robot_ik: boo
         try:
             robot_pose = action["wrt_pelvis"]["robot"]['original']
             robot_joint_angles = action["wrt_pelvis"]["robot_joint_angles"]
+
+
         except Exception as e:
             print("no robot pose found")
         render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik, robot_pose, robot_joint_angles)
@@ -807,7 +814,7 @@ def render(env_name, person_id, smpl_file, save_dir, handover_obj, robot_ik: boo
 def render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik: bool, robot_pose=None,
                   robot_joint_angles=None):
     env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
-    env.render()  # need to call reset after render
+    # env.render()  # need to call reset after render
     env.reset()
 
     smpl_name = os.path.basename(smpl_file).split(".")[0]
@@ -822,17 +829,81 @@ def render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik
         else:
             # TODO: refactor - render_robot in mprocess_train
             # find_robot_ik_solution(env, action["end_effector"], handover_obj)
-            base_pos, base_orient, side = find_robot_start_pos_orient(env, action["end_effector"])
+            # TODO: remove after proper fix. currently action["end_effector"] is default righthand, we will recalulate
+            hand_config = get_handover_object_config(handover_obj, env)
+            end_effector = hand_config.end_effector
+
+            _, _, side = find_robot_start_pos_orient(env, end_effector)
             env.robot.set_base_pos_orient(robot_pose[0], robot_pose[1])
             env.robot.set_joint_angles(
                 env.robot.right_arm_joint_indices if side == 'right' else env.robot.left_arm_joint_indices,
                 robot_joint_angles)
             env.tool.reset_pos_orient()
-            get_eyeline_side(env.human)
+            # get_eyeline_side(env.human)
+
     # plot_cmaes_metrics(action['mean_cost'], action['mean_dist'], action['mean_m'], action['mean_energy'],
     #                    action['mean_torque'])
     # plot_mean_evolution(action['mean_evolution'])
+            # TODO: remove this
+            # TODO: remove this one
+            data = action["wrt_pelvis"]
+            data["end_effector"] = end_effector
+            # save
+            save_dir = get_save_dir('trained_models', env_name, person_id, smpl_file)
+            filename = os.path.join(save_dir, handover_obj + ".json")
+            dumped = json.dumps(data, cls=NumpyEncoder)
+            with open(filename, "w") as f:
+                f.write(dumped)
 
+
+    # while True:
+    #     keys = p.getKeyboardEvents()
+    #     if ord('q') in keys:
+    #         break
+    env.disconnect()
+
+
+# TODO: merge with render_result
+def render_nn_result(env_name, data, person_id, smpl_file, handover_obj):
+    env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
+    env.render()  # need to call reset after render
+    env.reset()
+
+    smpl_name = os.path.basename(smpl_file).split(".")[0]
+    p.addUserDebugText("person: {}, smpl: {}".format(person_id, smpl_name), [0, 0, 1], textColorRGB=[1, 0, 0])
+
+    env.human.reset_controllable_joints(data["end_effector"])
+    env.human.set_joint_angles(env.human.controllable_joint_indices, data["joint_angles"])
+
+    _, _, side = find_robot_start_pos_orient(env, data["end_effector"])
+    env.robot.set_base_pos_orient(data['robot']['original'][0], data['robot']['original'][1])
+    env.robot.set_joint_angles(
+        env.robot.right_arm_joint_indices if side == 'right' else env.robot.left_arm_joint_indices,
+        data['robot_joint_angles'])
+    env.tool.reset_pos_orient()
+    while True:
+        keys = p.getKeyboardEvents()
+        if ord('q') in keys:
+            break
+    env.disconnect()
+
+def render_nn_result2(env_name, data, person_id, smpl_file, handover_obj):
+    env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
+    env.render()  # need to call reset after render
+    env.reset()
+
+    smpl_name = os.path.basename(smpl_file).split(".")[0]
+    p.addUserDebugText("person: {}, smpl: {}".format(person_id, smpl_name), [0, 0, 1], textColorRGB=[1, 0, 0])
+
+    env.human.reset_controllable_joints(data["end_effector"])
+    env.human.set_joint_angles(env.human.controllable_joint_indices, data['human']["joint_angles"])
+
+    _, _, side = find_robot_start_pos_orient(env, data["end_effector"])
+    env.robot.set_base_pos_orient(data['robot']['base'][0], data['robot']['base'][1])
+    env.robot.set_joint_angles(
+        env.robot.right_arm_joint_indices if side == 'right' else env.robot.left_arm_joint_indices,
+        data['robot']['joint_angles'])
+    env.tool.reset_pos_orient()
     while True:
         keys = p.getKeyboardEvents()
         if ord('q') in keys:
@@ -844,7 +915,7 @@ def render_pose(env_name, person_id, smpl_file):
     env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=None, person_id=person_id)
     env.render()  # need to call reset after render
     env.reset()
-    eyeline_side = get_eyeline_side(env.human)
+    # eyeline_side = get_eyeline_side(env.human)
     while True:
         keys = p.getKeyboardEvents()
         if ord('q') in keys:

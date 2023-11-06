@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 
 from deepnn.utils.data_parser import ModelInput, ModelOutput
 
+SEARCH_INPUT_DIR = 'searchinput'
+SEARCH_OUTPUT_DIR = 'searchoutput'
 
 # TODO: split such that you have unseen person for testing
 class CustomDataset(Dataset):
@@ -22,7 +24,8 @@ class CustomDataset(Dataset):
         self.inputfile_list =[]
         self.outputfile_list = []
         # Expect the directory to contain two subdirectories: 'input' and 'output'
-        input_dir, output_dir = os.path.join(directory, 'input'), os.path.join(directory, 'output')
+        input_dir, output_dir = os.path.join(directory, SEARCH_INPUT_DIR), os.path.join(directory, SEARCH_OUTPUT_DIR)
+        # print (input_dir, output_dir)
         # list all subdirectories in 'output'
         person_ids = sorted([f for f in os.listdir(output_dir) if os.path.isdir(os.path.join(output_dir, f))])
         # print(person_ids)
@@ -34,7 +37,7 @@ class CustomDataset(Dataset):
             for pose_id in pose_ids:
                 subsub_output_dir = os.path.join(sub_output_dir, pose_id)
 
-                outputfile_list.extend([os.path.join(subsub_output_dir, f) for f in os.listdir(subsub_output_dir) if f.endswith('.json')])
+                outputfile_list.extend([os.path.join(subsub_output_dir, f) for f in os.listdir(subsub_output_dir) if f.endswith('results.json')])
                 inputfile_list.append(os.path.join(subinput_dir, pose_id+'.json'))
 
             self.inputfile_list.extend(inputfile_list)
@@ -64,13 +67,18 @@ class CustomDataset(Dataset):
         model_input = ModelInput(input['pose'], input['betas'])
         model_output = ModelOutput(output['joint_angles'], output['robot']['original'][0], output['robot']['original'][1], output['robot_joint_angles'])
 
-        features = model_input.to_tensor()
+        feature = model_input.to_tensor()
         label = model_output.to_tensor()
 
         if self.transform:
-            features = self.transform(features)
+            feature = self.transform(feature)
 
-        return features, label
+        return {
+            'feature': feature,
+            'label': label,
+            'feature_path': inputfile_path,
+            'label_path': outputfile_path
+        }
 
 if __name__ == '__main__':
     # Path to the directory containing your JSON files

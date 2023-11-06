@@ -55,10 +55,13 @@ if __name__ == "__main__":
     parser.add_argument('--mode', default='generate', help='Mode: generate or test')
     args = parser.parse_args()
     if args.mode == 'generate':
-        for i in range(11, 103):
+        for i in range(47, 103): #TODO: fix why p046 has no gender
             args.person_id = f'p{i:03d}'
             args.smpl_file = f'examples/data/slp3d/{args.person_id}/s01.pkl'
-            generate_urdf(args)
+            try:
+                generate_urdf(args)
+            except Exception as e:
+                print(f'Error generating urdf for {args.person_id}: {e}')
     else:
         raise NotImplementedError()
 

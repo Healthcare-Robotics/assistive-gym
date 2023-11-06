@@ -123,7 +123,7 @@ def render_robot(env, robot_setting):
     env.tool.reset_pos_orient()
 
 
-def init_main_env(env, handover_obj, end_effector):
+def init_main_env(env, handover_obj):
     env.reset()
 
     # time.sleep(100)
