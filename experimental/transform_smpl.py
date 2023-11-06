@@ -3,8 +3,9 @@ import json
 from assistive_gym.envs.utils.urdf_utils import *
 
 SMPL_SOURCEDIR = 'examples/data/slp3d'
-SMPL_OUTDIR = 'deepnn/data/input'
- # looop through all the folders
+SMPL_OUTDIR = 'deepnn/data/input/searchinput'
+
+# looop through all the folders
 for folder in os.listdir(SMPL_SOURCEDIR):
     dir = os.path.join(SMPL_SOURCEDIR, folder)
     if os.path.isdir(dir):
@@ -20,6 +21,9 @@ for folder in os.listdir(SMPL_SOURCEDIR):
                     # build json
                     data = {}
                     data['pose'] = smpl_data.body_pose.tolist()
-                    data['pose'][0:3] = smpl_data.global_orient.tolist() # put back the global orientation to the first 3 elements
+                    # put back the global orientation to the first 3 elements
+                    data['pose'][0:3] = smpl_data.global_orient.tolist()
                     data['betas'] = smpl_data.betas.tolist()
-                    json.dump(data, f)
+                    data['transl'] = smpl_data.transl.tolist()
+
+                    f.write(json.dumps(data, indent=4))

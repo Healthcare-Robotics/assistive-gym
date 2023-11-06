@@ -10,7 +10,7 @@ SEARCH_OUTPUT_DIR = 'searchoutput'
 
 # TODO: split such that you have unseen person for testing
 class CustomDataset(Dataset):
-    def __init__(self, directory, transform=None):
+    def __init__(self, directory, object=None, transform=None):
         """
         Initialize the object with the directory where the JSON files are located.
         Each JSON file contains a single data sample.
@@ -37,7 +37,7 @@ class CustomDataset(Dataset):
             for pose_id in pose_ids:
                 subsub_output_dir = os.path.join(sub_output_dir, pose_id)
 
-                outputfile_list.extend([os.path.join(subsub_output_dir, f) for f in os.listdir(subsub_output_dir) if f.endswith('results.json')])
+                outputfile_list.extend([os.path.join(subsub_output_dir, f) for f in os.listdir(subsub_output_dir) if f.endswith(object + '.json')])
                 inputfile_list.append(os.path.join(subinput_dir, pose_id+'.json'))
 
             self.inputfile_list.extend(inputfile_list)

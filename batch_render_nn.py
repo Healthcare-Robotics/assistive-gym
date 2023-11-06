@@ -7,7 +7,7 @@ from assistive_gym.envs.utils.train_utils import get_save_dir, render_nn_result,
 PERSON_IDS = ['p001']
 SMPL_FILES = ['s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08', 's09', 's10', 's11', 's12',]
 
-OBJECTS = ['pill']
+OBJECTS = ['cup']
 #### Define static configs ####
 SMPL_DIR = 'examples/data/slp3d/'
 ENV = "HumanComfort-v1"
@@ -30,7 +30,7 @@ def do_render_nn(config):
     print(p, s, o)
     save_dir = get_save_dir(SAVE_DIR, "", p, s)
     # load data from json file. filename = object name, file dir = save_dir/p/s
-    data = json.load(open(os.path.join(save_dir, "results" + ".json"), "r"))
+    data = json.load(open(os.path.join(save_dir, o + ".json"), "r"))
     data['end_effector'] ='right_hand'
     render_nn_result2(ENV, data, p, s, o)
 
