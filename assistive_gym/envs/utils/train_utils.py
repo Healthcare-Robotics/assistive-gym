@@ -804,8 +804,6 @@ def render(env_name, person_id, smpl_file, save_dir, handover_obj, robot_ik: boo
         try:
             robot_pose = action["wrt_pelvis"]["robot"]['original']
             robot_joint_angles = action["wrt_pelvis"]["robot_joint_angles"]
-
-
         except Exception as e:
             print("no robot pose found")
         render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik, robot_pose, robot_joint_angles)
@@ -814,7 +812,7 @@ def render(env_name, person_id, smpl_file, save_dir, handover_obj, robot_ik: boo
 def render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik: bool, robot_pose=None,
                   robot_joint_angles=None):
     env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
-    # env.render()  # need to call reset after render
+    env.render()  # need to call reset after render
     env.reset()
 
     smpl_name = os.path.basename(smpl_file).split(".")[0]
@@ -846,20 +844,20 @@ def render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik
     # plot_mean_evolution(action['mean_evolution'])
             # TODO: remove this
             # TODO: remove this one
-            data = action["wrt_pelvis"]
-            data["end_effector"] = end_effector
-            # save
-            save_dir = get_save_dir('trained_models', env_name, person_id, smpl_file)
-            filename = os.path.join(save_dir, handover_obj + ".json")
-            dumped = json.dumps(data, cls=NumpyEncoder)
-            with open(filename, "w") as f:
-                f.write(dumped)
+            # data = action["wrt_pelvis"]
+            # data["end_effector"] = end_effector
+            # # save
+            # save_dir = get_save_dir('trained_models', env_name, person_id, smpl_file)
+            # filename = os.path.join(save_dir, handover_obj + ".json")
+            # dumped = json.dumps(data, cls=NumpyEncoder)
+            # with open(filename, "w") as f:
+            #     f.write(dumped)
 
 
-    # while True:
-    #     keys = p.getKeyboardEvents()
-    #     if ord('q') in keys:
-    #         break
+    while True:
+        keys = p.getKeyboardEvents()
+        if ord('q') in keys:
+            break
     env.disconnect()
 
 

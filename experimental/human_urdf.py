@@ -21,7 +21,7 @@ from assistive_gym.envs.utils.plot_utils import plot
 from assistive_gym.envs.utils.smpl_dict import SMPLDict
 from scipy.spatial.transform import Rotation as R
 
-from assistive_gym.envs.utils.urdf_utils import convert_aa_to_euler_quat, load_smpl, generate_urdf, SMPLData
+from assistive_gym.envs.utils.urdf_utils import  convert_aa_to_euler_quat, load_smpl, generate_urdf, SMPLData
 import kinpy as kp
 
 #######################################  Static settting ##########################################

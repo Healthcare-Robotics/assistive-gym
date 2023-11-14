@@ -241,10 +241,10 @@ if __name__ == '__main__':
         "h2_size": tune.grid_search(list(range(128, 256, 32))),
         "h3_size": tune.grid_search(list(range(32, 128, 16))),
         "batch_size": tune.choice([16, 32, 64]),
-        "object": "cup"
+        "object": "cane"
     }
 
-    # train_with_ray(config)
+    train_with_ray(config)
 
-    model_checkpoint= 'model_cup_epoch_200_2023-11-05 22:58:58.949132.ckpt'
-    eval_model(model_checkpoint)
+    # model_checkpoint= 'model_cane_epoch_200_2023-11-05 23:04:22.032313.ckpt'
+    # eval_model(model_checkpoint)

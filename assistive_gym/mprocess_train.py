@@ -69,7 +69,7 @@ class MainEnvProcess(multiprocessing.Process):
 
         if task.task_type == MainEnvProcessTaskType.INIT:
             print('init main env')
-            return init_main_env(self.env, self.env_config.handover_obj, self.env_config.end_effector)
+            return init_main_env(self.env, self.env_config.handover_obj)
 
         if task.task_type == MainEnvProcessTaskType.RENDER_STEP:
             # print ('render')
@@ -97,8 +97,7 @@ class MainEnvProcess(multiprocessing.Process):
                     'transform': translate_wrt_human_pelvis(human, np.array(
                         human.get_ee_pos_orient(self.env_config.end_effector)[0]),
                                                             np.array(
-                                                                human.get_ee_pos_orient(self.env_config.end_effector)[
-                                                                    1])),
+                                                                human.get_ee_pos_orient(self.env_config.end_effector)[1])),
                 },
                 "ik_target": {
                     'original': [np.array(ik_target_pos), np.array(robot_setting.gripper_orient)],  # [pos, orient
@@ -358,13 +357,13 @@ def mp_train(env_name, seed=0, smpl_file='examples/data/smpl_bp_ros_smpl_re2.pkl
 
     # env.disconnect()
 
-    save_train_result(save_dir, env_name, person_id, smpl_file, actions, key)
+    save_train_result(save_dir, env_name, person_id, smpl_file, actions, key, handover_obj)
 
     print("training time (s): ", time.time() - start_time)
     return action
 
 
-def save_train_result(save_dir, env_name, person_id, smpl_file, actions, key):
+def save_train_result(save_dir, env_name, person_id, smpl_file, actions, key, handover_obj):
     save_dir = get_save_dir(save_dir, env_name, person_id, smpl_file)
     os.makedirs(save_dir, exist_ok=True)
 
@@ -379,7 +378,7 @@ def save_train_result(save_dir, env_name, person_id, smpl_file, actions, key):
     pickle.dump(actions, open(os.path.join(save_dir, "actions.pkl"), "wb"))
 
     dumped = json.dumps(actions[key]['wrt_pelvis'], cls=NumpyEncoder)
-    with open(os.path.join(save_dir, "results.json"), "w") as f:
+    with open(os.path.join(save_dir, handover_obj+".json"), "w") as f:
         f.write(dumped)
 
 

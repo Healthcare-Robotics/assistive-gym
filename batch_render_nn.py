@@ -7,7 +7,7 @@ from assistive_gym.envs.utils.train_utils import get_save_dir, render_nn_result,
 PERSON_IDS = ['p001']
 SMPL_FILES = ['s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08', 's09', 's10', 's11', 's12',]
 
-OBJECTS = ['cup']
+OBJECTS = ['cane']
 #### Define static configs ####
 SMPL_DIR = 'examples/data/slp3d/'
 ENV = "HumanComfort-v1"
