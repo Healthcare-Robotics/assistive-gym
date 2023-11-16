@@ -1,7 +1,7 @@
 import json
 import os
 
-from assistive_gym.envs.utils.train_utils import get_save_dir, render_nn_result, render_nn_result2
+from assistive_gym.envs.utils.train_utils import get_save_dir, render_nn_result
 
 #### Define dynamic configs ####
 PERSON_IDS = ['p001']
@@ -32,7 +32,7 @@ def do_render_nn(config):
     # load data from json file. filename = object name, file dir = save_dir/p/s
     data = json.load(open(os.path.join(save_dir, o + ".json"), "r"))
     data['end_effector'] ='right_hand'
-    render_nn_result2(ENV, data, p, s, o)
+    render_nn_result(ENV, data, p, s, o)
 
 
 if __name__ == '__main__':

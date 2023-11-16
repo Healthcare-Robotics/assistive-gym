@@ -47,7 +47,7 @@ OBJECT_PALM_OFFSET = {
 
 GRIPPER_Z_ANGLE_LIMIT = {
     "pill": None,
-    "cup": [-10, 10], # degree
+    "cup": [-10, 10],  # degree
     "cane": None
 }
 
@@ -63,7 +63,8 @@ objectTaskMapping = {
     HandoverObject.CANE: "comfort_standing_up"
 }
 
-YAML_FILE= os.path.join(os.getcwd(), 'params/param_1509.yaml')
+YAML_FILE = os.path.join(os.getcwd(), 'params/param_1509.yaml')
+
 
 def load_yaml(yaml_file):
     with open(yaml_file) as f:
@@ -71,7 +72,9 @@ def load_yaml(yaml_file):
     # print ("yaml params: ", params)
     return params
 
+
 PARAMS = load_yaml(YAML_FILE)
+
 
 def create_point(point, size=0.01, color=[1, 0, 0, 1]):
     sphere = p.createCollisionShape(p.GEOM_SPHERE, radius=size)
@@ -183,7 +186,7 @@ def find_max_val(human, cost_fn, original_joint_angles, original_link_positions,
     return optimizer.best.x, 1.0 / optimizer.best.f
 
 
-def find_robot_start_pos_orient(env, end_effector="right_hand", initial_side = None):
+def find_robot_start_pos_orient(env, end_effector="right_hand", initial_side=None):
     # find bed bb
     bed = env.furniture
     bed_bb = p.getAABB(bed.body, physicsClientId=env.id)
@@ -212,13 +215,14 @@ def find_robot_start_pos_orient(env, end_effector="right_hand", initial_side = N
     # new pos: side of the bed, near end effector, with z axis unchanged
     if side == "right":
         pos = (
-            bed_xx + robot_x_size / 2 + 0.1, ee_pos[1] ,
+            bed_xx + robot_x_size / 2 + 0.1, ee_pos[1],
             base_pos[2])  # TODO: change back to original 0.3
         orient = env.robot.get_quaternion([0, 0, -np.pi / 2])
     else:  # left
-        pos = ( bed_xx - robot_x_size / 2 - 0.1, ee_pos[1], base_pos[2])
+        pos = (bed_xx - robot_x_size / 2 - 0.1, ee_pos[1], base_pos[2])
         orient = env.robot.get_quaternion([0, 0, np.pi / 2])
     return pos, orient, side
+
 
 def find_angle(vec_a, vec_b):
     # normal_vec = np.cross(vec_a, vec_b)/np.linalg.norm(np.cross(vec_a, vec_b))
@@ -226,6 +230,7 @@ def find_angle(vec_a, vec_b):
     angle = np.arccos(np.dot(vec_a, vec_b) / (np.linalg.norm(vec_a) * np.linalg.norm(vec_b)))
     normal_vec = np.cross(vec_a, vec_b) / np.linalg.norm(np.cross(vec_a, vec_b))
     return angle if np.dot(normal_vec, np.array([0, 0, 1])) > 0 else -angle
+
 
 def get_eyeline_side(human):
     '''
@@ -235,7 +240,7 @@ def get_eyeline_side(human):
     '''
     head_pos, head_orient = human.get_ee_pos_orient("head")
     rotation_matrix = np.array(p.getMatrixFromQuaternion(head_orient)).reshape(3, 3)
-    normal_vec = rotation_matrix[:, 2]/np.linalg.norm(rotation_matrix[:, 2])
+    normal_vec = rotation_matrix[:, 2] / np.linalg.norm(rotation_matrix[:, 2])
 
     # draw for debug
     # p.addUserDebugLine(head_pos, head_pos + normal_vec*10, [1, 0, 0], 5, 10)
@@ -247,17 +252,18 @@ def get_eyeline_side(human):
     # z_angle = unsigned_z_angle if np.dot(z_axis, normal_vec)>0 else -unsigned_z_angle
     z_angle = get_angle_with_z_axis(rotation_matrix)
     # print ("normal vec", normal_vec, "z angle: ", z_angle)
-    return "right" if z_angle > np.pi/6 else "left" if z_angle < -np.pi/6 else None
+    return "right" if z_angle > np.pi / 6 else "left" if z_angle < -np.pi / 6 else None
+
 
 def get_handover_object_config(object_name, env) -> Optional[HandoverObjectConfig]:
     human = env.human
     eyeline_side = get_eyeline_side(human)
     default_ee = 'right_hand'
-    if eyeline_side == None: # head look upward, undecided. return default
+    if eyeline_side == None:  # head look upward, undecided. return default
         ee = default_ee
-    else: # head look left or right
-        upper_hand = choose_upper_hand(env.human) # choose the upper hand if it is heavy 1 higher than the other
-        ee = upper_hand if upper_hand is not None else default_ee # fall back to default if no upper hand
+    else:  # head look left or right
+        upper_hand = choose_upper_hand(env.human)  # choose the upper hand if it is heavy 1 higher than the other
+        ee = upper_hand if upper_hand is not None else default_ee  # fall back to default if no upper hand
 
     if object_name is None:  # case: no handover object
         return HandoverObjectConfig(None, weights=[0], limits=[0], end_effector=ee)  # original = 6
@@ -303,18 +309,18 @@ def build_max_human_dynamics(env, end_effector, original_info: OriginalHumanInfo
     print("max torque: ", max_torque, "max manipubility: ", max_manipubility, "max energy: ", max_energy)
     max_dynamics = MaximumHumanDynamics(max_torque, max_manipubility, max_energy)
 
-
     return max_dynamics
 
 
 def detect_collisions(original_info: OriginalHumanInfo, self_collisions, env_collisions, human, end_effector):
     # check collision
-    new_self_penetrations = find_new_penetrations(original_info.self_collisions, self_collisions, human, end_effector, COLLISION_PENETRATION_THRESHOLD["self_collision"])
-    new_env_penetrations = find_new_penetrations(original_info.env_collisions, env_collisions, human, end_effector, COLLISION_PENETRATION_THRESHOLD["env_collision"])
+    new_self_penetrations = find_new_penetrations(original_info.self_collisions, self_collisions, human, end_effector,
+                                                  COLLISION_PENETRATION_THRESHOLD["self_collision"])
+    new_env_penetrations = find_new_penetrations(original_info.env_collisions, env_collisions, human, end_effector,
+                                                 COLLISION_PENETRATION_THRESHOLD["env_collision"])
     LOG.info(f"self penetration: {new_self_penetrations}, env penetration: {new_env_penetrations}")
     # print(f"self penetration: {new_self_penetrations}, env penetration: {new_env_penetrations}")
     return new_self_penetrations, new_env_penetrations
-
 
 
 """
@@ -384,11 +390,14 @@ def make_env(env_name, person_id, smpl_file, object_name, coop=False, seed=1001)
     env.set_task(task)
     return env
 
+
 def object_type_to_name(object_type: HandoverObject):
     return object_type.name.lower()
 
+
 # TODO: better refactoring for seperating robot-ik/ non robot ik mode
-def cost_func(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.ndarray, original_info: OriginalHumanInfo,
+def cost_func(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.ndarray,
+              original_info: OriginalHumanInfo,
               max_dynamics: MaximumHumanDynamics, new_self_penetrations, new_env_penetrations, has_valid_robot_ik,
               robot_penetrations, robot_dist_to_target, angle_dist,
               object_config: Optional[HandoverObjectConfig], robot_ik_mode: bool, object_specific_cost: float):
@@ -410,30 +419,30 @@ def cost_func(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.n
     mid_angle_displacement = cal_angle_diff(angle_config, mid_angle)
     # print("mid_angle_displacement: ", mid_angle_displacement)
 
-    object = 'default' if not object_config else  object_type_to_name(object_config.object_type)
-    w= PARAMS[object]['weights']
+    object = 'default' if not object_config else object_type_to_name(object_config.object_type)
+    w = PARAMS[object]['weights']
     cost = 0
-    o_specific_cost , self_penetration_cost, env_penetration_cost, ik_cost, robot_penetration_cost = 0, 0, 0, 0, 0
+    o_specific_cost, self_penetration_cost, env_penetration_cost, ik_cost, robot_penetration_cost = 0, 0, 0, 0, 0
 
     cost += (w['dist'] * dist + w['manipulibility'] * 1 / (manipulibility / max_dynamics.manipulibility) + w[
         'energy'] * energy_final / max_dynamics.energy \
-            + w['torque'] * torque / max_dynamics.torque + w['mid_angle'] * mid_angle_displacement)
+             + w['torque'] * torque / max_dynamics.torque + w['mid_angle'] * mid_angle_displacement)
     if object != 'default':
         o_specific_cost = w['special_cost'] * object_specific_cost
-        cost+= o_specific_cost
+        cost += o_specific_cost
 
     if new_self_penetrations:
         self_penetration_cost = w['self_penetration'] * sum(new_self_penetrations)
         cost += self_penetration_cost
         # cost += 10*len(new_self_penetrations)
     if new_env_penetrations:
-        env_penetration_cost = w['env_penetration']  * sum(new_env_penetrations)
+        env_penetration_cost = w['env_penetration'] * sum(new_env_penetrations)
         cost += env_penetration_cost
     if robot_ik_mode:
         # if not has_valid_robot_ik:
-            # cost += 1000
-            # print('No valid ik solution found ', robot_dist_to_target)
-        ik_cost = w['ik_dist'] *robot_dist_to_target
+        # cost += 1000
+        # print('No valid ik solution found ', robot_dist_to_target)
+        ik_cost = w['ik_dist'] * robot_dist_to_target
         cost += ik_cost
         if robot_penetrations:
             # flatten list
@@ -441,10 +450,12 @@ def cost_func(human, ee_name: str, angle_config: np.ndarray, ee_target_pos: np.n
             # print(robot_penetrations)]
             robot_penetration_cost = w['robot_penetration'] * sum(robot_penetrations)
             cost += robot_penetration_cost
-    print('cost: ', cost/100, 'object specific cost: ', o_specific_cost/100,  'self_penetration_cost: ', self_penetration_cost/100, 'env_penetration_cost: ',
-    env_penetration_cost/100, 'ik_cost: ', ik_cost/100, 'robot_penetration_cost: ', robot_penetration_cost/100)
+    print('cost: ', cost / 100, 'object specific cost: ', o_specific_cost / 100, 'self_penetration_cost: ',
+          self_penetration_cost / 100, 'env_penetration_cost: ',
+          env_penetration_cost / 100, 'ik_cost: ', ik_cost / 100, 'robot_penetration_cost: ',
+          robot_penetration_cost / 100)
 
-    return cost/100, manipulibility, dist, energy_final, torque
+    return cost / 100, manipulibility, dist, energy_final, torque
 
 
 def cal_energy_change(human, original_link_positions, end_effector):
@@ -556,9 +567,10 @@ def count_new_collision(old_collisions: Set, new_collisions: Set, human, end_eff
 
     return len(collision_set)
 
+
 def cal_angle_diff(cur, target):
     # print ("cur: ", len(cur), 'target: ', len(target))
-    diff = np.sqrt(np.sum(np.square(np.array(cur) - np.array(target)))/len(cur))
+    diff = np.sqrt(np.sum(np.square(np.array(cur) - np.array(target))) / len(cur))
     # print ("diff: ", diff)
     return diff
 
@@ -668,6 +680,7 @@ def get_human_link_robot_collision(human, end_effector):
     human_link_robot_collision = [link for link in human_link_robot_collision if link not in link_to_ignores]
     # print("human_link: ", human_link_robot_collision)
     return human_link_robot_collision
+
 
 @deprecated
 def choose_upward_hand(human):
@@ -810,7 +823,7 @@ def render(env_name, person_id, smpl_file, save_dir, handover_obj, robot_ik: boo
 
 
 def render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik: bool, robot_pose=None,
-                  robot_joint_angles=None):
+                  robot_joint_angles=None, save_to_file=False):
     env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
     env.render()  # need to call reset after render
     env.reset()
@@ -842,50 +855,26 @@ def render_result(env_name, action, person_id, smpl_file, handover_obj, robot_ik
     # plot_cmaes_metrics(action['mean_cost'], action['mean_dist'], action['mean_m'], action['mean_energy'],
     #                    action['mean_torque'])
     # plot_mean_evolution(action['mean_evolution'])
-            # TODO: remove this
-            # TODO: remove this one
-            # data = action["wrt_pelvis"]
-            # data["end_effector"] = end_effector
-            # # save
-            # save_dir = get_save_dir('trained_models', env_name, person_id, smpl_file)
-            # filename = os.path.join(save_dir, handover_obj + ".json")
-            # dumped = json.dumps(data, cls=NumpyEncoder)
-            # with open(filename, "w") as f:
-            #     f.write(dumped)
 
+    # TODO: remove this - temporary fix
+    if save_to_file:
+        data = action["wrt_pelvis"]
+        data["end_effector"] = end_effector
+        # save
+        save_dir = get_save_dir('trained_models', env_name, person_id, smpl_file)
+        filename = os.path.join(save_dir, handover_obj + ".json")
+        dumped = json.dumps(data, cls=NumpyEncoder)
+        with open(filename, "w") as f:
+            f.write(dumped)
 
-    while True:
+    while True and not save_to_file:
         keys = p.getKeyboardEvents()
         if ord('q') in keys:
             break
     env.disconnect()
 
 
-# TODO: merge with render_result
 def render_nn_result(env_name, data, person_id, smpl_file, handover_obj):
-    env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
-    env.render()  # need to call reset after render
-    env.reset()
-
-    smpl_name = os.path.basename(smpl_file).split(".")[0]
-    p.addUserDebugText("person: {}, smpl: {}".format(person_id, smpl_name), [0, 0, 1], textColorRGB=[1, 0, 0])
-
-    env.human.reset_controllable_joints(data["end_effector"])
-    env.human.set_joint_angles(env.human.controllable_joint_indices, data["joint_angles"])
-
-    _, _, side = find_robot_start_pos_orient(env, data["end_effector"])
-    env.robot.set_base_pos_orient(data['robot']['original'][0], data['robot']['original'][1])
-    env.robot.set_joint_angles(
-        env.robot.right_arm_joint_indices if side == 'right' else env.robot.left_arm_joint_indices,
-        data['robot_joint_angles'])
-    env.tool.reset_pos_orient()
-    while True:
-        keys = p.getKeyboardEvents()
-        if ord('q') in keys:
-            break
-    env.disconnect()
-
-def render_nn_result2(env_name, data, person_id, smpl_file, handover_obj):
     env = make_env(env_name, coop=True, smpl_file=smpl_file, object_name=handover_obj, person_id=person_id)
     env.render()  # need to call reset after render
     env.reset()
@@ -934,6 +923,7 @@ def save_train_result(save_dir, env_name, person_id, smpl_file, actions):
                     actions[key] = old_actions[key]
     pickle.dump(actions, open(os.path.join(save_dir, "actions.pkl"), "wb"))
 
+
 def find_new_penetrations(old_collisions: Set, new_collisions: Set, human, end_effector, penetration_threshold) -> int:
     # TODO: remove magic number (might need to check why self colllision happen in such case)
     # TODO: return number of collisions instead and use that to scale the cost
@@ -943,36 +933,41 @@ def find_new_penetrations(old_collisions: Set, new_collisions: Set, human, end_e
     # convert old collision to set of tuples (link1, link2), remove penetration
     initial_collision_map = dict()
     for o in old_collisions:
-        initial_collision_map[(o[0], o[1])]= o[2]
+        initial_collision_map[(o[0], o[1])] = o[2]
 
-    collision_set = set() # list of collision that is new or has deep penetration
+    collision_set = set()  # list of collision that is new or has deep penetration
     adjusted_penetrations = []
     for collision in new_collisions:
         link1, link2, penetration = collision
         if not link1 in link_ids and not link2 in link_ids:
-            continue # not end effector chain collision, skip
+            continue  # not end effector chain collision, skip
         # TODO: fix it, since link1 and link2 in collision from different object, so there is a slim chance of collision
-        if (link1, link2) not in initial_collision_map or (link2, link1) not in initial_collision_map: #new collision:
-            if abs(penetration) > penetration_threshold["new"]:  # magic number. we have penetration between spine4 and shoulder in pose 5
+        if (link1, link2) not in initial_collision_map or (link2, link1) not in initial_collision_map:  # new collision:
+            if abs(penetration) > penetration_threshold[
+                "new"]:  # magic number. we have penetration between spine4 and shoulder in pose 5
                 # print ("new collision: ", collision)
                 collision_set.add((collision[0], collision[1]))
                 adjusted_penetrations.append(abs(penetration) - penetration_threshold["new"])
         else:
             # collision in old collision
-            initial_depth = initial_collision_map[(link1, link2)] if (link1, link2) in initial_collision_map else initial_collision_map[(link2, link1)]
-            if abs(penetration) > max(penetration_threshold["old"], initial_depth): # magic number. we have penetration between spine4 and shoulder in pose 5
+            initial_depth = initial_collision_map[(link1, link2)] if (link1, link2) in initial_collision_map else \
+            initial_collision_map[(link2, link1)]
+            if abs(penetration) > max(penetration_threshold["old"],
+                                      initial_depth):  # magic number. we have penetration between spine4 and shoulder in pose 5
                 # print ("old collision with deep penetration: ", collision)
                 collision_set.add((link1, link2))
                 adjusted_penetrations.append(abs(penetration) - max(penetration_threshold["old"], initial_depth))
 
     return adjusted_penetrations
 
+
 def get_angle_with_z_axis(rot_matrix):
     vec_z = rot_matrix[:, 2] / np.linalg.norm(rot_matrix[:, 2])
-    rad_angle =  np.arccos(np.dot(vec_z, np.array([0, 0, 1])))
+    rad_angle = np.arccos(np.dot(vec_z, np.array([0, 0, 1])))
     # determine the sign
-    vec_z_proj_x = np.dot(vec_z,  np.array([1, 0, 0]))
+    vec_z_proj_x = np.dot(vec_z, np.array([1, 0, 0]))
     return rad_angle if vec_z_proj_x >= 0 else -rad_angle
+
 
 def get_gripper_z_angle_cost(env, side, offset):
     '''
@@ -984,7 +979,7 @@ def get_gripper_z_angle_cost(env, side, offset):
     robot = env.robot
     right = True if side == 'right' else False
     # find gripper orientation
-    gripper_pos, gripper_orient = robot.get_pos_orient( robot.right_end_effector if right else robot.left_end_effector)
+    gripper_pos, gripper_orient = robot.get_pos_orient(robot.right_end_effector if right else robot.left_end_effector)
     rot_matrix = np.array(p.getMatrixFromQuaternion(np.array(gripper_orient))).reshape(3, 3)
     # target_pos = np.array(gripper_pos) + z_axis * 2
     # p.addUserDebugLine(gripper_pos, target_pos, [1, 0, 0], 5)
@@ -993,13 +988,14 @@ def get_gripper_z_angle_cost(env, side, offset):
 
     # print("z_axis", z_axis)
     # print ("angle", angle)
-    lower_limit, upper_limit =  offset[0]* np.pi/180.0, offset[1]* np.pi/180.0
-    if lower_limit<=angle<=upper_limit:
+    lower_limit, upper_limit = offset[0] * np.pi / 180.0, offset[1] * np.pi / 180.0
+    if lower_limit <= angle <= upper_limit:
         return abs(angle) * 0.1
     else:
-        return abs(angle - lower_limit) if angle<0 else abs(angle - upper_limit)
+        return abs(angle - lower_limit) if angle < 0 else abs(angle - upper_limit)
 
-def cal_ee_bedside_dist_cost(env, side, end_effector, offset): # TODO: duplicate code with cal_distance_to_bed
+
+def cal_ee_bedside_dist_cost(env, side, end_effector, offset):  # TODO: duplicate code with cal_distance_to_bed
     human, bed = env.human, env.furniture
 
     bed_bb = p.getAABB(bed.body, physicsClientId=env.id)
@@ -1010,9 +1006,9 @@ def cal_ee_bedside_dist_cost(env, side, end_effector, offset): # TODO: duplicate
     # print ('bed size: ', np.array(bed_bb[1]) - np.array(bed_bb[0]))
     # print ("bed_xx: ", bed_xx, "ee_pos: ", ee_pos, "side: ", side)
     if right:
-        return abs(ee_pos[0] - bed_xx)*0.1 if ee_pos[0] > bed_xx else abs(ee_pos[0] - bed_xx)
+        return abs(ee_pos[0] - bed_xx) * 0.1 if ee_pos[0] > bed_xx else abs(ee_pos[0] - bed_xx)
     else:
-        return abs(ee_pos[0] - bed_xx)*0.1 if ee_pos[0] < bed_xx else abs(ee_pos[0] - bed_xx)
+        return abs(ee_pos[0] - bed_xx) * 0.1 if ee_pos[0] < bed_xx else abs(ee_pos[0] - bed_xx)
 
 
 @deprecated
@@ -1042,8 +1038,10 @@ def translate_bed_to_realworld(env, cord):
     corner = find_corner(env)
     return np.array(cord) - corner
 
+
 class NumpyEncoder(json.JSONEncoder):
     """ Special json encoder for numpy types """
+
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
