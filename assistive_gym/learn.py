@@ -1,7 +1,10 @@
 import os, sys, multiprocessing, gym, ray, shutil, argparse, importlib, glob
 import numpy as np
 # from ray.rllib.agents.ppo import PPOTrainer, DEFAULT_CONFIG
-from ray.rllib.agents import ppo, sac
+# from ray.rllib.agents import ppo
+# from ray.rllib.algorithms import ppo, sac
+from ray.rllib.algorithms.ppo import PPO
+from ray.rllib.algorithms.sac import SAC
 from ray.tune.logger import pretty_print
 from numpngw import write_apng
 
@@ -9,7 +12,7 @@ from numpngw import write_apng
 def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
     num_processes = multiprocessing.cpu_count()
     if algo == 'ppo':
-        config = ppo.DEFAULT_CONFIG.copy()
+        config = PPO.get_default_config().copy()
         config['train_batch_size'] = 19200
         config['num_sgd_iter'] = 50
         config['sgd_minibatch_size'] = 128
@@ -17,7 +20,7 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
         config['model']['fcnet_hiddens'] = [100, 100]
     elif algo == 'sac':
         # NOTE: pip3 install tensorflow_probability
-        config = sac.DEFAULT_CONFIG.copy()
+        config = SAC.get_default_config().copy()
         config['timesteps_per_iteration'] = 400
         config['learning_starts'] = 1000
         config['Q_model']['fcnet_hiddens'] = [100, 100]
@@ -38,9 +41,14 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
 
 def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra_configs={}):
     if algo == 'ppo':
-        agent = ppo.PPOTrainer(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
+        setup_config(env, algo, coop, seed, extra_configs)
+        agent = PPO()
+        config = PPO.get_default_config()
+        config.environment(env=env_name)
+
+        # agent.reset_config(setup_config(env, algo, coop, seed, extra_configs))
     elif algo == 'sac':
-        agent = sac.SACTrainer(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
+        agent = SAC(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
     if policy_path != '':
         if 'checkpoint' in policy_path:
             agent.restore(policy_path)
@@ -187,19 +195,19 @@ def evaluate_policy(env_name, algo, policy_path, n_episodes=100, coop=False, see
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='RL for Assistive Gym')
     parser.add_argument('--env', default='ScratchItchJaco-v0',
-                        help='Environment to train on (default: ScratchItchJaco-v0)')
+                        help='Environment to train.py on (default: ScratchItchJaco-v0)')
     parser.add_argument('--algo', default='ppo',
                         help='Reinforcement learning algorithm')
     parser.add_argument('--seed', type=int, default=1,
                         help='Random seed (default: 1)')
-    parser.add_argument('--train', action='store_true', default=False,
-                        help='Whether to train a new policy')
+    parser.add_argument('--train.py', action='store_true', default=False,
+                        help='Whether to train.py a new policy')
     parser.add_argument('--render', action='store_true', default=False,
                         help='Whether to render a single rollout of a trained policy')
     parser.add_argument('--evaluate', action='store_true', default=False,
                         help='Whether to evaluate a trained policy over n_episodes')
-    parser.add_argument('--train-timesteps', type=int, default=1000000,
-                        help='Number of simulation timesteps to train a policy (default: 1000000)')
+    parser.add_argument('--train.py-timesteps', type=int, default=1000000,
+                        help='Number of simulation timesteps to train.py a policy (default: 1000000)')
     parser.add_argument('--save-dir', default='./trained_models/',
                         help='Directory to save trained policy in (default ./trained_models/)')
     parser.add_argument('--load-policy-path', default='./trained_models/',

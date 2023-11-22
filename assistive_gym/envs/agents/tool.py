@@ -19,7 +19,7 @@ class Tool(Agent):
             tool = p.loadURDF(os.path.join(directory, 'scratcher', 'tool_scratch.urdf'), basePosition=transform_pos, baseOrientation=transform_orient, physicsClientId=id)
         elif task == 'bed_bathing':
             tool = p.loadURDF(os.path.join(directory, 'bed_bathing', 'wiper.urdf'), basePosition=transform_pos, baseOrientation=transform_orient, physicsClientId=id)
-        elif task in ['drinking', 'feeding', 'arm_manipulation']:
+        elif task in ['drinking', 'feeding', 'arm_manipulation', 'comfort_standing_up', 'comfort_drinking']:
             if task == 'drinking':
                 visual_filename = os.path.join(directory, 'dinnerware', 'plastic_coffee_cup.obj')
                 collision_filename = os.path.join(directory, 'dinnerware', 'plastic_coffee_cup_vhacd.obj')
@@ -29,9 +29,29 @@ class Tool(Agent):
             elif task == 'arm_manipulation':
                 visual_filename = os.path.join(directory, 'arm_manipulation', 'arm_manipulation_scooper.obj')
                 collision_filename = os.path.join(directory, 'arm_manipulation', 'arm_manipulation_scooper_vhacd.obj')
-            tool_visual = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=visual_filename, meshScale=mesh_scale, rgbaColor=[1, 1, 1, alpha], physicsClientId=id)
-            tool_collision = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=collision_filename, meshScale=mesh_scale, physicsClientId=id)
-            tool = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=tool_collision, baseVisualShapeIndex=tool_visual, basePosition=transform_pos, baseOrientation=transform_orient, useMaximalCoordinates=maximal, physicsClientId=id)
+            elif task == 'comfort_standing_up':
+                visual_filename = os.path.join(directory, 'cane', 'meshes', 'cane.stl')
+                collision_filename = os.path.join(directory, 'cane', 'meshes', 'cane.stl')
+                mesh_scale = [0.001] * 3
+            elif task == 'comfort_drinking':
+                visual_filename = os.path.join(directory, 'dinnerware', 'plastic_coffee_cup.obj')
+                collision_filename = os.path.join(directory, 'dinnerware', 'plastic_coffee_cup_vhacd.obj')
+
+            tool_visual = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=visual_filename, meshScale=mesh_scale,
+                                              rgbaColor=[1, 1, 1, alpha], physicsClientId=id)
+            tool_collision = p.createCollisionShape(shapeType=p.GEOM_MESH, fileName=collision_filename,
+                                                    meshScale=mesh_scale, physicsClientId=id)
+            tool = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=tool_collision,
+                                     baseVisualShapeIndex=tool_visual, basePosition=transform_pos,
+                                     baseOrientation=transform_orient, useMaximalCoordinates=maximal,
+                                     physicsClientId=id)
+
+        elif task == 'comfort_taking_medicine':
+            tool_visual, tool_collision  = self.create_capsule( radius=0.005, length=0.02, position_offset=[0, 0, 0.0], orientation=[0, 0, 0, 1])
+            tool = p.createMultiBody(baseMass=mass, baseCollisionShapeIndex=tool_collision,
+                                     baseVisualShapeIndex=tool_visual, basePosition=transform_pos,
+                                     baseOrientation=transform_orient, useMaximalCoordinates=maximal,
+                                     physicsClientId=id)
         else:
             tool = None
 
@@ -58,6 +78,18 @@ class Tool(Agent):
         return transform_pos, transform_orient
 
     def reset_pos_orient(self):
+        """
+        Reset the position and orientation of the tool to the gripper position
+        :return:
+        """
         transform_pos, transform_orient = self.get_transform()
         self.set_base_pos_orient(transform_pos, transform_orient)
+
+    def create_capsule(self, radius=0, length=0, position_offset=[0, 0, 0], orientation=[0, 0, 0, 1]):
+        visual_shape = p.createVisualShape(p.GEOM_CAPSULE, radius=radius, length=length,  visualFramePosition=position_offset,
+                                           visualFrameOrientation=orientation, physicsClientId=self.id)
+        collision_shape = p.createCollisionShape(p.GEOM_CAPSULE, radius=radius, height=length,
+                                                 collisionFramePosition=position_offset,
+                                                 collisionFrameOrientation=orientation, physicsClientId=self.id)
+        return visual_shape, collision_shape
 
