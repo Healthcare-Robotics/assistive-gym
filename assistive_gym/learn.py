@@ -1,7 +1,7 @@
 import os, sys, multiprocessing, gym, ray, shutil, argparse, importlib, glob
 import numpy as np
 # from ray.rllib.agents.ppo import PPOTrainer, DEFAULT_CONFIG
-from ray.rllib.agents import ppo, sac
+from ray.rllib.algorithms import ppo, sac
 from ray.tune.logger import pretty_print
 from numpngw import write_apng
 
@@ -9,38 +9,38 @@ from numpngw import write_apng
 def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
     num_processes = multiprocessing.cpu_count()
     if algo == 'ppo':
-        config = ppo.DEFAULT_CONFIG.copy()
-        config['train_batch_size'] = 19200
-        config['num_sgd_iter'] = 50
-        config['sgd_minibatch_size'] = 128
-        config['lambda'] = 0.95
-        config['model']['fcnet_hiddens'] = [100, 100]
+        config = ppo.PPOConfig()
+        config.train_batch_size = 19200
+        config.num_sgd_iter = 50
+        config.sgd_minibatch_size = 128
+        config.lambda_ = 0.95
+        config.model['fcnet_hiddens'] = [100, 100]
     elif algo == 'sac':
         # NOTE: pip3 install tensorflow_probability
-        config = sac.DEFAULT_CONFIG.copy()
-        config['timesteps_per_iteration'] = 400
-        config['learning_starts'] = 1000
-        config['Q_model']['fcnet_hiddens'] = [100, 100]
-        config['policy_model']['fcnet_hiddens'] = [100, 100]
-        # config['normalize_actions'] = False
-    config['num_workers'] = num_processes
-    config['num_cpus_per_worker'] = 0
-    config['seed'] = seed
-    config['log_level'] = 'ERROR'
+        config = sac.SACConfig()
+        config.timesteps_per_iteration = 400
+        config.learning_starts = 1000
+        config.q_model_config['fcnet_hiddens'] = [100, 100]
+        config.policy_model_config['fcnet_hiddens'] = [100, 100]
+    config.num_workers = num_processes
+    config.num_cpus_per_worker = 0
+    config.seed = seed
+    config.log_level = 'ERROR'
     # if algo == 'sac':
     #     config['num_workers'] = 1
     if coop:
         obs = env.reset()
         policies = {'robot': (None, env.observation_space_robot, env.action_space_robot, {}), 'human': (None, env.observation_space_human, env.action_space_human, {})}
-        config['multiagent'] = {'policies': policies, 'policy_mapping_fn': lambda a: a}
-        config['env_config'] = {'num_agents': 2}
+        config.multiagent
+        config.multiagent = {'policies': policies, 'policy_mapping_fn': lambda a: a}
+        config.env_config = {'num_agents': 2}
     return {**config, **extra_configs}
 
 def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra_configs={}):
     if algo == 'ppo':
-        agent = ppo.PPOTrainer(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
+        agent = ppo.PPO(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
     elif algo == 'sac':
-        agent = sac.SACTrainer(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
+        agent = sac.SAC(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)
     if policy_path != '':
         if 'checkpoint' in policy_path:
             agent.restore(policy_path)
@@ -101,8 +101,8 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
             env.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
     test_agent, _ = load_policy(env, algo, env_name, policy_path, coop, seed, extra_configs)
 
-    if not colab:
-        env.render()
+    #if not colab:
+        #env.render()
     frames = []
     for episode in range(n_episodes):
         obs = env.reset()

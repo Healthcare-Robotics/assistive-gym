@@ -15,11 +15,15 @@ def sample_action(env, coop):
 def viewer(env_name):
     coop = 'Human' in env_name
     env = make_env(env_name, coop=True) if coop else gym.make(env_name)
+    from gym.wrappers import order_enforcing
+    env = order_enforcing.OrderEnforcing(env, disable_render_order_enforcing=True)
+    #breakpoint()
+    #env.render()
 
     while True:
         done = False
-        env.render()
         observation = env.reset()
+        env.render()
         action = sample_action(env, coop)
         if coop:
             print('Robot observation size:', np.shape(observation['robot']), 'Human observation size:', np.shape(observation['human']), 'Robot action size:', np.shape(action['robot']), 'Human action size:', np.shape(action['human']))
