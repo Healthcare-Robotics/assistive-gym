@@ -1,9 +1,11 @@
-import os, sys, multiprocessing, gym, ray, shutil, argparse, importlib, glob
+import os, sys, multiprocessing, ray, shutil, argparse, importlib, glob
+import gymnasium as gym
 import numpy as np
 # from ray.rllib.agents.ppo import PPOTrainer, DEFAULT_CONFIG
 from ray.rllib.algorithms import ppo, sac
 from ray.tune.logger import pretty_print
 from numpngw import write_apng
+import assistive_gym
 
 
 def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
@@ -22,10 +24,10 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
         config.learning_starts = 1000
         config.q_model_config['fcnet_hiddens'] = [100, 100]
         config.policy_model_config['fcnet_hiddens'] = [100, 100]
-    config.num_workers = num_processes
+    config.num_rollout_workers = num_processes
     config.num_cpus_per_worker = 0
     config.seed = seed
-    config.log_level = 'ERROR'
+    # config.log_level = 'ERROR'
     # if algo == 'sac':
     #     config['num_workers'] = 1
     if coop:
@@ -71,6 +73,8 @@ def make_env(env_name, coop=False, seed=1001):
 def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/', load_policy_path='', coop=False, seed=0, extra_configs={}):
     ray.init(num_cpus=multiprocessing.cpu_count(), ignore_reinit_error=True, log_to_driver=False)
     env = make_env(env_name, coop)
+    from ray import tune
+    tune.register_env("assistive_gym:%s" % env_name, lambda _: make_env(env_name, coop))
     agent, checkpoint_path = load_policy(env, algo, env_name, load_policy_path, coop, seed, extra_configs)
     env.disconnect()
 

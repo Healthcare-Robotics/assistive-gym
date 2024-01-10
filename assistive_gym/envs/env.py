@@ -1,8 +1,8 @@
 import os, time, configparser
 import numpy as np
-import gym
-from gym import spaces
-from gym.utils import seeding
+import gymnasium as gym
+from gymnasium import spaces
+from gymnasium.utils import seeding
 from screeninfo import get_monitors
 import pybullet as p
 from keras.models import load_model

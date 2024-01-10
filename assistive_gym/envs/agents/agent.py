@@ -252,15 +252,23 @@ class Agent:
     def ik(self, target_joint, target_pos, target_orient, ik_indices, max_iterations=1000, half_range=False, use_current_as_rest=False, randomize_limits=False):
         if target_orient is not None and len(target_orient) < 4:
             target_orient = self.get_quaternion(target_orient)
-        ik_lower_limits = self.ik_lower_limits if not randomize_limits else self.np_random.uniform(0, self.ik_lower_limits)
-        ik_upper_limits = self.ik_upper_limits if not randomize_limits else self.np_random.uniform(0, self.ik_upper_limits)
+        
+        def safe_uniform(a, b):
+            return self.np_random.uniform(np.minimum(a, b), np.maximum(a, b))
+
+        if randomize_limits:
+            ik_lower_limits = safe_uniform(0, self.ik_lower_limits)
+            ik_upper_limits = safe_uniform(0, self.ik_upper_limits)
+        else:
+            ik_lower_limits = self.ik_lower_limits
+            ik_upper_limits = self.ik_upper_limits
         ik_joint_ranges = ik_upper_limits - ik_lower_limits
         if half_range:
             ik_joint_ranges /= 2.0
         if use_current_as_rest:
             ik_rest_poses = np.array(self.get_motor_joint_states()[1])
         else:
-            ik_rest_poses = self.np_random.uniform(ik_lower_limits, ik_upper_limits)
+            ik_rest_poses = safe_uniform(ik_lower_limits, ik_upper_limits)
 
         # print('JPO:', target_joint, target_pos, target_orient)
         # print('Lower:', self.ik_lower_limits)

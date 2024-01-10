@@ -1,4 +1,5 @@
-import gym, sys, argparse
+import sys, argparse
+import gymnasium as gym
 import numpy as np
 from .learn import make_env
 # import assistive_gym
@@ -15,7 +16,7 @@ def sample_action(env, coop):
 def viewer(env_name):
     coop = 'Human' in env_name
     env = make_env(env_name, coop=True) if coop else gym.make(env_name)
-    from gym.wrappers import order_enforcing
+    from gymnasium.wrappers import order_enforcing
     env = order_enforcing.OrderEnforcing(env, disable_render_order_enforcing=True)
     #breakpoint()
     #env.render()

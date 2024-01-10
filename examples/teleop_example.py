@@ -1,4 +1,5 @@
-import gym, assistive_gym
+import assistive_gym
+import gymnasium as gym
 import pybullet as p
 import numpy as np
 

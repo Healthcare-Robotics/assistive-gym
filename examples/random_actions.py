@@ -1,4 +1,5 @@
-import gym, assistive_gym
+import assistive_gym
+import gymnasium as gym
 
 env = gym.make('FeedingPR2-v0')
 env.render()
