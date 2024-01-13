@@ -17,7 +17,7 @@ class FeedingMeshEnv(FeedingEnv):
         self.body_shape_filename = '%s_1.pkl' % self.gender
         self.human_height = 1.6
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(FeedingEnv, self).reset()
         self.build_assistive_env('wheelchair')
         self.furniture.set_on_ground()
@@ -135,7 +135,7 @@ class FeedingMeshEnv(FeedingEnv):
             p.stepSimulation(physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 
     def generate_target(self):
         # Set target on mouth

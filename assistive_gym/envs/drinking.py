@@ -39,10 +39,16 @@ class DrinkingEnv(AssistiveEnv):
         done = self.iteration >= 200
 
         if not self.human.controllable:
-            return obs, reward, done, info
+            return obs, reward, done, False, info
         else:
             # Co-optimization with both human and robot controllable
-            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
+            return (
+                obs,
+                {'robot': reward, 'human': reward},
+                {'robot': done, 'human': done, '__all__': done},
+                {'robot': False, 'human': False, '__all__': False},
+                {'robot': info, 'human': info}
+            )
 
     def get_total_force(self):
         robot_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
@@ -119,7 +125,7 @@ class DrinkingEnv(AssistiveEnv):
             return {'robot': robot_obs, 'human': human_obs}
         return robot_obs
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(DrinkingEnv, self).reset()
         self.build_assistive_env('wheelchair')
         if self.robot.wheelchair_mounted:
@@ -179,7 +185,7 @@ class DrinkingEnv(AssistiveEnv):
             p.stepSimulation(physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 
     def generate_target(self):
         # Set target on mouth

@@ -88,7 +88,7 @@ class AssistiveEnv(gym.Env):
     def disconnect(self):
         p.disconnect(self.id)
 
-    def reset(self):
+    def reset(self, **kwargs):
         p.resetSimulation(physicsClientId=self.id)
         if not self.gui:
             # Reconnect the physics engine to forcefully clear memory when running long training scripts
@@ -110,6 +110,9 @@ class AssistiveEnv(gym.Env):
         self.iteration = 0
         self.forces = []
         self.task_success = 0
+
+        # for gymnasium API compat
+        return None, {}
 
     def build_assistive_env(self, furniture_type=None, fixed_human_base=True, human_impairment='random', gender='random'):
         # Build plane, furniture, robot, human, etc. (just like world creation)

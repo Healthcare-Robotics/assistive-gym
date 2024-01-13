@@ -10,7 +10,7 @@ args = parser.parse_args()
 
 env = gym.make(args.env)
 env.render()
-observation = env.reset()
+observation, _ = env.reset()
 env.robot.print_joint_info()
 
 # Arrow keys for moving the base, s/x for the lift, z/c for the prismatic joint, a/d for the wrist joint
@@ -25,5 +25,5 @@ while True:
         if key in keys and keys[key] & p.KEY_IS_DOWN:
             action += a
 
-    observation, reward, done, info = env.step(action*100)
+    observation, reward, done, truncated, info = env.step(action*100)
 

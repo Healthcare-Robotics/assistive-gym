@@ -12,12 +12,12 @@ class SMPLXTestingEnv(AssistiveEnv):
 
     def step(self, action):
         self.take_step(action, gains=0.05, forces=1.0)
-        return [], 0, False, {}
+        return [], 0, False, False, {}
 
     def _get_obs(self, agent=None):
         return []
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(SMPLXTestingEnv, self).reset()
         self.build_assistive_env(furniture_type='wheelchair2')
         self.furniture.set_on_ground()
@@ -75,5 +75,5 @@ class SMPLXTestingEnv(AssistiveEnv):
         # p.setGravity(0, 0, -0.81, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 

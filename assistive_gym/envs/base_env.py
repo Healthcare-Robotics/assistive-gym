@@ -35,7 +35,7 @@ class BaseEnv:
 
         self.agents = []
 
-    def reset(self):
+    def reset(self, **kwargs):
         p.resetSimulation(physicsClientId=self.id)
         p.configureDebugVisualizer(p.COV_ENABLE_MOUSE_PICKING, 0, physicsClientId=self.id)
         p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0, physicsClientId=self.id)

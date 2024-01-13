@@ -5,7 +5,7 @@ import numpy as np
 
 env = gym.make('FeedingSawyer-v1')
 env.render()
-observation = env.reset()
+observation, _ = env.reset()
 
 # Map keys to position and orientation end effector movements
 pos_keys_actions = {ord('j'): np.array([-0.01, 0, 0]), ord('l'): np.array([0.01, 0, 0]),
@@ -43,5 +43,5 @@ while True:
     # Compute the action as the difference between target and current joint angles.
     action = (target_joint_angles - current_joint_angles) * 10
     # Step the simulation forward
-    observation, reward, done, info = env.step(action)
+    observation, reward, done, truncated, info = env.step(action)
 

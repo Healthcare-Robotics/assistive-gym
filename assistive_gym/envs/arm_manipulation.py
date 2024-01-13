@@ -53,10 +53,16 @@ class ArmManipulationEnv(AssistiveEnv):
         done = self.iteration >= 200
 
         if not self.human.controllable:
-            return obs, reward, done, info
+            return obs, reward, done, False, info
         else:
             # Co-optimization with both human and robot controllable
-            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
+            return (
+                obs,
+                {'robot': reward, 'human': reward},
+                {'robot': done, 'human': done, '__all__': done},
+                {'robot': False, 'human': False, '__all__': False},
+                {'robot': info, 'human': info}
+            )
 
     def get_total_force(self):
         tool_right_force = np.sum(self.tool_right.get_contact_points()[-1])
@@ -107,7 +113,7 @@ class ArmManipulationEnv(AssistiveEnv):
             return {'robot': robot_obs, 'human': human_obs}
         return robot_obs
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(ArmManipulationEnv, self).reset()
         self.build_assistive_env('bed', fixed_human_base=False, human_impairment='no_tremor')
 
@@ -184,5 +190,5 @@ class ArmManipulationEnv(AssistiveEnv):
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 

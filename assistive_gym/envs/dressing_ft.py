@@ -103,7 +103,7 @@ class DressingEnv(AssistiveEnv):
         info = {'total_force_on_human': total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         done = False
 
-        return obs, reward, done, info
+        return obs, reward, done, False, info
 
     def _get_obs(self, forces, forces_human):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
@@ -131,7 +131,7 @@ class DressingEnv(AssistiveEnv):
 
         return np.concatenate([robot_obs, human_obs]).ravel()
 
-    def reset(self):
+    def reset(self, **kwargs):
         self.setup_timing()
         self.task_success = 0
         self.forearm_in_sleeve = False
@@ -244,5 +244,5 @@ class DressingEnv(AssistiveEnv):
 
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
 
-        return self._get_obs([0]*6, [0, 0])
+        return self._get_obs([0]*6, [0, 0]), {}
 

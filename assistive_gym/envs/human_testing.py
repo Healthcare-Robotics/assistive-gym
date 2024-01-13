@@ -14,12 +14,12 @@ class HumanTestingEnv(AssistiveEnv):
 
     def step(self, action):
         self.take_step(action, gains=0.05, forces=1.0)
-        return [], 0, False, {}
+        return [], 0, False, False, {}
 
     def _get_obs(self, agent=None):
         return []
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(HumanTestingEnv, self).reset()
         self.build_assistive_env(furniture_type=None, human_impairment='none')
 
@@ -40,5 +40,5 @@ class HumanTestingEnv(AssistiveEnv):
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 

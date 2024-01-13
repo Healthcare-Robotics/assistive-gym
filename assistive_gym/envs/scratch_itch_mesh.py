@@ -14,7 +14,7 @@ class ScratchItchMeshEnv(ScratchItchEnv):
         self.body_shape_filename = '%s_1.pkl' % self.gender
         self.human_height = 1.6
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(ScratchItchEnv, self).reset()
         self.build_assistive_env('wheelchair')
         self.furniture.set_on_ground()
@@ -98,7 +98,7 @@ class ScratchItchMeshEnv(ScratchItchEnv):
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 
     def generate_target(self):
         # TODO: Pick a random vertex on the right arm

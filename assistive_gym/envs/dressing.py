@@ -70,10 +70,16 @@ class DressingEnv(AssistiveEnv):
         done = self.iteration >= 200
 
         if not self.human.controllable:
-            return obs, reward, done, info
+            return obs, reward, done, False, info
         else:
             # Co-optimization with both human and robot controllable
-            return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
+            return (
+                obs,
+                {'robot': reward, 'human': reward},
+                {'robot': done, 'human': done, '__all__': done},
+                {'robot': False, 'human': False, '__all__': False},
+                {'robot': info, 'human': info}
+            )
 
     def _get_obs(self, agent=None):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
@@ -109,7 +115,7 @@ class DressingEnv(AssistiveEnv):
             return {'robot': robot_obs, 'human': human_obs}
         return robot_obs
 
-    def reset(self):
+    def reset(self, **kwargs):
         super(DressingEnv, self).reset()
         self.build_assistive_env('wheelchair_left')
         self.cloth_forces = np.zeros((1, 1))
@@ -195,7 +201,7 @@ class DressingEnv(AssistiveEnv):
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs()
+        return self._get_obs(), {}
 
     def update_targets(self):
         # Force the end effector to move forward

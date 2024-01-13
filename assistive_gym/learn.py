@@ -20,7 +20,7 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
     elif algo == 'sac':
         # NOTE: pip3 install tensorflow_probability
         config = sac.SACConfig()
-        config.timesteps_per_iteration = 400
+        config.min_train_timesteps_per_iteration = 400
         config.learning_starts = 1000
         config.q_model_config['fcnet_hiddens'] = [100, 100]
         config.policy_model_config['fcnet_hiddens'] = [100, 100]
@@ -31,7 +31,7 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
     # if algo == 'sac':
     #     config['num_workers'] = 1
     if coop:
-        obs = env.reset()
+        obs, _ = env.reset()
         policies = {'robot': (None, env.observation_space_robot, env.action_space_robot, {}), 'human': (None, env.observation_space_human, env.action_space_human, {})}
         config.multiagent
         config.multiagent = {'policies': policies, 'policy_mapping_fn': lambda a: a}
@@ -94,7 +94,8 @@ def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/',
         if checkpoint_path is not None:
             shutil.rmtree(os.path.dirname(checkpoint_path), ignore_errors=True)
         # Save the recently trained policy
-        checkpoint_path = agent.save(os.path.join(save_dir, algo, env_name))
+        training_result = agent.save(os.path.join(save_dir, algo, env_name))
+        checkpoint_path = training_result.checkpoint.path
     return checkpoint_path
 
 def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, seed=0, n_episodes=1, extra_configs={}):
@@ -109,7 +110,7 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
         #env.render()
     frames = []
     for episode in range(n_episodes):
-        obs = env.reset()
+        obs, _ = env.reset()
         done = False
         while not done:
             if coop:
@@ -117,13 +118,13 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
                 action_robot = test_agent.compute_action(obs['robot'], policy_id='robot')
                 action_human = test_agent.compute_action(obs['human'], policy_id='human')
                 # Step the simulation forward using the actions from our trained policies
-                obs, reward, done, info = env.step({'robot': action_robot, 'human': action_human})
+                obs, reward, done, truncated, info = env.step({'robot': action_robot, 'human': action_human})
                 done = done['__all__']
             else:
                 # Compute the next action using the trained policy
                 action = test_agent.compute_action(obs)
                 # Step the simulation forward using the action from our trained policy
-                obs, reward, done, info = env.step(action)
+                obs, reward, done, truncated, info = env.step(action)
             if colab:
                 # Capture (render) an image from the camera
                 img, depth = env.get_camera_image_depth()
@@ -143,7 +144,7 @@ def evaluate_policy(env_name, algo, policy_path, n_episodes=100, coop=False, see
     forces = []
     task_successes = []
     for episode in range(n_episodes):
-        obs = env.reset()
+        obs, _ = env.reset()
         done = False
         reward_total = 0.0
         force_list = []
@@ -154,13 +155,13 @@ def evaluate_policy(env_name, algo, policy_path, n_episodes=100, coop=False, see
                 action_robot = test_agent.compute_action(obs['robot'], policy_id='robot')
                 action_human = test_agent.compute_action(obs['human'], policy_id='human')
                 # Step the simulation forward using the actions from our trained policies
-                obs, reward, done, info = env.step({'robot': action_robot, 'human': action_human})
+                obs, reward, done, truncated, info = env.step({'robot': action_robot, 'human': action_human})
                 reward = reward['robot']
                 done = done['__all__']
                 info = info['robot']
             else:
                 action = test_agent.compute_action(obs)
-                obs, reward, done, info = env.step(action)
+                obs, reward, done, truncated, info = env.step(action)
             reward_total += reward
             force_list.append(info['total_force_on_human'])
             task_success = info['task_success']
