@@ -1,23 +1,36 @@
-FROM ubuntu:18.04
+#FROM ubuntu:18.04
+# FROM python:3.9.18-slim-bookworm
+FROM nvidia/cuda:11.8.0-base-ubuntu20.04
 
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y install sudo
 RUN apt-get -y upgrade && apt-get update && apt-get clean && apt-get -y install curl git build-essential zlib1g-dev libssl-dev libopenmpi-dev libglib2.0-0 libsm6 libxext6 libxrender-dev libgl1-mesa-glx vim htop
+RUN apt-get -y install python3-dev python3 python3-venv python3-pip
+RUN apt-get -y install pkg-config libhdf5-dev
+RUN apt-get -y install python3-h5py
 
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu && echo "ubuntu:ubuntu" | chpasswd
-USER ubuntu
-WORKDIR /home/ubuntu
+#RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu && echo "ubuntu:ubuntu" | chpasswd
+#USER ubuntu
+SHELL ["bash", "-l" ,"-c"]
+WORKDIR /opt/assistive-gym
 
-RUN curl https://pyenv.run | bash
-RUN echo '\n export PATH="~/.pyenv/bin:$PATH"\n eval "$(pyenv init -)"\n eval "$(pyenv virtualenv-init -)"' >> /home/ubuntu/.bashrc
-ENV HOME  /home/ubuntu
-ENV PYENV_ROOT $HOME/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-RUN pyenv install 3.6.5 && pyenv global 3.6.5 && pip3 install pip --upgrade
+#RUN curl https://pyenv.run | bash
+#RUN echo '\n export PATH="~/.pyenv/bin:$PATH"\n eval "$(pyenv init -)"\n eval "$(pyenv virtualenv-init -)"' >> /home/ubuntu/.bashrc
+#ENV HOME  /home/ubuntu
+#ENV PYENV_ROOT $HOME/.pyenv
+#ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+#RUN pyenv install 3.9.6 && pyenv global 3.9.6 && pip3 install pip --upgrade
+RUN pip3 install -U setuptools pip
+RUN pip3 install 'Cython<3'
 RUN pip3 install screeninfo
 # RUN pip3 install git+https://github.com/Zackory/bullet3.git
-RUN git clone https://github.com/Healthcare-Robotics/assistive-gym.git && cd assistive-gym && pip3 install -e .
-RUN pip3 install git+https://github.com/Zackory/pytorch-a2c-ppo-acktr --no-cache-dir
-RUN pip3 install git+https://github.com/openai/baselines.git
+RUN mkdir -p /opt/assistive-gym
+COPY . /opt/assistive-gym
+RUN cd /opt/assistive-gym && pip3 install -e .
+
+# RUN git clone https://github.com/Healthcare-Robotics/assistive-gym.git && cd assistive-gym && pip3 install -e .
+# RUN pip3 install git+https://github.com/Zackory/pytorch-a2c-ppo-acktr --no-cache-dir
+# RUN pip3 install git+https://github.com/openai/baselines.git
 
 # docker build -t "assistive-gym-v1.0:Dockerfile" .
 # docker run -it 0f55f5d433e6 bash
