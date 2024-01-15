@@ -2,8 +2,8 @@ import assistive_gym
 import gymnasium as gym
 
 env = gym.make('FeedingPR2-v0')
-env.render()
 observation, _ = env.reset()
+env.render()
 
 while True:
     env.render()

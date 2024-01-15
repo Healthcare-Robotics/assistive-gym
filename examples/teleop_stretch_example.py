@@ -9,8 +9,8 @@ parser.add_argument('--env', default='ScratchItchStretch-v1',
 args = parser.parse_args()
 
 env = gym.make(args.env)
-env.render()
 observation, _ = env.reset()
+env.render()
 env.robot.print_joint_info()
 
 # Arrow keys for moving the base, s/x for the lift, z/c for the prismatic joint, a/d for the wrist joint

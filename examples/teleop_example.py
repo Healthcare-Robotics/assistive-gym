@@ -4,8 +4,8 @@ import pybullet as p
 import numpy as np
 
 env = gym.make('FeedingSawyer-v1')
-env.render()
 observation, _ = env.reset()
+env.render()
 
 # Map keys to position and orientation end effector movements
 pos_keys_actions = {ord('j'): np.array([-0.01, 0, 0]), ord('l'): np.array([0.01, 0, 0]),

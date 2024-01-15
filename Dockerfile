@@ -16,10 +16,12 @@ RUN pip3 install -U setuptools pip
 # Required for aarch64
 RUN pip3 install 'Cython<3'
 
+ENV 
+
 RUN pip3 install screeninfo
 RUN mkdir -p /opt/assistive-gym
 COPY . /opt/assistive-gym
-RUN cd /opt/assistive-gym && pip3 install -e .
+RUN cd /opt/assistive-gym && pip3 install -e . && pip3 install -U h5py
 
 # To reconnect using Xserver
 # See: https://medium.com/@mreichelt/how-to-show-x11-windows-within-docker-on-mac-50759f4b65cb
