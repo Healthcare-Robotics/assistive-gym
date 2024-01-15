@@ -1,5 +1,4 @@
-#FROM ubuntu:18.04
-# FROM python:3.9.18-slim-bookworm
+# Using cuda base image. It works with M1 too, but no GPU.
 FROM nvidia/cuda:11.8.0-base-ubuntu20.04
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -9,31 +8,19 @@ RUN apt-get -y install python3-dev python3 python3-venv python3-pip
 RUN apt-get -y install pkg-config libhdf5-dev
 RUN apt-get -y install python3-h5py
 
-#RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu && echo "ubuntu:ubuntu" | chpasswd
-#USER ubuntu
 SHELL ["bash", "-l" ,"-c"]
 WORKDIR /opt/assistive-gym
 
-#RUN curl https://pyenv.run | bash
-#RUN echo '\n export PATH="~/.pyenv/bin:$PATH"\n eval "$(pyenv init -)"\n eval "$(pyenv virtualenv-init -)"' >> /home/ubuntu/.bashrc
-#ENV HOME  /home/ubuntu
-#ENV PYENV_ROOT $HOME/.pyenv
-#ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-#RUN pyenv install 3.9.6 && pyenv global 3.9.6 && pip3 install pip --upgrade
 RUN pip3 install -U setuptools pip
+
+# Required for aarch64
 RUN pip3 install 'Cython<3'
+
 RUN pip3 install screeninfo
-# RUN pip3 install git+https://github.com/Zackory/bullet3.git
 RUN mkdir -p /opt/assistive-gym
 COPY . /opt/assistive-gym
 RUN cd /opt/assistive-gym && pip3 install -e .
 
-# RUN git clone https://github.com/Healthcare-Robotics/assistive-gym.git && cd assistive-gym && pip3 install -e .
-# RUN pip3 install git+https://github.com/Zackory/pytorch-a2c-ppo-acktr --no-cache-dir
-# RUN pip3 install git+https://github.com/openai/baselines.git
-
-# docker build -t "assistive-gym-v1.0:Dockerfile" .
-# docker run -it 0f55f5d433e6 bash
 # To reconnect using Xserver
 # See: https://medium.com/@mreichelt/how-to-show-x11-windows-within-docker-on-mac-50759f4b65cb
 # docker exec -it -e DISPLAY=host.docker.internal:0 ebccc26459f8 bash
@@ -41,34 +28,3 @@ RUN cd /opt/assistive-gym && pip3 install -e .
 # docker images
 # docker commit ebeb779ed44e assistive-gym-v1.0:compiled
 # docker save assistive-gym-v1.0:compiled | gzip > assistive-gym-v1_docker.tar.gz
-
-
-# Installation
-
-# sudo apt-get update
-# sudo apt-get upgrade
-# sudo apt-get install curl git build-essential zlib1g-dev libssl-dev libopenmpi-dev libglib2.0-0 libsm6 libxext6 libxrender-dev vim
-# curl https://pyenv.run | bash
-# vim ~/.bashrc
-# # Add to ~/.bashrc
-# export PATH="~/.pyenv/bin:$PATH"
-# eval "$(pyenv init -)"
-# eval "$(pyenv virtualenv-init -)"
-
-# source ~/.bashrc
-# pyenv install 3.6.5
-# pyenv local 3.6.5
-# mkdir -p git/assistive-gym-1.0
-# cd git/assistive-gym-1.0
-
-# NOTE: Copy over custom files
-# # docker cp assistive-gym ebccc26459f8:home/ubuntu/git/assistive-gym-1.0
-
-# pip3 install screeninfo
-# pip3 install git+https://github.com/Zackory/bullet3.git
-# git clone https://github.com/Healthcare-Robotics/assistive-gym.git
-# cd assistive-gym
-# pip3 install -e .
-# pip3 install git+https://github.com/Zackory/pytorch-a2c-ppo-acktr --no-cache-dir
-# pip3 install git+https://github.com/openai/baselines.git
-
