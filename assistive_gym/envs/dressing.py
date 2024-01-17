@@ -68,16 +68,18 @@ class DressingEnv(AssistiveEnv):
 
         info = {'total_force_on_human': self.total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         done = self.iteration >= 200
-
+        
         if not self.human.controllable:
-            return obs, reward, done, False, info
+            truncated = (False, ) if self.gym_api_new_step else ()
+            return (obs, reward, done,) + truncated + (info,)
         else:
             # Co-optimization with both human and robot controllable
+            truncated = ({'robot': False, 'human': False, '__all__': False},) if self.gym_api_new_step else ()
             return (
                 obs,
                 {'robot': reward, 'human': reward},
                 {'robot': done, 'human': done, '__all__': done},
-                {'robot': False, 'human': False, '__all__': False},
+            ) + truncated + (
                 {'robot': info, 'human': info}
             )
 
@@ -201,7 +203,10 @@ class DressingEnv(AssistiveEnv):
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs(), {}
+        if self.gym_api_new_reset:
+            return self._get_obs(), {}
+        else:
+            return self._get_obs()
 
     def update_targets(self):
         # Force the end effector to move forward

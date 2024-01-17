@@ -133,7 +133,10 @@ class FeedingMeshEnv(FeedingEnv):
             p.stepSimulation(physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs(), {}
+        if self.gym_api_new_reset:
+            return self._get_obs(), {}
+        else:
+            return self._get_obs()
 
     def generate_target(self):
         # Set target on mouth

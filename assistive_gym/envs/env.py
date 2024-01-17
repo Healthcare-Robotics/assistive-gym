@@ -23,6 +23,22 @@ from .agents.panda import Panda
 from .agents.tool import Tool
 from .agents.furniture import Furniture
 
+
+
+from packaging import version
+
+def get_gym_api_spec():
+    try:
+        import gymnasium as gym
+        gym_reset_new_api = True
+        gym_step_new_api = True
+    except ImportError:
+        import gym
+        gym_reset_new_api = version.parse(gym.__version__) >= version.parse("0.22.0")
+        gym_step_new_api = version.parse(gym.__version__) >= version.parse("0.25.0")
+    return gym_reset_new_api, gym_step_new_api
+
+
 class AssistiveEnv(gym.Env):
     def __init__(self, robot=None, human=None, task='', obs_robot_len=0, obs_human_len=0, time_step=0.02, frame_skip=5, render=False, gravity=-9.81, seed=1001):
         self.task = task
@@ -72,6 +88,8 @@ class AssistiveEnv(gym.Env):
         self.C_d = self.config('dressing_force_weight', 'human_preferences')
         self.C_p = self.config('high_pressures_weight', 'human_preferences')
 
+        self.gym_api_new_reset, self.gym_api_new_step = get_gym_api_spec()
+
     def step(self, action):
         raise NotImplementedError('Implement observations')
 
@@ -117,8 +135,11 @@ class AssistiveEnv(gym.Env):
         self.forces = []
         self.task_success = 0
 
-        # for gymnasium API compat
-        return None, {}
+        if self.gym_api_new_reset:
+            # for gymnasium API compat
+            return None, {}
+        else:
+            return None
 
     def build_assistive_env(self, furniture_type=None, fixed_human_base=True, human_impairment='random', gender='random'):
         # Build plane, furniture, robot, human, etc. (just like world creation)

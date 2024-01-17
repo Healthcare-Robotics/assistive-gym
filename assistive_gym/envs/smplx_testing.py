@@ -10,7 +10,10 @@ class SMPLXTestingEnv(AssistiveEnv):
 
     def step(self, action):
         self.take_step(action, gains=0.05, forces=1.0)
-        return [], 0, False, False, {}
+        if self.gym_api_new_step:
+            return [], 0, False, False, {}
+        else:
+            return [], 0, False, {}
 
     def _get_obs(self, agent=None):
         return []
@@ -73,5 +76,7 @@ class SMPLXTestingEnv(AssistiveEnv):
         # p.setGravity(0, 0, -0.81, physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs(), {}
-
+        if self.gym_api_new_reset:
+            return self._get_obs(), {}
+        else:
+            return self._get_obs()

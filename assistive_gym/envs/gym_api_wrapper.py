@@ -1,18 +1,11 @@
-try:
-    import gymnasium as gym
-    GYM_RESET_OLD_API = False
-    GYM_STEP_OLD_API = False
-except ImportError:
-    import gym
-    from packaging import version
-    GYM_RESET_OLD_API = version.parse(gym.__version__) < version.parse("0.22.0")
-    GYM_STEP_OLD_API = version.parse(gym.__version__) < version.parse("0.25.0")
 
 
+'''
 class GymAPIWrapper(gym.Wrapper):
     def __init__(self, env: gym.Env, force_reset_old_api=False, force_step_old_api=False):
-        self.reset_old_api = force_reset_old_api or GYM_RESET_OLD_API
-        self.step_old_api = force_step_old_api or GYM_STEP_OLD_API
+        reset_old, step_old = get_gym_api_spec()
+        self.reset_old_api = force_reset_old_api or reset_old
+        self.step_old_api = force_step_old_api or step_old
         super().__init__(env)
     
     def step(self, action):
@@ -28,3 +21,4 @@ class GymAPIWrapper(gym.Wrapper):
             return obs
         else:
             return obs, info
+'''

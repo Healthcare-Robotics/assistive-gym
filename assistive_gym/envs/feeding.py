@@ -37,15 +37,17 @@ class FeedingEnv(AssistiveEnv):
         done = self.iteration >= 200
 
         if not self.human.controllable:
-            return obs, reward, done, False, info
+            truncated = (False, ) if self.gym_api_new_step else ()
+            return (obs, reward, done,) + truncated + (info,)
         else:
             # Co-optimization with both human and robot controllable
+            truncated = ({'robot': False, 'human': False, '__all__': False},) if self.gym_api_new_step else ()
             return (
                 obs,
                 {'robot': reward, 'human': reward},
                 {'robot': done, 'human': done, '__all__': done},
-                {'robot': False, 'human': False, '__all__': False},
-                {'robot': info, 'human': info},
+            ) + truncated + (
+                {'robot': info, 'human': info}
             )
 
     def get_total_force(self):
@@ -185,7 +187,10 @@ class FeedingEnv(AssistiveEnv):
             p.stepSimulation(physicsClientId=self.id)
 
         self.init_env_variables()
-        return self._get_obs(), {}
+        if self.gym_api_new_reset:
+            return self._get_obs(), {}
+        else:
+            return self._get_obs()
 
     def generate_target(self):
         # Set target on mouth

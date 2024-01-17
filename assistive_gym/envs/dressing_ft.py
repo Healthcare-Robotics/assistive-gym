@@ -1,8 +1,4 @@
 import os, time
-try:
-    from gymnasium import spaces
-except ImportError:
-    from gym import spaces
 import numpy as np
 import pybullet as p
 
@@ -106,7 +102,10 @@ class DressingEnv(AssistiveEnv):
         info = {'total_force_on_human': total_force_on_human, 'task_success': int(self.task_success >= self.config('task_success_threshold')), 'action_robot_len': self.action_robot_len, 'action_human_len': self.action_human_len, 'obs_robot_len': self.obs_robot_len, 'obs_human_len': self.obs_human_len}
         done = False
 
-        return obs, reward, done, False, info
+        if self.gym_api_new_step:
+            return obs, reward, done, False, info
+        else:
+            return obs, reward, done, info
 
     def _get_obs(self, forces, forces_human):
         end_effector_pos, end_effector_orient = self.robot.get_pos_orient(self.robot.left_end_effector)
@@ -247,5 +246,9 @@ class DressingEnv(AssistiveEnv):
 
         p.setGravity(0, 0, -9.81, physicsClientId=self.id)
 
-        return self._get_obs([0]*6, [0, 0]), {}
+        obs = self._get_obs([0]*6, [0, 0])
+        if self.gym_api_new_reset:
+            return obs, {}
+        else:
+            return obs
 
