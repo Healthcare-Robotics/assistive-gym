@@ -6,6 +6,7 @@ except ImportError:
 import numpy as np
 # from ray.rllib.agents.ppo import PPOTrainer, DEFAULT_CONFIG
 from ray.rllib.algorithms import ppo, sac
+from ray.rllib.utils import check_env
 from ray.tune.logger import pretty_print
 from numpngw import write_apng
 import assistive_gym
@@ -71,6 +72,7 @@ def make_env(env_name, coop=False, seed=1001):
         env_class = getattr(module, env_name.split('-')[0] + 'Env')
         env = env_class()
     env.seed(seed)
+    check_env(env)
     return env
 
 def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/', load_policy_path='', coop=False, seed=0, extra_configs={}):
@@ -98,7 +100,12 @@ def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/',
             shutil.rmtree(os.path.dirname(checkpoint_path), ignore_errors=True)
         # Save the recently trained policy
         training_result = agent.save(os.path.join(save_dir, algo, env_name))
-        checkpoint_path = training_result.checkpoint.path
+
+        try:  # for newer rllib versions
+            checkpoint_path = training_result.checkpoint.path
+        except AttributeError:
+            checkpoint_path = training_result
+
     return checkpoint_path
 
 def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, seed=0, n_episodes=1, extra_configs={}):
