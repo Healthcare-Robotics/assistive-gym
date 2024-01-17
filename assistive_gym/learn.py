@@ -3,6 +3,7 @@ try:
     import gymnasium as gym
 except ImportError:
     import gym
+from assistive_gym.envs.gym_api_wrapper import GymAPIWrapper
 import numpy as np
 # from ray.rllib.agents.ppo import PPOTrainer, DEFAULT_CONFIG
 from ray.rllib.algorithms import ppo, sac
@@ -71,6 +72,7 @@ def make_env(env_name, coop=False, seed=1001):
         env_class = getattr(module, env_name.split('-')[0] + 'Env')
         env = env_class()
     env.seed(seed)
+    env = GymAPIWrapper(env)
     return env
 
 def train(env_name, algo, timesteps_total=1000000, save_dir='./trained_models/', load_policy_path='', coop=False, seed=0, extra_configs={}):
