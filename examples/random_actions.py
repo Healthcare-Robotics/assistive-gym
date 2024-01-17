@@ -1,5 +1,8 @@
 import assistive_gym
-import gymnasium as gym
+try:
+    import gymnasium as gym
+except ImportError:
+    import gym
 
 env = gym.make('FeedingPR2-v0')
 observation, _ = env.reset()

@@ -1,5 +1,3 @@
-import os
-from gymnasium import spaces
 import numpy as np
 import pybullet as p
 

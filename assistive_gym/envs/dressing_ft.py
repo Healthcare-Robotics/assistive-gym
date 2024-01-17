@@ -1,5 +1,8 @@
 import os, time
-from gymnasium import spaces
+try:
+    from gymnasium import spaces
+except ImportError:
+    from gym import spaces
 import numpy as np
 import pybullet as p
 

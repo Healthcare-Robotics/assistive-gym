@@ -1,4 +1,7 @@
-from gymnasium.envs.registration import register
+try:
+    from gymnasium.envs.registration import register
+except ImportError:
+    from gym.envs.registration import register
 
 tasks = ['ScratchItch', 'BedBathing', 'Feeding', 'Drinking', 'Dressing', 'ArmManipulation']
 robots = ['PR2', 'Jaco', 'Baxter', 'Sawyer', 'Stretch', 'Panda']

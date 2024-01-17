@@ -1,10 +1,15 @@
 import os, time
 import numpy as np
-from gymnasium import spaces
 from screeninfo import get_monitors
 import pybullet as p
 from keras.models import load_model
-from gymnasium.utils import seeding
+try:
+    from gymnasium import spaces
+    from gymnasium.utils import seeding
+except ImportError:
+    from gym import spaces
+    from gym.utils import seeding
+
 from .human_creation import HumanCreation
 from .agents import agent, human
 from .agents.agent import Agent

@@ -1,5 +1,8 @@
 import os, sys, multiprocessing, ray, shutil, argparse, importlib, glob
-import gymnasium as gym
+try:
+    import gymnasium as gym
+except ImportError:
+    import gym
 import numpy as np
 # from ray.rllib.agents.ppo import PPOTrainer, DEFAULT_CONFIG
 from ray.rllib.algorithms import ppo, sac

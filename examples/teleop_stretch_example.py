@@ -1,5 +1,8 @@
 import assistive_gym, argparse
-import gymnasium as gym
+try:
+    import gymnasium as gym
+except ImportError:
+    import gym
 import pybullet as p
 import numpy as np
 
