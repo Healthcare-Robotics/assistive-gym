@@ -1,2 +1,5 @@
 # train a ppo on FeedingJaco-v1 env with offscreen rendering.
 python assistive_gym/learn.py --env "FeedingJaco-v1" --algo ppo --train --colab --verbose
+
+# train a sac on FeedingJaco-v1 env with offscreen rendering.
+python assistive_gym/learn.py --env "FeedingJaco-v1" --algo sac --train --colab --verbose
