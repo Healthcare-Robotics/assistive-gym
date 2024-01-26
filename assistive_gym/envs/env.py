@@ -350,18 +350,26 @@ class AssistiveEnv(gym.Env):
         pass
 
     def render(self, mode='human'):
-        if not self.gui:
-            self.gui = True
-            if self.id is not None:
-                self.disconnect()
-            try:
-                self.width = get_monitors()[0].width
-                self.height = get_monitors()[0].height
-            except Exception as e:
-                self.width = 1920
-                self.height = 1080
-            self.id = p.connect(p.GUI, options='--background_color_red=0.8 --background_color_green=0.9 --background_color_blue=1.0 --width=%d --height=%d' % (self.width, self.height))
-            self.util = Util(self.id, self.np_random)
+        if mode == 'human':
+            if not self.gui:
+                self.gui = True
+                if self.id is not None:
+                    self.disconnect()
+                try:
+                    self.width = get_monitors()[0].width
+                    self.height = get_monitors()[0].height
+                except Exception as e:
+                    self.width = 1920
+                    self.height = 1080
+                self.id = p.connect(p.GUI, options='--background_color_red=0.8 --background_color_green=0.9 --background_color_blue=1.0 --width=%d --height=%d' % (self.width, self.height))
+                self.util = Util(self.id, self.np_random)
+        else:  # rgb_array
+            if not hasattr(self, "_camera_auto_setup"):
+                self.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
+                self._camera_auto_setup = True
+            img, depth = self.get_camera_image_depth()
+            rgb_array = img[..., :3]
+            return rgb_array
 
     def get_euler(self, quaternion):
         return np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=self.id))

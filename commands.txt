@@ -3,3 +3,6 @@ python assistive_gym/learn.py --env "FeedingJaco-v1" --algo ppo --train --colab 
 
 # train a sac on FeedingJaco-v1 env with offscreen rendering.
 python assistive_gym/learn.py --env "FeedingJaco-v1" --algo sac --train --colab --verbose
+
+# collect a dataset with the ppo model
+PYTHONPATH="." python diffusion_policy/scripts/assistive_collect.py --output_path tmp_dataset/ppo_150.zarr --load-policy-path ./submodules/assistive-gym/trained_models/ppo/FeedingJaco-v1/checkpoint_000053/ --algo ppo --env FeedingJaco-v1 --episodes 150
